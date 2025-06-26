@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TODO Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem auto;
+            max-width: 900px;
+            background-color: #fdfdfd;
+            color: #333;
+        }
+
+        h1 {
+            border-bottom: 2px solid #007acc;
+            color: #007acc;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 6px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .meta {
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 0.5rem;
+        }
+
+        .filter {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter label {
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        code {
+            background: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>TODO Report</h1>
+
+    <div class="filter">
+        <label for="userFilter">Filter by Assignee:</label>
+        <select id="userFilter" onchange="filterByUser()">
+            <option value="">-- All --</option>
+            {% set users = todos | map(attribute="assignee") | select | unique | list %}
+            {% for user in users %}
+            <option value="{{ user }}">{{ user }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="section">
+        <h2>TODOs</h2>
+        {% if todos %}
+            <ul>
+                {% for t in todos %}
+                    <li class="todo-item" data-user="{{ t.assignee or '' }}">
+                        <strong>{{ t.comment.split('\n')[0] }}</strong>
+                        <div class="meta">
+                            {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
+                            {% if t.originator %}Originator: {{ t.originator }}<br>{% endif %}
+                            {% if t.created_on %}Created on: {{ t.created_on }}<br>{% endif %}
+                            {% if t.due_date %}Due date: {{ t.due_date }}<br>{% endif %}
+                            {% if t.release %}Release: {{ t.release }}<br>{% endif %}
+                            {% if t.file_name %}File: {{ t.file_name }}<br>{% endif %}
+                            {% if t.line_number %}Line: {{ t.line_number }}<br>{% endif %}
+                            {% for key, val in (t.custom_fields or {}).items() %}
+                                {% if val %}{{ key|capitalize }}: {{ val }}<br>{% endif %}
+                            {% endfor %}
+                        </div>
+                        {% if t.comment.split('\n')[1:] %}
+                            <pre>{{ t.comment.split('\n')[1:] | join('\n') }}</pre>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No TODO items.</p>
+        {% endif %}
+    </div>
+
+    <!-- Dones -->
+    <div class="section">
+        <h2>Dones</h2>
+        {% if dones %}
+            <ul>
+                {% for t in dones %}
+                    <li>
+                        <strong>{{ t.comment }}</strong>
+                        <div class="meta">
+                            {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
+                            {% if t.closed_date %}Closed: {{ t.closed_date }}<br>{% endif %}
+                            {% if t.release %}Release: {{ t.release }}<br>{% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No completed items.</p>
+        {% endif %}
+    </div>
+
+    <!-- Exceptions -->
+    <div class="section">
+        <h2>TODO Exceptions</h2>
+        {% if exceptions %}
+            <ul>
+                {% for ex in exceptions %}
+                    <li>
+                        <strong>{{ ex.message }}</strong>
+                        <div class="meta">
+                            {% if ex.assignee %}Assignee: {{ ex.assignee }}<br>{% endif %}
+                            {% if ex.due_date %}Due: {{ ex.due_date }}<br>{% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No exceptions.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function filterByUser() {
+            const selected = document.getElementById('userFilter').value;
+            const items = document.querySelectorAll('.todo-item');
+
+            items.forEach(item => {
+                const user = item.dataset.user;
+                if (!selected || user === selected) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>

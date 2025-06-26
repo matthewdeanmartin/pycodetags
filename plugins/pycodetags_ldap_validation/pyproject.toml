@@ -1,0 +1,16 @@
+[project]
+name = "pycodetags-ldap-validation"
+version = "0.1.0"
+description = "A plugin for validation users against ldap"
+dependencies = [
+    # "pycodetags"
+]
+
+[project.entry-points."pycodetags"] # This is the crucial part for pluggy
+# The key "ldap_validation" is the name of the plugin (can be anything unique)
+# The value "code_tags_ldap_validation" is the module where pluggy should look for @hookimpls
+pycodetags_ldap_validation = "pycodetags_ldap_validation.main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -1,0 +1,16 @@
+[project]
+name = "pycodetags-javascript"
+version = "0.1.0"
+description = "Plugin for pycodetags to find code tags in javascript"
+dependencies = [
+    # "pycodetags"
+]
+
+[project.entry-points."pycodetags"] # This is the crucial part for pluggy
+# The key "javascript_finder" is the name of the plugin (can be anything unique)
+# The value "code_tags_javacript" is the module where pluggy should look for @hookimpls
+pycodetags_javascript = "pycodetags_javascript.main:javascript_plugin"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

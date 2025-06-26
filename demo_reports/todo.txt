@@ -1,0 +1,120 @@
+--- ALERT ---
+# ALERT: User input is critical for interactivity, needs immediate implementation.
+# <Bob due:07/15/2025 change_type:Added>
+
+--- BUG ---
+# BUG: Chase algorithm causes fish to get stuck on edges. This needs a significant fix.
+# <Alice due:08/01/2025 change_type:Added tracker:"https://example.com/FSH-7" status:Testing category:"Chase Algorithm">
+
+# BUG: Screen clearing works sufficiently for a terminal app.
+# <originator:Kstar closed_date:2024-06-20 release:1.5.0 change_type:Added status:NOBUG>
+
+--- DATA ---
+# DATA: Add background details and rocks at the bottom.
+# <Bob due:07/01/2025 release_due:1.5.0 tracker:"https://example.com/FSH-10" iteration:1 status:Planning category:"Flavor Text">
+
+# DATA: Add dynamic environment elements like bubbles, currents, and lighting effects.
+# <Alice due:09/01/2025 release_due:2.0.0 iteration:3 status:Planning category:"Flavor Text">
+
+# DATA: Add proper game over screen and restart option for enhanced gameplay loop.
+# <Alice release_due:2.0.0 tracker:"https://example.com/FSH-16" iteration:3 status:Planning>
+
+# DATA: Consider different fish types with unique behaviors, beyond just character.
+# <Carl iteration:1 status:Planning category:"Fish Movement">
+
+# DATA: Enhance Plant class to support different types and interactions.
+# <Carl due:10/01/2025 release_due:2.0.0 status:Planning category:"Plant Generator">
+
+# DATA: Hero screen display implemented and functional.
+# <originator:Bob closed_date:2024-06-20 status:Done>
+
+# DATA: Implement collision detection for fish and tank walls.
+# <Alice release_due:1.5.0 tracker:"https://example.com/FSH-13" iteration:2 status:Development category:"Fish Movement">
+
+# DATA: Implement fish spawning logic to replenish tank population.
+# <Alice due:10/01/2025 tracker:"https://example.com/FSH-15">
+
+# DATA: Make wave generation more realistic and less static.
+# <Kstar due:08/15/2025 release_due:1.5.0 status:Development category:"Wave Generator">
+
+# DATA: Refactor Fish class for better extensibility and maintainability.
+# <Alice due:09/15/2025 release_due:2.0.0 tracker:"https://example.com/FSH-20" status:Development category:"Fish Movement">
+
+# DATA: Refine wave pattern generation for more organic look.
+# <originator:Bob iteration:2 status:Planning category:"Wave Generator">
+
+--- DOCUMENT ---
+# DOCUMENT: Add detailed documentation for Plant.update and explain why NotImplementedError is raised.
+# <originator:Kstar change_type:Added>
+
+--- DONE ---
+# DONE: Basic fish movement implemented.
+# <Carl closed_date:2024-06-19 closed_date:2024-06-19 release:1.0.0>
+
+# DONE: Basic screen buffer initialization completed.
+# <Alice,Text due:06/15/2024 release:1.0.0 tracker:"https://example.com/FSH-2" status:Done category:Flavor>
+
+# DONE: Hero screen display implemented. <Bob originator:Bob>
+
+# DONE: Static wave character setup completed.
+# <Bob,Generator due:05/01/2024 release:1.0.0 category:Wave>
+
+--- FIXME ---
+# FIXME: Wave animation is choppy, needs smoother transitions.
+# <Carl change_type:Added tracker:"https://example.com/FSH-4">
+
+--- HACK ---
+# HACK: Simplified bounce logic, consider more realistic physics.
+# <Bob due:07/30/2025 change_type:Added>
+
+--- NOBUG ---
+# NOBUG: Ensure terminal state is reset correctly on exit.
+# <Kstar closed_date:2024-06-20 closed_date:2024-06-20 release:1.5.0>
+
+--- TODO ---
+# TODO: Add background details and rocks at the bottom.
+# <Bob release_due:1.5.0 due:07/01/2025 release_due:1.5.0 tracker:"https://example.com/FSH-10" iteration:1 status:Planning category:"Flavor Text">
+
+# TODO: Add fish health and hunger stats. <Kstar>
+
+# TODO: Add food pellets for fish to eat.
+# <Carl,Text tracker:"https://example.com/FSH-14" iteration:2 status:Planning category:Flavor>
+
+# TODO: Add proper game over screen and restart option.
+# <Alice release_due:2.0.0 release_due:2.0.0 tracker:"https://example.com/FSH-16" iteration:3 status:Planning>
+
+# TODO: Display debug information (e.g., FPS, fish count).
+# <Bob,Text status:Development category:Flavor>
+
+# TODO: Implement a "hero" fish that the player controls.
+# <Alice release_due:2.0.0 release_due:2.0.0 tracker:"https://example.com/FSH-11" iteration:2 status:Planning category:"Fish Movement">
+
+# TODO: Implement collision detection for fish and tank walls.
+# <Alice release_due:1.5.0 release_due:1.5.0 tracker:"https://example.com/FSH-13" iteration:2 status:Development category:"Fish Movement">
+
+# TODO: Implement fish personality (e.g., aggressive, timid).
+# <Kstar,Text tracker:"https://example.com/FSH-5" iteration:1 status:Planning category:Flavor>
+
+# TODO: Implement fish spawning logic.
+# <Alice due:10/01/2025 tracker:"https://example.com/FSH-15">
+
+# TODO: Implement plant growth over time. <Carl>
+
+# TODO: Improve chase logic to avoid obstacles (plants).
+# <Bob,Algorithm release_due:2.0.0 due:09/01/2025 release_due:2.0.0 tracker:"https://example.com/FSH-8" iteration:3 status:Development category:Chase>
+
+# TODO: Initial screen setup and sizing for responsiveness.
+# <Alice originator:Alice tracker:"https://example.com/FSH-1">
+
+# TODO: demonstrate that js plugin works. <file_path:demo\demo.js line_number:1>
+
+--- WONTFIX ---
+# WONTFIX: Add complex terminal cleanup for all OS types.
+# <Carl tracker:"https://example.com/FSH-17">
+
+# WONTFIX: Plant animation is not critical for MVP.
+# <Kstar tracker:"https://example.com/FSH-12">
+
+
+--- Exceptions ---
+No Dones found.

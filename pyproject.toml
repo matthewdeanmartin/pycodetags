@@ -1,0 +1,326 @@
+[project]
+name = "pycodetags"
+version = "0.1.1"
+description = "TODOs in source code as a first class construct, follows PEP350"
+readme = "README.md"
+authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
+keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]
+license = "MIT"
+requires-python = ">=3.7"
+dependencies = [
+    # backwards compatibility
+    "toml; python_version < '3.11'",
+    "importlib-resources; python_version < '3.9'",
+    "typing_extensions ; python_version < '3.8'",
+    # plugin support
+    "pluggy",
+    # no additional dependencies, if it needs a dep, implement as plugin
+    # For getting the comments in the first place
+    "ast-comments; python_version >= '3.8'"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.7", # EOL
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+repository = "https://github.com/matthewdeanmartin/pycodetags"
+homepage = "https://github.com/matthewdeanmartin/pycodetags"
+documentation = "https://github.com/matthewdeanmartin/pycodetags"
+
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "pycodetags",
+]
+
+[dependency-groups]
+dev = [
+    # plugin finder
+    "packaging; python_version >= '3.8'",
+    "requests; python_version >= '3.8'",
+    "tabulate[widechars]; python_version >= '3.8'",
+    "tqdm; python_version >= '3.8'",
+    "requests-cache; python_version >= '3.8'",
+    "platformdirs; python_version >= '3.8'",
+
+    # mpy
+    "mypy; python_version >= '3.8'",
+    "types-toml; python_version >= '3.8'",
+
+    # reports
+    "jinja2; python_version >= '3.8'",
+    "bug-trail-core>=3.1.0; python_version >= '3.9'",
+    # build
+    "vermin; python_version >= '3.8'",
+    "metametameta>=0.1.2; python_version >= '3.9'",
+    "hatchling; python_version >= '3.8'",
+    "ruff>=0.12.0; python_version >= '3.8'",
+    "pylint; python_version >= '3.8'",
+
+    # testing tools
+    "pytest; python_version >= '3.8'",
+    "pytest-cov; python_version >= '3.8'",
+    "pytest-xdist>=3.5.0; python_version >= '3.8'",
+    "pytest-randomly>=3.15.0; python_version >= '3.8'",
+    "pytest-sugar>=0.9.7; python_version >= '3.8'",
+    "pytest-mock; python_version >= '3.8'",
+    "pytest-unused-fixtures; python_version >= '3.10'",
+    "hypothesis; python_version >= '3.8'",
+    # docs
+    "interrogate>=1.5.0; python_version >= '3.8'",
+    "pydoctest==0.2.1; python_version >= '3.8'",
+    "pdoc3>=0.5.0; python_version >= '3.8'",
+    "mdformat>=0.5.0; python_version >= '3.8'",
+    "linkcheckmd>=1.4.0; python_version >= '3.8'",
+    "codespell>=2.2.6; python_version >= '3.8'",
+    "pyenchant>=3.2.2; python_version >= '3.8'",
+]
+
+[tool.uv]
+default-groups = "all"
+
+[tool.uv.workspace]
+members = [".",
+    "plugins/pycodetags_github_issues_sync",
+    "plugins/pycodetags_markdown_view",
+    "plugins/pycodetags_ldap_validation",
+    "plugins/pycodetags_javascript"
+]
+
+[project.scripts]
+# These are all aliases.
+code_tags = "pycodetags.__main__:main"
+# like PEP350
+codetags = "pycodetags.__main__:main"
+# package name
+pycodetags = "pycodetags.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+#
+# contract
+# griffe = ">=0.38.1"
+
+
+[tool.black]
+line-length = 120
+target-version = ['py39']
+include = '\.pyi?$'
+exclude = '''
+
+(
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "test",
+    "tests"
+]
+junit_family = "xunit1"
+norecursedirs = ["vendor", "scripts"]
+# don't know how to do this in toml
+#addopts = "--strict-markers"
+#markers =
+#	slow: marks tests as slow (deselect with '-m "not slow"')
+#	fast: marks tests as fast (deselect with '-m "not fast"')
+
+[tool.isort]
+default_section = "THIRDPARTY"
+force_grid_wrap = 0
+include_trailing_comma = true
+known_first_party = ["dedlin"]
+line_length = 120
+multi_line_output = 3
+use_parentheses = true
+
+[tool.ruff]
+line-length = 1000
+
+# Enable Pyflakes `E` and `F` codes by default.
+lint.select = ["E", "F",
+    "D", # docs
+    "UP", # pyupgrade
+    "B", # bugbear
+]
+lint.ignore = [
+    "D402",
+    "D301", # messes with doctests
+    "E722",
+    # only track structural problems with docstrings, not whitespace, nor missing
+    "D200", "D212", "D415", "D411", "D205", "D102", "D103", "D100", "D107", "D101", "D104", "D105",
+    "UP007", "UP038", # Not sure if | is well supported in lowever versions of python
+]
+lint.per-file-ignores = { }
+
+# Allow unused variables when underscore-prefixed.
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    "dead_code",
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "venv",
+]
+
+# Assume Python 3.10.
+target-version = "py311"
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.scriv]
+version = "literal: pyproject.toml: tool.poetry.version"
+format = "md"
+main_branches = "master, main, develop, dev"
+
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain about missing debug-only code:
+    "def __repr__",
+    "if self\\.debug",
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.cli-tools]
+python = { name = "python", version = ">=3.11.1", schema = "semver", tags = ["build"] }
+mypy = { name = "mypy", version = ">=1.0.0", schema = "semver", tags = ["build", "work"], install_command = "pipx install mypy", install_docs = "https://mypy.readthedocs.io/en/stable/getting_started.html" }
+pylint = { name = "pylint", version = ">=1.0.0", schema = "semver", tags = ["build", "work", "user"] }
+black = { name = "black", version = ">=1.0.0", schema = "semver" }
+ruff = { name = "ruff", version = ">=0.6.2", schema = "semver" }
+vulture = { name = "vulture", version = "*", schema = "semver" }
+
+
+
+
+[tool.bug_trail]
+app_name = "pycodetags"
+app_author = "matth"
+source_folder = "pycodetags"
+# ctags_file = "code_tags.tags"
+
+[tool.pycodetags]
+# Range Validation, Range Sources
+# Empty list means use file
+valid_authors = []
+valid_authors_file = "AUTHORS.md"
+# Can be Gnits, single_column, humans.txt
+valid_authors_schema = "single_column"
+# Case-insensitive. Needs at least "done"
+valid_status = [
+    "planning",
+    "ready",
+    "done",
+    "development",
+    "inprogress",
+    "testing",
+    "closed",
+    "fixed",
+    "nobug",
+    "wontfix"
+]
+# Only displayed
+valid_categories = []
+# Only displayed
+valid_priorities = ["high", "medium", "low"]
+
+# Used to support change log generation and other features.
+closed_status = ["done", "closed", "fixed", "nobug", "wontfix"]
+# Empty list means no restrictions
+valid_releases = []
+# Use to look up valid releases (versions numbers)
+valid_releases_file = "CHANGELOG.md"
+valid_releases_file_schema = "CHANGELOG.md"
+# Used in sorting and views
+releases_schema = "semantic"
+# Subsection of release. Only displayed.
+valid_iterations = ["1", "2", "3", "4"]
+
+# Empty list means all are allowed
+valid_custom_field_names = []
+# Originator and origination date are important for issue identification
+# Without it, heuristics are more likely to fail to match issues to their counterpart in git history
+mandatory_fields = ["originator", "origination_date"]
+# Helpful for parsing tracker field, used to make ticket a clickable url
+tracker_domain = "example.com"
+# Can be url or ticket
+tracker_style = "url"
+
+# Active user from "os", "env", "git"
+user_identification_technique = "os"
+# .env variable if method is "env"
+user_env_var = "CODE_TAGS_USER"
+
+# Defines the action for a TODO condition: "stop", "warn", "nothing".
+enable_actions = true
+default_action = "warn"
+action_on_past_due = true
+action_only_on_responsible_user = true
+
+# Environment detection
+disable_on_ci = true
+
+# Use .env file
+use_dot_env = true
+
+# default CLI arguments
+modules = ["demo","pycodetags"]
+src = ["demo", "pycodetags", "tests", "plugins"]
+active_schemas = ["todo"]
+
+[tool.pycodetags.synonyms]
+REQUIREMENT = ["REQ", "REQS", "REQUIREMENTS"]
+TODO = ["TASK", "ISSUE"]

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="issueTrackerApp" class="h-full bg-gray-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isopod Issue Tracker</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom font and minor style adjustments */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Simple animation for entering items */
+        .task-item.ng-enter {
+            transition: all 0.3s ease-in-out;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .task-item.ng-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="h-full antialiased" ng-controller="MainController as ctrl">
+
+    <div class="min-h-full">
+        <!-- Main Header -->
+        <header class="bg-gray-800 shadow-sm">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
+                <h1 class="text-2xl font-bold tracking-tight text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mr-2 -mt-1" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                    </svg>
+                    Isopod Issue Tracker
+                </h1>
+            </div>
+        </header>
+
+        <main class="py-10">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <!-- Filters and Controls -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow-md mb-8">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Filter by user -->
+                        <div>
+                            <label for="userFilter" class="block text-sm font-medium text-gray-300">Filter by Assignee</label>
+                            <div class="mt-1">
+                                <input type="text" id="userFilter" ng-model="ctrl.filters.assignee" class="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" placeholder="e.g., Alice">
+                            </div>
+                        </div>
+
+                        <!-- Grouping Control -->
+                        <div>
+                            <label for="groupBy" class="block text-sm font-medium text-gray-300">Group To-Do By</label>
+                            <div class="mt-1">
+                                <select id="groupBy" ng-model="ctrl.groupByField" class="block w-full rounded-md bg-gray-700 border-gray-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2">
+                                    <option value="version_due">Version Due</option>
+                                    <option value="assignee">Assignee</option>
+                                    <option value="severity">Severity</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Toggle Done visibility -->
+                        <div class="flex items-end">
+                             <div class="relative flex items-start">
+                                <div class="flex h-5 items-center">
+                                    <input id="showDone" type="checkbox" ng-model="ctrl.showDone" class="h-4 w-4 rounded border-gray-500 bg-gray-700 text-indigo-600 focus:ring-indigo-500">
+                                </div>
+                                <div class="ml-3 text-sm">
+                                    <label for="showDone" class="font-medium text-gray-300">Show Completed Tasks</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- To-Do Section -->
+                <div class="mb-12">
+                    <h2 class="text-xl font-semibold text-white mb-4">To-Do</h2>
+                    <div ng-if="!ctrl.hasTodos" class="text-center py-8 bg-gray-800 rounded-lg">
+                        <p class="text-gray-400">No pending tasks match the current filters.</p>
+                    </div>
+                    <div ng-repeat="(group, todos) in ctrl.filteredTodos | groupBy: ctrl.groupByField" class="mb-6">
+                        <h3 class="text-lg font-medium text-indigo-400 mb-3 border-b border-gray-700 pb-2">
+                            {{ group }}
+                        </h3>
+                        <div class="space-y-4">
+                            <div ng-repeat="todo in todos" class="task-item bg-gray-800 rounded-lg shadow-lg p-4 flex flex-col sm:flex-row gap-4">
+                                <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-lg" ng-class="ctrl.getChangeTypeColor(todo.change_type)">
+                                    <svg ng-if="todo.change_type === 'Added'" class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    <svg ng-if="todo.change_type === 'Changed'" class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0011.664 0l3.181-3.183m-4.991-2.695v-2.126c0-1.158.94-2.098 2.098-2.098h.286c1.158 0 2.098.94 2.098 2.098v2.126m-4.595 0a8.25 8.25 0 01-11.664 0m11.664 0l-3.181 3.183M2.985 12.344L6.167 9.16" /></svg>
+                                    <svg ng-if="todo.change_type === 'Fixed'" class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.527-1.042.49-2.358-.1-3.464l-2.086-2.655a1.125 1.125 0 00-1.752-.162l-2.086 2.655c-.58.741-.636 1.766-.162 2.654l2.496 3.03z" /></svg>
+                                    <svg ng-if="todo.change_type === 'Security'" class="h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" /></svg>
+                                </div>
+                                <div class="flex-grow">
+                                    <p class="text-white font-medium">{{ todo.message }}</p>
+                                    <div class="text-sm text-gray-400 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                        <span class="font-semibold text-gray-200">{{ todo.assignee }}</span>
+                                        <span>Due: <span class="font-medium text-gray-300">{{ todo.due_date }}</span></span>
+                                        <a href="{{ todo.tracker }}" target="_blank" class="text-indigo-400 hover:text-indigo-300">View Ticket</a>
+                                    </div>
+                                    <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset" ng-class="ctrl.getSeverityColor(todo.severity)">
+                                            {{ todo.severity }}
+                                        </span>
+                                        <span ng-repeat="tag in todo.tags" class="inline-flex items-center rounded-full bg-gray-600 px-2 py-1 text-xs font-medium text-gray-200 ring-1 ring-inset ring-gray-500/10">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Done Section -->
+                <div ng-if="ctrl.showDone">
+                    <h2 class="text-xl font-semibold text-white mb-4 border-t border-gray-700 pt-8">Done</h2>
+                    <div class="space-y-4">
+                        <div ng-repeat="done in ctrl.filteredDones" class="task-item bg-gray-800/50 rounded-lg p-4 opacity-70 hover:opacity-100 transition-opacity duration-200">
+                             <div class="flex-grow">
+                                <p class="text-gray-300">{{ done.description }}</p>
+                                <div class="text-sm text-gray-500 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                                    <span class="font-semibold text-gray-400">{{ done.author }}</span>
+                                    <span>Version: <span class="font-medium text-gray-400">{{ done.version }}</span></span>
+                                    <span ng-class="ctrl.getChangeTypeColorText(done.change_type)" class="font-bold">{{ done.change_type }}</span>
+                                    <a href="{{ done.tracker }}" target="_blank" class="text-indigo-500 hover:text-indigo-400">View Ticket</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    // AngularJS Application
+    const app = angular.module('issueTrackerApp', []);
+
+    // Main Controller for the application
+    app.controller('MainController', function($scope, $filter) {
+        const ctrl = this;
+
+        // --- DATA ---
+        // This is the raw JSON data provided in the prompt
+        const data = {
+          "todos": [{"assignee":"Alice","due_date":"07/15/2025","message":"Implement advanced AI for 'Queen Isopod' behavior.","tracker":"https://jira.example.com/browse/ISOPOD-001","severity":"high","tags":["AI","core-gameplay"],"version_due":"0.4.0","release_due":null,"change_type":"Added","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Bob","due_date":"08/01/2025","message":"Create new UI/UX for resource management screen.","tracker":"https://jira.example.com/browse/ISOPOD-002","severity":"medium","tags":["UI","UX"],"version_due":"0.4.0","release_due":null,"change_type":"Changed","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Charlie","due_date":"07/20/2025","message":"Debug pathfinding issues for worker isopods.","tracker":"https://jira.example.com/browse/ISOPOD-003","severity":"high","tags":["bug","gameplay"],"version_due":"0.3.1","release_due":null,"change_type":"Fixed","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Alice","due_date":"09/01/2025","message":"Design and implement new enemy type: 'Acidic Centipede'.","tracker":"https://jira.example.com/browse/ISOPOD-004","severity":"high","tags":["enemies","content"],"version_due":"0.5.0","release_due":null,"change_type":"Added","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Bob","due_date":"07/25/2025","message":"Refactor save/load system for better performance.","tracker":"https://jira.example.com/browse/ISOPOD-005","severity":"medium","tags":["backend","optimization"],"version_due":"0.4.0","release_due":null,"change_type":"Changed","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Charlie","due_date":"08/15/2025","message":"Add sound effects for new building constructions.","tracker":"https://jira.example.com/browse/ISOPOD-006","severity":"low","tags":["audio"],"version_due":"0.4.0","release_due":null,"change_type":"Added","created_at":"2025-06-14T13:17:59.000000"},{"assignee":"Alice","due_date":"10/01/2025","message":"Investigate and resolve potential security vulnerabilities in network code.","tracker":"https://jira.example.com/browse/ISOPOD-007","severity":"critical","tags":["security","multiplayer"],"version_due":"0.5.0","release_due":null,"change_type":"Security","created_at":"2025-06-14T13:17:59.000000"}],
+          "dones": [{"tracker":"https://jira.example.com/browse/ISOPOD-B01","change_type":"Added","description":"Implemented basic movement mechanics for player character.","author":"Alice","version":"0.1.0","closed_at":"2024-03-10T10:00:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-B02","change_type":"Fixed","description":"Resolved collision detection bug with static environment objects.","author":"Charlie","version":"0.1.0","closed_at":"2024-03-15T11:30:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-B03","change_type":"Changed","description":"Adjusted initial game difficulty settings based on playtesting feedback.","author":"Bob","version":"0.1.0","closed_at":"2024-03-20T14:00:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-C01","change_type":"Added","description":"Integrated save/load functionality for basic game progress.","author":"Bob","version":"0.2.0","closed_at":"2024-05-01T09:00:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-C02","change_type":"Removed","description":"Removed deprecated debug logging statements from production build.","author":"Charlie","version":"0.2.0","closed_at":"2024-05-05T16:00:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-C03","change_type":"Fixed","description":"Patched exploit allowing infinite resource duplication.","author":"Alice","version":"0.2.0","closed_at":"2024-05-10T13:00:00.000000"},{"tracker":"https://jira.example.com/browse/ISOPOD-C04","change_type":"Deprecated","description":"Deprecated old rendering pipeline in favor of new physically-based renderer.","author":"Alice","version":"0.2.0","closed_at":"2024-05-12T10:00:00.000000"}]
+        };
+
+        // --- STATE & DEFAULTS ---
+        ctrl.allTodos = data.todos;
+        ctrl.allDones = data.dones;
+
+        // Default filter settings
+        ctrl.filters = { assignee: '' };
+        ctrl.showDone = false; // By default, completed tasks are hidden
+        ctrl.groupByField = 'version_due'; // Default grouping
+
+        // --- UI HELPER FUNCTIONS ---
+
+        // Get Tailwind CSS classes for severity levels
+        ctrl.getSeverityColor = (severity) => {
+            switch (severity) {
+                case 'critical': return 'bg-red-500/10 text-red-400 ring-red-400/20';
+                case 'high':     return 'bg-orange-500/10 text-orange-400 ring-orange-400/20';
+                case 'medium':   return 'bg-yellow-500/10 text-yellow-400 ring-yellow-400/20';
+                case 'low':      return 'bg-blue-500/10 text-blue-400 ring-blue-400/20';
+                default:         return 'bg-gray-500/10 text-gray-400 ring-gray-400/20';
+            }
+        };
+
+        // Get background colors for change types
+        ctrl.getChangeTypeColor = (type) => {
+            switch (type) {
+                case 'Added':    return 'bg-green-500';
+                case 'Changed':  return 'bg-blue-500';
+                case 'Fixed':    return 'bg-yellow-500';
+                case 'Security': return 'bg-red-500';
+                case 'Removed':  return 'bg-purple-500';
+                case 'Deprecated': return 'bg-gray-500';
+                default:         return 'bg-gray-600';
+            }
+        };
+
+        // Get text colors for change types (used in 'Done' list)
+        ctrl.getChangeTypeColorText = (type) => {
+             switch (type) {
+                case 'Added':    return 'text-green-400';
+                case 'Changed':  return 'text-blue-400';
+                case 'Fixed':    return 'text-yellow-400';
+                case 'Security': return 'text-red-400';
+                case 'Removed':  return 'text-purple-400';
+                case 'Deprecated': return 'text-gray-400';
+                default:         return 'text-gray-500';
+            }
+        };
+
+
+        // --- FILTERING & GROUPING LOGIC ---
+
+        // We use a watcher to react to changes in filters and update the displayed lists
+        $scope.$watchGroup(['ctrl.filters.assignee', 'ctrl.showDone'], () => {
+            // Apply filters to To-Do list
+            let tempTodos = $filter('filter')(ctrl.allTodos, { assignee: ctrl.filters.assignee });
+            ctrl.filteredTodos = tempTodos;
+
+            // Check if there are any results after filtering
+            ctrl.hasTodos = tempTodos.length > 0;
+
+            // Apply filters to Done list (using 'author' field)
+            ctrl.filteredDones = $filter('filter')(ctrl.allDones, { author: ctrl.filters.assignee });
+        });
+
+    });
+
+    /**
+     * Custom Angular filter to group an array of objects by a property.
+     * This is used for the "Group By" functionality.
+     */
+    app.filter('groupBy', function() {
+        return function(items, group_by) {
+            if (!items) {
+                return;
+            }
+
+            const groups = {};
+            items.forEach(function(item) {
+                const key = item[group_by];
+                groups[key] = groups[key] || [];
+                groups[key].push(item);
+            });
+            return groups;
+        };
+    });
+
+</script>
+
+</body>
+</html>
