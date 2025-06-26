@@ -8,6 +8,7 @@ import importlib
 import logging
 import logging.config
 import pathlib
+import sys
 
 import pycodetags.folk_code_tags as folk_code_tags
 import pycodetags.standard_code_tags as standard_code_tags
@@ -67,11 +68,13 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
 
     pm = get_plugin_manager()
     found: CollectedTODOs = {}
-    if bool(module_name):
+    if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
-        module = importlib.import_module(module_name)
-
-        found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+        try:
+            module = importlib.import_module(module_name)
+            found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+        except ImportError:
+            print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
 
     found_folk_code_tags = []
     found_pep350_code_tags = []

@@ -23,8 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugins: Add plugin system
 - DATA: a code tag for supporting discussion, data, code review, etc.
 
+## [0.1.2] - 2025-06-26
+
+## Fixed
+- Importing colored logging when it isn't available.
+- Defensive coding on arg parse
+- Defensive coding on "can't import"
+
 ## [Unreleased]
 
 ### Added
 - Views: Add dashboard website with filter, sort, detail views.
 - UnionListStr: Support values that are lists or strings
+
+### Fixed 
+- Double code tags found when they match two schemas (folk and PEP350)

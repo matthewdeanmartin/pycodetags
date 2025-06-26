@@ -13,6 +13,7 @@ import importlib
 import logging
 import logging.config
 import pathlib
+import sys
 
 import pycodetags.folk_code_tags as folk_code_tags
 import pycodetags.standard_code_tags as standard_code_tags
@@ -72,11 +73,13 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
 
     pm = get_plugin_manager()
     found: CollectedTODOs = {}
-    if bool(module_name):
+    if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
-        module = importlib.import_module(module_name)
-
-        found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+        try:
+            module = importlib.import_module(module_name)
+            found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+        except ImportError:
+            print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
 
     found_folk_code_tags = []
     found_pep350_code_tags = []
@@ -2147,6 +2150,17 @@ import logging
 import os
 from typing import Any
 
+try:
+    import colorlog  # noqa
+
+    # This is only here so that I can see if colorlog is installed
+    # and to keep autofixers from removing an "unused import"
+    if False:  # pylint: disable=using-constant-test
+        assert colorlog  # noqa # nosec
+    colorlog_available = True
+except ImportError:  # no qa
+    colorlog_available = False
+
 
 def generate_config(level: str = "DEBUG", enable_bug_trail: bool = False) -> dict[str, Any]:
     """
@@ -2184,6 +2198,10 @@ def generate_config(level: str = "DEBUG", enable_bug_trail: bool = False) -> dic
             }
         },
     }
+    if not colorlog_available:
+        del config["formatters"]["colored"]
+        config["handlers"]["default"]["formatter"] = "standard"
+
     if os.environ.get("NO_COLOR") or os.environ.get("CI"):
         config["handlers"]["default"]["formatter"] = "standard"
 
@@ -4177,12 +4195,31 @@ def group_and_sort(
 ```python
 """Metadata for pycodetags."""
 
-__all__ = ["__title__", "__version__", "__description__", "__requires_python__"]
+__all__ = [
+    "__title__",
+    "__version__",
+    "__description__",
+    "__readme__",
+    "__keywords__",
+    "__license__",
+    "__requires_python__",
+    "__status__",
+    "__repository__",
+    "__homepage__",
+    "__documentation__",
+]
 
 __title__ = "pycodetags"
-__version__ = "0.1.0"
-__description__ = "TODOs in source code as a first class construct"
-__requires_python__ = ">=3.8"
+__version__ = "0.1.1"
+__description__ = "TODOs in source code as a first class construct, follows PEP350"
+__readme__ = "README.md"
+__keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]
+__license__ = "MIT"
+__requires_python__ = ">=3.7"
+__status__ = "4 - Beta"
+__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
+__homepage__ = "https://github.com/matthewdeanmartin/pycodetags"
+__documentation__ = "https://github.com/matthewdeanmartin/pycodetags"
 
 ```
 
@@ -4366,7 +4403,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(args=argv)
 
-    if args.config:
+    if hasattr(args, "config") and args.config:
         code_tags_config = CodeTagsConfig(pyproject_path=args.config)
     else:
         code_tags_config = CodeTagsConfig()
@@ -4374,15 +4411,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     if code_tags_config.use_dot_env():
         load_dotenv()
 
-    if args.verbose:
-        config = generate_config(level="DEBUG", enable_bug_trail=args.bug_trail)
+    verbose = hasattr(args, "verbose") and args.verbose
+    info = hasattr(args, "info") and args.info
+    bug_trail = hasattr(args, "bug_trail") and args.bug_trail
+
+    if verbose:
+        config = generate_config(level="DEBUG", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
-    elif args.info:
-        config = generate_config(level="INFO", enable_bug_trail=args.bug_trail)
+    elif info:
+        config = generate_config(level="INFO", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
     else:
         # Essentially, quiet mode
-        config = generate_config(level="FATAL", enable_bug_trail=args.bug_trail)
+        config = generate_config(level="FATAL", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
 
     if not args.command:

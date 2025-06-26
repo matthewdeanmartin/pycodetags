@@ -131,7 +131,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(args=argv)
 
-    if args.config:
+    if hasattr(args, "config") and args.config:
         code_tags_config = CodeTagsConfig(pyproject_path=args.config)
     else:
         code_tags_config = CodeTagsConfig()
@@ -139,15 +139,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     if code_tags_config.use_dot_env():
         load_dotenv()
 
-    if args.verbose:
-        config = generate_config(level="DEBUG", enable_bug_trail=args.bug_trail)
+    verbose = hasattr(args, "verbose") and args.verbose
+    info = hasattr(args, "info") and args.info
+    bug_trail = hasattr(args, "bug_trail") and args.bug_trail
+
+    if verbose:
+        config = generate_config(level="DEBUG", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
-    elif args.info:
-        config = generate_config(level="INFO", enable_bug_trail=args.bug_trail)
+    elif info:
+        config = generate_config(level="INFO", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
     else:
         # Essentially, quiet mode
-        config = generate_config(level="FATAL", enable_bug_trail=args.bug_trail)
+        config = generate_config(level="FATAL", enable_bug_trail=bug_trail)
         logging.config.dictConfig(config)
 
     if not args.command:
