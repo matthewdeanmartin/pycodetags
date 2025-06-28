@@ -18,7 +18,7 @@ from pycodetags.specific_schemas import PEP350Schema
 try:
     from typing import Literal  # type:ignore[assignment,unused-ignore]
 except ImportError:
-    from typing_extensions import Literal  # type:ignore[assignment,unused-ignore]
+    from typing_extensions import Literal  # type:ignore[assignment,unused-ignore] # noqa
 
 from pycodetags.config import get_code_tags_config
 from pycodetags.todo_object_schema import TODO_KEYWORDS

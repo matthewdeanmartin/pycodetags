@@ -36,8 +36,7 @@ from pycodetags.specific_schemas import PEP350Schema
 try:
     from typing import TypedDict
 except ImportError:
-
-    from typing_extensions import TypedDict
+    from typing_extensions import TypedDict # noqa
 
 logger = logging.getLogger(__name__)
 

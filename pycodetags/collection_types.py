@@ -3,7 +3,7 @@ from __future__ import annotations
 try:
     from typing import TypedDict  # noqa: F401
 except ImportError:
-    from typing_extensions import TypedDict
+    from typing_extensions import TypedDict # noqa
 
 from pycodetags import TODO, TodoException
 

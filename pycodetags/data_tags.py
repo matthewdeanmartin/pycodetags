@@ -36,7 +36,7 @@ from typing import Any
 try:
     from typing import TypedDict
 except ImportError:
-    from typing_extensions import TypedDict
+    from typing_extensions import TypedDict # noqa
 
 logger = logging.getLogger(__name__)
 

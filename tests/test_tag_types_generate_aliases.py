@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-import sys
 import re
 from dataclasses import dataclass, field, fields
 

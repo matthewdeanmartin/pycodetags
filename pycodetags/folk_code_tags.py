@@ -27,8 +27,8 @@ import re
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore]
-    from typing_extensions import TypedDict
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
+    from typing_extensions import TypedDict # noqa
 
 
 logger = logging.getLogger(__name__)

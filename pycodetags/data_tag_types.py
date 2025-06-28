@@ -13,7 +13,7 @@ from typing import Any, cast,Callable # noqa
 try:
     from typing import Literal  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore]
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
 
 logger = logging.getLogger(__name__)
 
