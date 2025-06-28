@@ -28,8 +28,11 @@ def sample_data() -> CollectedTODOs:
         d.closed_date = datetime.datetime(2025, 1, 1)
         wrapped.todo_meta = d
 
+    d3 = TODO(status="todo", tracker="http://x/3", change_type="Changed", comment="Desc3", release="2.0")
+    d3.todo_meta = d3
+
     ex = TodoException(message="Oh no!")
-    found = {"dones": [d1, d2, d3], "todos": [td], "exceptions": [ex]}
+    found = {"todos": [td, d1, d2, d3], "exceptions": [ex]}
     return found
 
 
@@ -55,3 +58,7 @@ def test_print_todo_md(sample_data):
 
 def test_print_validate(sample_data):
     views.print_validate(sample_data)
+
+
+def test_print_done_file(sample_data):
+    views.print_done_file(sample_data)

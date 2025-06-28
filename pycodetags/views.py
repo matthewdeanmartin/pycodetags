@@ -39,7 +39,6 @@ def print_validate(found: CollectedTODOs) -> None:
         validations = item.validate()
         if validations:
             print(item.as_pep350_comment())
-            print(item.as_pep350_comment())
             for validation in validations:
                 print(f"  {validation}")
             print()
@@ -119,7 +118,7 @@ def print_json(found: CollectedTODOs) -> None:
 
     todo_exceptions = found.get("exceptions", [])
     output = {
-        "todos": [t.todo_meta.to_dict() for t in todos if t.todo_meta],
+        "todos": [t.to_dict() for t in todos],
         "exceptions": [e.to_dict() for e in todo_exceptions],
     }
 
@@ -209,9 +208,9 @@ def print_todo_md(found: CollectedTODOs) -> None:
     print("# Code Tags TODO Board")
     print("Tasks and progress overview.\n")
     print("Legend:")
-    print("~ means due")
-    print("@ means assignee")
-    print("# means category")
+    print("`~` means due")
+    print("`@` means assignee")
+    print("`#` means category")
 
     config = get_code_tags_config()
 

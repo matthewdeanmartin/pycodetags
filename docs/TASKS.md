@@ -2,7 +2,9 @@
 
 ## Basic Types Issues
 - Identity, strict, fuzzy, by schema
+  - Need this for tracking issues across git history.
 - Overlapping values and strict mode
+  - See promotion code, which lacks a good unit test.
 - Huge mess with assignee/assignees being both `str | list[str]` Should probably force to always be list[str]: STILL A MESS
   - Maybe implement S() type that is a wrapper of str and list[str] with reasonable interface
 
@@ -21,7 +23,8 @@
 - Finds tags inside of doc strings! Those aren't comments!
 
 ## CLI conveniences
-- Turn off folk tags, turn off PEP tags individually
+- Turn off folk tags, turn off PEP tags individually. Can do by config, not by CLI
+- Infer location of source code, `pycodetags report .`
 
 ## Public Interface
 - Put basic things in CORE
@@ -94,6 +97,7 @@ Ironically, the library isn't ready to track its own TODO
   - TODO.md - Kind of done, clunky, not sure if it works with kanban plugin.
   - DONE.md - DONE
   - CHANGELOG.md - Need to validate.
+- Before release pipx install and exercise it!
 
 ## Git Integration
 

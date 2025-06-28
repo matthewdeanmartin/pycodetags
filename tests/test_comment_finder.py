@@ -3,10 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from pycodetags.comment_finder import (  # Adjust according to actual module name
-    extract_comment_text,
-    find_comment_blocks,
-)
+from pycodetags.comment_finder import extract_comment_text, find_comment_blocks
 
 
 def _write_temp_file(tmp_path: Path, content: str) -> Path:

@@ -7,7 +7,8 @@ from pycodetags.views import print_changelog, print_json
 
 def test_print_json(capsys):
     class Dummy:
-        pass
+        def to_dict(self):
+            return {}
 
     dummy = Dummy()
     dummy.todo_meta = type("X", (), {"to_dict": lambda self: {"a": 1}})()

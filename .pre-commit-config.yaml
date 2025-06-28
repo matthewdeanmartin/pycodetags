@@ -41,7 +41,7 @@ repos:
           - --in-place
           - --recursive
           - --expand-star-imports
-          - --remove-all-unused-imports
+          # - --remove-all-unused-imports
           - --remove-duplicate-keys
           - --remove-unused-variables
 # black is conflicting with something else

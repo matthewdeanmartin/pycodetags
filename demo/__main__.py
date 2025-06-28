@@ -24,8 +24,15 @@ PLANT_CHARS = ["Y", "|", "!", "/", "\\"]
 WAVE_CHARS = ["~", "-", "_", "^"]
 
 
-@TODO(assignee="Alice", due="09/15/2025", release_due="2.0.0", category="Fish Movement", status="Development",
-      tracker="https://example.com/FSH-20", comment="Refactor Fish class for better extensibility and maintainability.")
+@TODO(
+    assignee="Alice",
+    due="09/15/2025",
+    release_due="2.0.0",
+    category="Fish Movement",
+    status="Development",
+    tracker="https://example.com/FSH-20",
+    comment="Refactor Fish class for better extensibility and maintainability.",
+)
 class Fish:
     # DONE: Basic fish movement implemented. <Carl closed_date=2024-06-19 release=1.0.0>
     def __init__(self, x: int, y: int, char: str, speed: int = 1):
@@ -68,10 +75,15 @@ class Fish:
         # Keep fish within the "water" area (below waves, above plants)
         self.y = max(2, min(self.y, screen_height - 3))  # Avoid waves and very bottom
 
-    @BUG(assignee="Alice", due="08/01/2025",
-         comment="Chase algorithm causes fish to get stuck on edges. This needs a significant fix.",
-         category="Chase Algorithm", status="Testing", tracker="https://example.com/FSH-7")
-    def chase(self, target_fish: 'Fish', screen_width: int, screen_height: int):
+    @BUG(
+        assignee="Alice",
+        due="08/01/2025",
+        comment="Chase algorithm causes fish to get stuck on edges. This needs a significant fix.",
+        category="Chase Algorithm",
+        status="Testing",
+        tracker="https://example.com/FSH-7",
+    )
+    def chase(self, target_fish: "Fish", screen_width: int, screen_height: int):
         """
         Logic for chasing another fish.
         FIXME: Chase algorithm causes fish to get stuck on edges. <Alice due=08/01/2025 category=Chase Algorithm status=Testing tracker=https://example.com/FSH-7>
@@ -98,8 +110,14 @@ class Fish:
         self.move(screen_width, screen_height)  # Apply movement based on chase or bounce
 
 
-@TODO(assignee="Carl", due="10/01/2025", release_due="2.0.0", category="Plant Generator", status="Planning",
-      comment="Enhance Plant class to support different types and interactions.")
+@TODO(
+    assignee="Carl",
+    due="10/01/2025",
+    release_due="2.0.0",
+    category="Plant Generator",
+    status="Planning",
+    comment="Enhance Plant class to support different types and interactions.",
+)
 class Plant:
     def __init__(self, x: int, y: int, char: str):
         self.x = x
@@ -107,19 +125,28 @@ class Plant:
         self.char = char
         # TODO: Implement plant growth over time. <Carl>
 
-    @DOCUMENT(originator="Kstar",
-              comment="Add detailed documentation for Plant.update and explain why NotImplementedError is raised.")
+    @DOCUMENT(
+        originator="Kstar",
+        comment="Add detailed documentation for Plant.update and explain why NotImplementedError is raised.",
+    )
     def update(self):
         """
         Updates the plant's state (e.g., growth animation).
         """
         # NOT IMPLEMENTED: Plant animation logic for swaying or growing.
         raise NotImplementedError(
-            "Plant animation is not yet implemented. This feature will add dynamic plant swaying.")
+            "Plant animation is not yet implemented. This feature will add dynamic plant swaying."
+        )
 
 
-@TODO(assignee="Kstar", due="08/15/2025", release_due="1.5.0", category="Wave Generator", status="Development",
-      comment="Make wave generation more realistic and less static.")
+@TODO(
+    assignee="Kstar",
+    due="08/15/2025",
+    release_due="1.5.0",
+    category="Wave Generator",
+    status="Development",
+    comment="Make wave generation more realistic and less static.",
+)
 class Wave:
     # DONE: Static wave character setup completed. <Bob due=05/01/2024 release=1.0.0 category=Wave Generator>
     def __init__(self, width: int, char_set: list[str]):
@@ -129,16 +156,27 @@ class Wave:
         self.wave_pattern = ""
         self._generate_pattern()
 
-    @TODO(originator="Bob", comment="Refine wave pattern generation for more organic look.", category="Wave Generator",
-          status="Planning", iteration="2")
+    @TODO(
+        originator="Bob",
+        comment="Refine wave pattern generation for more organic look.",
+        category="Wave Generator",
+        status="Planning",
+        iteration="2",
+    )
     def _generate_pattern(self):
         """Generates a random wave pattern."""
         self.wave_pattern = "".join(random.choice(self.char_set) for _ in range(self.width))
 
-    @FIXME(assignee="Carl", tracker="https://example.com/FSH-4",
-           comment="Wave animation is choppy, needs smoother transitions.")
-    @TODO(assignee="Kstar", tracker="https://example.com/FSH-3",
-          comment="Make wave pattern more dynamic and fluid (e.g., gentle oscillation).")
+    @FIXME(
+        assignee="Carl",
+        tracker="https://example.com/FSH-4",
+        comment="Wave animation is choppy, needs smoother transitions.",
+    )
+    @TODO(
+        assignee="Kstar",
+        tracker="https://example.com/FSH-3",
+        comment="Make wave pattern more dynamic and fluid (e.g., gentle oscillation).",
+    )
     def update(self):
         """
         Updates the wave pattern for animation.
@@ -150,13 +188,20 @@ class Wave:
         self.wave_pattern = self.wave_pattern[1:] + self.wave_pattern[0]
 
 
-@TODO(assignee="Alice", due="09/01/2025", iteration="3", release_due="2.0.0", category="Flavor Text",
-      status="Planning", comment="Add dynamic environment elements like bubbles, currents, and lighting effects.")
+@TODO(
+    assignee="Alice",
+    due="09/01/2025",
+    iteration="3",
+    release_due="2.0.0",
+    category="Flavor Text",
+    status="Planning",
+    comment="Add dynamic environment elements like bubbles, currents, and lighting effects.",
+)
 class FishTank:
     def __init__(self, width: int, height: int, num_fish: int = 5, num_plants: int = 3):
         self.width = width
         self.height = height
-        self.screen_buffer = [[' ' for _ in range(width)] for _ in range(height)]
+        self.screen_buffer = [[" " for _ in range(width)] for _ in range(height)]
         self.fishes: list[Fish] = []
         self.plants: list[Plant] = []
         self.wave = Wave(width, WAVE_CHARS)
@@ -166,8 +211,13 @@ class FishTank:
 
         self._initialize_elements(num_fish, num_plants)
 
-    @TODO(assignee="Carl", category="Fish Movement", status="Planning", iteration="1",
-          comment="Consider different fish types with unique behaviors, beyond just character.")
+    @TODO(
+        assignee="Carl",
+        category="Fish Movement",
+        status="Planning",
+        iteration="1",
+        comment="Consider different fish types with unique behaviors, beyond just character.",
+    )
     def _initialize_elements(self, num_fish: int, num_plants: int):
         """
         Initializes fish and plant objects.
@@ -185,28 +235,54 @@ class FishTank:
             char = random.choice(PLANT_CHARS)
             self.plants.append(Plant(x, y, char))
 
-    @BUG(status="NOBUG", originator="Kstar", closed_date="2024-06-20", release="1.5.0",
-           comment="Screen clearing works sufficiently for a terminal app.")
+    @BUG(
+        status="NOBUG",
+        originator="Kstar",
+        closed_date="2024-06-20",
+        release="1.5.0",
+        comment="Screen clearing works sufficiently for a terminal app.",
+    )
     def _clear_screen(self):
         """Clears the terminal screen."""
-        os.system('cls' if os.name == 'nt' else 'clear')
+        os.system("cls" if os.name == "nt" else "clear")
 
-    @TODO(assignee="Bob", due="07/01/2025", release_due="1.5.0", category="Flavor Text", status="Planning",
-          iteration="1", tracker="https://example.com/FSH-10",
-          comment="Add background details and rocks at the bottom.")
-    @TODO(assignee="Alice", release_due="2.0.0", iteration="2", category="Fish Movement", status="Planning",
-          tracker="https://example.com/FSH-11", comment="Implement a 'hero' fish that the player controls.")
-    @TODO(assignee="Bob", category="Flavor Text", status="Development",
-          comment="Display debug information (e.g., FPS, fish count).")
-    @FIXME(originator="Bob", tracker="https://example.com/FSH-9",
-           comment="Screen flickering due to re-drawing. Needs optimization (e.g., diff rendering).")
+    @TODO(
+        assignee="Bob",
+        due="07/01/2025",
+        release_due="1.5.0",
+        category="Flavor Text",
+        status="Planning",
+        iteration="1",
+        tracker="https://example.com/FSH-10",
+        comment="Add background details and rocks at the bottom.",
+    )
+    @TODO(
+        assignee="Alice",
+        release_due="2.0.0",
+        iteration="2",
+        category="Fish Movement",
+        status="Planning",
+        tracker="https://example.com/FSH-11",
+        comment="Implement a 'hero' fish that the player controls.",
+    )
+    @TODO(
+        assignee="Bob",
+        category="Flavor Text",
+        status="Development",
+        comment="Display debug information (e.g., FPS, fish count).",
+    )
+    @FIXME(
+        originator="Bob",
+        tracker="https://example.com/FSH-9",
+        comment="Screen flickering due to re-drawing. Needs optimization (e.g., diff rendering).",
+    )
     def render(self):
         """
         Renders the current state of the tank to the terminal.
         FIXME: Screen flickering due to re-drawing. Needs optimization (e.g., diff rendering). <Bob originator=Bob tracker=https://example.com/FSH-9>
         """
         self._clear_screen()
-        self.screen_buffer = [[' ' for _ in range(self.width)] for _ in range(self.height)]
+        self.screen_buffer = [[" " for _ in range(self.width)] for _ in range(self.height)]
 
         # Draw waves
         self._draw_element(0, 0, self.wave.wave_pattern)
@@ -229,10 +305,23 @@ class FishTank:
 
         # TODO: Display debug information (e.g., FPS, fish count). <Bob category=Flavor Text status=Development>
 
-    @TODO(assignee="Alice", iteration="2", release_due="1.5.0", category="Fish Movement", status="Development",
-          tracker="https://example.com/FSH-13", comment="Implement collision detection for fish and tank walls.")
-    @TODO(assignee="Carl", category="Flavor Text", status="Planning", iteration="2",
-          tracker="https://example.com/FSH-14", comment="Add food pellets for fish to eat.")
+    @TODO(
+        assignee="Alice",
+        iteration="2",
+        release_due="1.5.0",
+        category="Fish Movement",
+        status="Development",
+        tracker="https://example.com/FSH-13",
+        comment="Implement collision detection for fish and tank walls.",
+    )
+    @TODO(
+        assignee="Carl",
+        category="Flavor Text",
+        status="Planning",
+        iteration="2",
+        tracker="https://example.com/FSH-14",
+        comment="Add food pellets for fish to eat.",
+    )
     def update(self):
         """
         Updates the positions and states of all elements in the tank.
@@ -260,8 +349,12 @@ class FishTank:
         # TODO: Implement collision detection for fish and tank walls. <Alice iteration=2 release_due=1.5.0 category='Fish Movement' status=Development tracker=https://example.com/FSH-13>
         # TODO: Add food pellets for fish to eat. <Carl category=Flavor Text status=Planning iteration=2 tracker=https://example.com/FSH-14>
 
-    @TODO(assignee="Alice", due="10/01/2025", tracker="https://example.com/FSH-15",
-          comment="Implement fish spawning logic to replenish tank population.")
+    @TODO(
+        assignee="Alice",
+        due="10/01/2025",
+        tracker="https://example.com/FSH-15",
+        comment="Implement fish spawning logic to replenish tank population.",
+    )
     def _spawn_new_fish_if_needed(self):
         """
         This function would handle spawning new fish based on certain conditions.
@@ -270,8 +363,11 @@ class FishTank:
         # This feature is not implemented yet.
         raise TodoException("Fish spawning logic is a future enhancement. Assignee: Alice, Due: 10/01/2025")
 
-    @ALERT(assignee="Bob", due="07/15/2025",
-           comment="User input is critical for interactivity, needs immediate implementation.")
+    @ALERT(
+        assignee="Bob",
+        due="07/15/2025",
+        comment="User input is critical for interactivity, needs immediate implementation.",
+    )
     def _handle_user_input(self):
         """
         NOT IMPLEMENTED: Handle keyboard input for interacting with the tank.
@@ -279,7 +375,9 @@ class FishTank:
         raise NotImplementedError("User input handling for the fish tank is not implemented.")
 
 
-@TODO(status="Done", originator="Bob", closed_date="2024-06-20", comment="Hero screen display implemented and functional.")
+@TODO(
+    status="Done", originator="Bob", closed_date="2024-06-20", comment="Hero screen display implemented and functional."
+)
 def hero_screen():
     # DONE: Hero screen display implemented. <Bob originator=Bob>
     """Displays the hero/start screen."""
@@ -306,8 +404,14 @@ def hero_screen():
     input()  # Wait for user to press Enter
 
 
-@TODO(assignee="Alice", iteration="3", status="Planning", release_due="2.0.0", tracker="https://example.com/FSH-16",
-      comment="Add proper game over screen and restart option for enhanced gameplay loop.")
+@TODO(
+    assignee="Alice",
+    iteration="3",
+    status="Planning",
+    release_due="2.0.0",
+    tracker="https://example.com/FSH-16",
+    comment="Add proper game over screen and restart option for enhanced gameplay loop.",
+)
 def main():
     tank = FishTank(SCREEN_WIDTH, SCREEN_HEIGHT)
 

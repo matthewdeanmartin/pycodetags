@@ -2,9 +2,9 @@
 Tasks and progress overview.
 
 Legend:
-~ means due
-@ means assignee
-# means category
+`~` means due
+`@` means assignee
+`#` means category
 ### Planning
 ### Ready
 ### Done

@@ -73,7 +73,7 @@ class DataTagFields(TypedDict):
 def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str) -> Any:
     values = []
     # default fields should already be resolved to a data_field by this point
-    if field_name in schema:
+    if field_name in schema["data_fields"]:
         if field_name in fields["data_fields"]:
             values.append(fields["data_fields"][field_name])
         if field_name in fields["custom_fields"]:
@@ -84,7 +84,9 @@ def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_nam
         raise TypeError(f"Double field with different values {field_name} : {values}")
     logger.warning(f"Double field with different values {field_name} : {values}")
     # TODO: do we want to support str | list[str]?
-    return values[0]
+    if values:
+        return values[0]
+    return ""
 
 
 class DataTag(TypedDict, total=False):
@@ -128,7 +130,7 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
     # promote a custom_field to root field if it should have been a root field.
     field_aliases: dict[str, str] = data_tag_schema["data_field_aliases"]
     # putative custom field, is it actually standard?
-    for custom_field, custom_value in fields["custom_fields"].items():
+    for custom_field, custom_value in fields["custom_fields"].copy().items():
         if custom_field in field_aliases:
             # Okay, found a custom field that should have been standard
             full_alias = field_aliases[custom_field]
@@ -326,7 +328,7 @@ def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> Data
                         # Assign default_key from a standalone date token
                         fields["default_fields"][default_key] = token  # type: ignore[assignment]
                         matched_default = True
-                    elif default_type == "str":  #  initials_pattern.match(token):
+                    elif default_type == "str":  # initials_pattern.match(token):
                         # Add standalone initials to assignees list
                         if default_key in fields["default_fields"]:
                             fields["default_fields"][default_key].extend([t.strip() for t in token.split(",") if t])

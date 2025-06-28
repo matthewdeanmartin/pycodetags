@@ -10,6 +10,16 @@ PM = pluggy.PluginManager("pycodetags")
 PM.add_hookspecs(CodeTagsSpec)
 PM.load_setuptools_entrypoints("pycodetags")
 
+
+def reset_plugin_manager() -> None:
+    """For testing or events can double up"""
+    # pylint: disable=global-statement
+    global PM  # nosec # noqa
+    PM = pluggy.PluginManager("pycodetags")
+    PM.add_hookspecs(CodeTagsSpec)
+    PM.load_setuptools_entrypoints("pycodetags")
+
+
 if logger.isEnabledFor(logging.DEBUG):
     # magic line to set a writer function
     PM.trace.root.setwriter(print)

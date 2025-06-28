@@ -11,12 +11,15 @@ import pathlib
 import sys
 
 import pycodetags.folk_code_tags as folk_code_tags
-import pycodetags.standard_code_tags as standard_code_tags
+from pycodetags import TODO
 from pycodetags.collect import collect_all_todos
 from pycodetags.collection_types import CollectedTODOs
 from pycodetags.config import get_code_tags_config
 from pycodetags.converters import convert_folk_tag_to_TODO, convert_pep350_tag_to_TODO
+from pycodetags.data_tags import DataTag
+from pycodetags.data_tags_parsers import iterate_comments
 from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.specific_schemas import PEP350Schema
 
 logger = logging.getLogger(__name__)
 
@@ -62,22 +65,21 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
     config = get_code_tags_config()
 
     active_schemas = config.active_schemas()
-    all_schemas = False
-    if not active_schemas:
-        all_schemas = True
 
     pm = get_plugin_manager()
-    found: CollectedTODOs = {}
+    found_in_modules: CollectedTODOs = {}
     if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
         try:
             module = importlib.import_module(module_name)
-            found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+            found_in_modules = collect_all_todos(module, include_submodules=False, include_exceptions=True)
         except ImportError:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
 
-    found_folk_code_tags = []
-    found_pep350_code_tags = []
+    found_tags: list[DataTag | folk_code_tags.FolkTag] = []
+    schemas = []
+    if "todo" in active_schemas or active_schemas == []:
+        schemas.append(PEP350Schema)
 
     if source_path:
         src_found = 0
@@ -85,49 +87,36 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
         files = [path] if path.is_file() else path.rglob("*.*")
         for file in files:
             if file.name.endswith(".py"):
-                if all_schemas or "todo" in config.active_schemas():
-                    found_pep350_code_tags.extend(
-                        list(
-                            convert_pep350_tag_to_TODO(_)
-                            for _ in standard_code_tags.collect_pep350_code_tags(file=str(file))
-                        )
+                # Finds both folk and data tags
+                found_items = list(
+                    _
+                    for _ in iterate_comments(
+                        file=str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
                     )
-                    src_found += 1
-
-                if all_schemas or "folk" in config.active_schemas():
-                    found_folk_code_tags.extend(
-                        list(convert_folk_tag_to_TODO(_) for _ in folk_code_tags.find_source_tags(str(file)))
-                    )
-                    src_found += 1
+                )
+                found_tags.extend(found_items)
+                src_found += 1
             else:
                 # Collect folk tags from plugins
                 plugin_results = pm.hook.find_source_tags(
                     already_processed=False, file_path=str(file), config=get_code_tags_config()
                 )
                 for result_list in plugin_results:
-                    found_folk_code_tags.extend(convert_folk_tag_to_TODO(tag) for tag in result_list)
+                    found_tags.extend(result_list)
                 if plugin_results:
                     src_found += 1
         if src_found == 0:
             raise TypeError(f"Can't find any files in source folder {source_path}")
 
-    folk_separated: CollectedTODOs = {"todos": found_folk_code_tags, "exceptions": []}
-    pep30_separated = {"todos": found_pep350_code_tags, "exceptions": []}
+    found_TODOS: list[TODO] = []
+    for found_tag in found_tags:
+        if "fields" in found_tag.keys():
+            found_TODOS.append(convert_pep350_tag_to_TODO(found_tag))  # type: ignore[arg-type]
+        else:
+            found_TODOS.append(convert_folk_tag_to_TODO(found_tag))  # type: ignore[arg-type]
 
-    temp: CollectedTODOs = {}
-    for thing in (folk_separated, pep30_separated, found):
-        for key, value in thing.items():
-            if key not in temp:
-                # HACK: This is ugly.
-                if key == "todos":
-                    temp["todos"] = value  # type: ignore[typeddict-item]
-                else:
-                    temp["exceptions"] = value  # type: ignore[typeddict-item]
-            else:
-                if key == "todos":
-                    temp["todos"].extend(value)  # type: ignore[arg-type]
-                else:
-                    temp["exceptions"].extend(value)  # type: ignore[arg-type]
-
-    found = temp
-    return found
+    all_combined: CollectedTODOs = {
+        "todos": found_TODOS + found_in_modules.get("todos", []),
+        "exceptions": found_in_modules.get("exceptions", []),
+    }
+    return all_combined

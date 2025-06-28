@@ -47,9 +47,13 @@ class TodoExceptionCollector:
                         and isinstance(node.exc.func, ast.Name)
                         and node.exc.func.id == "TodoException"
                     ):
-
                         # Extract arguments from the TodoException call
                         exception_data = self._extract_exception_args(node.exc)
+                        # exception_data_str_keys = {}
+                        # This fails in 3.7 and the fix fails everywhere else!
+                        # for key, value in exception_data.items():
+                        #     # py37 oddity
+                        #     exception_data_str_keys[str(key)] = value
                         if exception_data:
                             exceptions.append(TodoException(**exception_data))
 
@@ -71,7 +75,7 @@ class TodoExceptionCollector:
 
         # Handle keyword arguments
         for keyword in call_node.keywords:
-            if keyword.arg in ["assignee", "due_date", "message"]:
+            if keyword.arg in ["assignee", "due", "message"]:
                 if isinstance(keyword.value, ast.Constant):
                     args[keyword.arg] = keyword.value.value
                 elif isinstance(keyword.value, ast.Str):  # Python < 3.8 compatibility

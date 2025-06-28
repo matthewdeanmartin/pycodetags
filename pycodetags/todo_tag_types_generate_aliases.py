@@ -1,16 +1,16 @@
 """
 Generate main_types_aliases.py in a way that ensures intellisense works.
 """
-
+from __future__ import annotations
 import inspect
 import textwrap
-from dataclasses import field, fields
+from dataclasses import Field, field, fields
 from typing import Any
 
 from pycodetags.todo_tag_types import TODO
 
 
-def generate_code_tags_file(output_filename: str = "main_types_aliases.py") -> None:
+def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types_aliases.py") -> None:
     """
     Generates a Python file containing the TODO dataclass and
     aliased factory functions with full IntelliSense support.
@@ -20,45 +20,14 @@ def generate_code_tags_file(output_filename: str = "main_types_aliases.py") -> N
     # In a real project, you might import it from 'code_tags.main_types'.
 
     _temp_globals: dict[str, Any] = {}
-    _TODO_cls = TODO
+    _TODO_cls = cls
 
     # --- 2. Inspect TODO's fields for signature generation ---
     todo_init_fields = [f for f in fields(_TODO_cls) if f.init and f.name != "code_tag"]
 
-    # Build the parameters string for the function signature
-    params_str_parts = []
-    for f in todo_init_fields:
-        param_name = f.name
-        param_type = inspect.formatannotation(f.type)  # Gets the string representation of the type
+    params_str_parts = build_param_parts(todo_init_fields)
 
-        # Handle default values
-        if f.default is not field:
-            # For simple defaults (strings, numbers, None)
-            params_str_parts.append(f"{param_name}: {param_type} = {repr(f.default)}")
-        elif f.default_factory is not field:
-            # For default_factory, we can't put the factory in the signature directly.
-            # Treat it as Optional and let the TODO constructor handle the default_factory.
-            # Or you might omit it from the signature if it's always default-generated.
-            # For IntelliSense, making it Optional[Type] is often best.
-            if "None" not in param_type:  # Avoid double Optional or None | None
-                params_str_parts.append(f"{param_name}: {param_type} | None = None")
-            else:
-                params_str_parts.append(f"{param_name}: {param_type} = None")
-        else:
-            # Required parameter with no default
-            params_str_parts.append(f"{param_name}: {param_type}")
-
-    # Add **kwargs to allow for future flexibility or passing through other arguments
-    params_str = ", ".join(params_str_parts)
-    if params_str:
-        params_str += ", "
-    # params_str += "**kwargs: Any"
-
-    # Build the arguments string to pass to the TODO constructor
-    args_to_pass = ", ".join([f"{f.name}={f.name}" for f in todo_init_fields])
-    if args_to_pass:
-        args_to_pass += ", "
-    # args_to_pass += "**kwargs"
+    args_to_pass, params_str = param_string(params_str_parts, todo_init_fields)
 
     # --- 3. Define the aliases and their corresponding code_tag values and docstrings ---
     aliases = {
@@ -105,6 +74,46 @@ from pycodetags.main_types import TODO
         file.write("\n\n".join(full_output_content))
 
     print(f"Successfully generated '{output_filename}' with IntelliSense-friendly aliases.")
+
+
+def param_string(params_str_parts: list[str], todo_init_fields: list[Field[Any]]) -> tuple[str, str]:
+    # Add **kwargs to allow for future flexibility or passing through other arguments
+    params_str = ", ".join(params_str_parts)
+    if params_str:
+        params_str += ", "
+    # params_str += "**kwargs: Any"
+    # Build the arguments string to pass to the TODO constructor
+    args_to_pass = ", ".join([f"{f.name}={f.name}" for f in todo_init_fields])
+    if args_to_pass:
+        args_to_pass += ", "
+    # args_to_pass += "**kwargs"
+    return args_to_pass, params_str
+
+
+def build_param_parts(todo_init_fields: list[Field[Any]]) -> list[str]:
+    # Build the parameters string for the function signature
+    params_str_parts = []
+    for f in todo_init_fields:
+        param_name = f.name
+        param_type = inspect.formatannotation(f.type)  # Gets the string representation of the type
+
+        # Handle default values
+        if f.default is not field and "_MISSING_TYPE" not in repr(f.default):
+            # For simple defaults (strings, numbers, None)
+            params_str_parts.append(f"{param_name}: {param_type} = {repr(f.default)}")
+        elif f.default_factory is not field and "_MISSING_TYPE" not in repr(f.default):
+            # For default_factory, we can't put the factory in the signature directly.
+            # Treat it as Optional and let the TODO constructor handle the default_factory.
+            # Or you might omit it from the signature if it's always default-generated.
+            # For IntelliSense, making it Optional[Type] is often best.
+            if "None" not in param_type:  # Avoid double Optional or None | None
+                params_str_parts.append(f"{param_name}: {param_type} | None = None")
+            else:
+                params_str_parts.append(f"{param_name}: {param_type} = None")
+        else:
+            # Required parameter with no default
+            params_str_parts.append(f"{param_name}: {param_type}")
+    return params_str_parts
 
 
 if __name__ == "__main__":

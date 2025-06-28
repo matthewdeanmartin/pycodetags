@@ -1,6 +1,6 @@
 [project]
 name = "pycodetags"
-version = "0.1.2"
+version = "0.2.0"
 description = "TODOs in source code as a first class construct, follows PEP350"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
@@ -45,6 +45,7 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "detect-test-pollution",
     # plugin finder
     "packaging; python_version >= '3.8'",
     "requests; python_version >= '3.8'",
@@ -228,6 +229,8 @@ exclude_also = [
     # Don't complain if tests don't hit defensive assertion code:
     "raise AssertionError",
     "raise NotImplementedError",
+    "except ImportError",
+    "except ModuleNotFoundError",
     # Don't complain if non-runnable code isn't run:
     "if 0:",
     "if __name__ == .__main__.:",
@@ -319,8 +322,10 @@ use_dot_env = true
 # default CLI arguments
 modules = ["demo","pycodetags"]
 src = ["demo", "pycodetags", "tests", "plugins"]
-active_schemas = ["todo"]
+active_schemas = ["todo", "folk"]
 
 [tool.pycodetags.synonyms]
 REQUIREMENT = ["REQ", "REQS", "REQUIREMENTS"]
 TODO = ["TASK", "ISSUE"]
+
+

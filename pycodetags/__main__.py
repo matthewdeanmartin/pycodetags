@@ -31,6 +31,42 @@ from pycodetags.views import (
 )
 
 
+class InternalViews:
+    """Register internal views as a plugin"""
+
+    @pluggy.HookimplMarker("pycodetags")
+    def code_tags_print_report(self, format_name: str, found_data: CollectedTODOs) -> bool:
+        """
+        Internal method to handle printing of reports in various formats.
+
+        Args:
+            format_name (str): The name of the format requested by the user.
+            found_data (CollectedTODOs): The data collected from the source code.
+
+        Returns:
+            bool: True if the format was handled, False otherwise.
+        """
+        if format_name == "text":
+            print_text(found_data)
+            return True
+        if format_name == "html":
+            print_html(found_data)
+            return True
+        if format_name == "json":
+            print_json(found_data)
+            return True
+        if format_name == "keep-a-changelog":
+            print_changelog(found_data)
+            return True
+        if format_name == "todo.md":
+            print_todo_md(found_data)
+            return True
+        if format_name == "done":
+            print_done_file(found_data)
+            return True
+        return False
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """
     Main entry point for the pycodetags CLI.
@@ -39,41 +75,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         argv (Sequence[str] | None): Command line arguments. If None, uses sys.argv.
     """
     pm = get_plugin_manager()
-
-    class InternalViews:
-        """Register internal views as a plugin"""
-
-        @pluggy.HookimplMarker("pycodetags")
-        def code_tags_print_report(self, format_name: str, found_data: CollectedTODOs) -> bool:
-            """
-            Internal method to handle printing of reports in various formats.
-
-            Args:
-                format_name (str): The name of the format requested by the user.
-                found_data (CollectedTODOs): The data collected from the source code.
-
-            Returns:
-                bool: True if the format was handled, False otherwise.
-            """
-            if format_name == "text":
-                print_text(found_data)
-                return True
-            if format_name == "html":
-                print_html(found_data)
-                return True
-            if format_name == "json":
-                print_json(found_data)
-                return True
-            if format_name == "keep-a-changelog":
-                print_changelog(found_data)
-                return True
-            if format_name == "todo.md":
-                print_todo_md(found_data)
-                return True
-            if format_name == "done":
-                print_done_file(found_data)
-                return True
-            return False
 
     pm.register(InternalViews())
     # --- end pluggy setup ---

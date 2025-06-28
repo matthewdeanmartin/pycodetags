@@ -80,10 +80,7 @@ def pytest_plugin_projects_from_pypi(session: CachedSession) -> dict[str, int]:
     return {
         name: p["_last-serial"]
         for p in response.json()["projects"]
-        if (
-            (name := p["name"]).startswith(("pycodetags-","pycodetags_"))
-            or name in ADDITIONAL_PROJECTS
-        )
+        if ((name := p["name"]).startswith(("pycodetags-", "pycodetags_")) or name in ADDITIONAL_PROJECTS)
     }
 
 
@@ -130,16 +127,14 @@ def iter_plugins() -> Iterator[PluginInfo]:
         releases = response.json()["releases"]
         for release in sorted(releases, key=version_sort_key, reverse=True):
             if releases[release]:
-                release_date = datetime.date.fromisoformat(
-                    releases[release][-1]["upload_time_iso_8601"].split("T")[0]
-                )
+                release_date = datetime.date.fromisoformat(releases[release][-1]["upload_time_iso_8601"].split("T")[0])
                 last_release = release_date.strftime("%b %d, %Y")
                 break
 
         summary = escape_md(info["summary"].replace("\n", "")) if info["summary"] else ""
 
         yield {
-            "name": info['name'],
+            "name": info["name"],
             "summary": summary.strip(),
             "last_release": last_release,
             "status": status,

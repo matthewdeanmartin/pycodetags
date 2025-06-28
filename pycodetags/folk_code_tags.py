@@ -27,8 +27,7 @@ import re
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing import Literal  # type: ignore[assignment,unused-ignore]
-
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore]
     from typing_extensions import TypedDict
 
 
@@ -103,8 +102,6 @@ def find_source_tags(
     if not valid_tags:
         valid_tags = []
 
-    found_tags: list[FolkTag] = []
-
     if not os.path.exists(source_path):
         raise FileNotFoundError(f"The path '{source_path}' does not exist.")
 
@@ -116,17 +113,41 @@ def find_source_tags(
             for file in files:
                 files_to_scan.append(os.path.join(root, file))
 
+    found_tags: list[FolkTag] = []
     for file_path in files_to_scan:
         with open(file_path, encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()
-            idx = 0
-            while idx < len(lines):
-                consumed = process_line(
-                    file_path, found_tags, lines, idx, valid_tags, allow_multiline, default_field_meaning
-                )
-                idx += consumed
+            text = f.read()
+
+            process_text(text, allow_multiline, default_field_meaning, found_tags, file_path, valid_tags)
 
     return found_tags
+
+
+def process_text(
+    text: str,
+    allow_multiline: bool,
+    default_field_meaning: DefaultFieldMeaning,
+    found_tags: list[FolkTag],
+    file_path: str,
+    valid_tags: list[str],
+) -> None:
+    if "\r\n" in text:
+        lines = text.split("\r\n")
+    else:
+        lines = text.split("\n")
+    idx = 0
+    while idx < len(lines):
+        consumed = process_line(
+            file_path,
+            found_tags,
+            lines,
+            idx,
+            # schema
+            valid_tags,
+            allow_multiline,
+            default_field_meaning,
+        )
+        idx += consumed
 
 
 def extract_first_url(text: str) -> str | None:
@@ -252,5 +273,7 @@ def process_line(
     if url:
         found_tag["tracker"] = url
 
-    found_tags.append(found_tag)
+    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag
+    if len(code_tag_candidate) > 1:
+        found_tags.append(found_tag)
     return consumed_lines

@@ -8,10 +8,9 @@ import datetime
 import logging
 import os
 import warnings
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import wraps
-from typing import Any, cast
+from typing import Any, cast, Callable # noqa
 
 from pycodetags.data_tag_types import DATA
 from pycodetags.specific_schemas import PEP350Schema
@@ -19,7 +18,7 @@ from pycodetags.specific_schemas import PEP350Schema
 try:
     from typing import Literal  # type:ignore[assignment,unused-ignore]
 except ImportError:
-    from typing import Literal  # type:ignore[assignment,unused-ignore]
+    from typing_extensions import Literal  # type:ignore[assignment,unused-ignore]
 
 from pycodetags.config import get_code_tags_config
 from pycodetags.todo_object_schema import TODO_KEYWORDS
@@ -278,7 +277,11 @@ class TODO(DATA):
         authors_list = config.valid_authors()
         if authors_list:
             for person in (self.originator, self.assignee):
-                if person and person.lower() not in authors_list:
+                if isinstance(person, list):
+                    for subperson in person:
+                        if subperson.lower() not in authors_list:
+                            issues.append(f"Person '{subperson}' is not on the valid authors list")
+                elif isinstance(person, str) and person.lower() not in authors_list:
                     issues.append(f"Person '{person}' is not on the valid authors list")
 
         # TODO: Implement release/version from files

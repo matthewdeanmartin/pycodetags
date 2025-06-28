@@ -6,15 +6,14 @@ from __future__ import annotations
 
 import datetime
 import logging
-from collections.abc import Callable
 from dataclasses import dataclass, field, fields
 from functools import wraps
-from typing import Any, cast
+from typing import Any, cast,Callable # noqa
 
 try:
     from typing import Literal  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing import Literal  # type: ignore[assignment,unused-ignore]
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore]
 
 logger = logging.getLogger(__name__)
 
@@ -58,11 +57,12 @@ class DATA(Serializable):
     strict: bool = False
 
     # Source mapping, original parsing info
-    file_path: str | None = None
-    line_number: int | None = None
-    original_text: str | None = None
-    original_schema: str | None = None
-    offsets: tuple[int, int, int, int] | None = None
+    # Do not deserialize these back into the comments!
+    _file_path: str | None = None
+    _line_number: int | None = None
+    _original_text: str | None = None
+    _original_schema: str | None = None
+    _offsets: tuple[int, int, int, int] | None = None
 
     data_meta: DATA | None = field(init=False, default=None)
     """Necessary internal field for decorators"""
@@ -118,6 +118,9 @@ class DATA(Serializable):
                     d[f.name] = val.isoformat()
                 else:
                     d[f.name] = str(val)
+            else:
+                print()
+
         return d
 
     def as_data_comment(self) -> str:
@@ -137,7 +140,12 @@ class DATA(Serializable):
             if field_set:
                 for key, value in field_set.items():
 
-                    if value and key != "custom_fields" and key not in to_skip:
+                    if (
+                        value  # skip blanks
+                        and key != "custom_fields"
+                        and key not in to_skip  # already in default
+                        and not key.startswith("_")  # metadata field
+                    ):
                         if isinstance(value, list) and len(value) == 1:
                             value = value[0]
                         elif isinstance(value, list):

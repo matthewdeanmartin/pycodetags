@@ -16,12 +16,15 @@ import pathlib
 import sys
 
 import pycodetags.folk_code_tags as folk_code_tags
-import pycodetags.standard_code_tags as standard_code_tags
+from pycodetags import TODO
 from pycodetags.collect import collect_all_todos
 from pycodetags.collection_types import CollectedTODOs
 from pycodetags.config import get_code_tags_config
 from pycodetags.converters import convert_folk_tag_to_TODO, convert_pep350_tag_to_TODO
+from pycodetags.data_tags import DataTag
+from pycodetags.data_tags_parsers import iterate_comments
 from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.specific_schemas import PEP350Schema
 
 logger = logging.getLogger(__name__)
 
@@ -67,22 +70,21 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
     config = get_code_tags_config()
 
     active_schemas = config.active_schemas()
-    all_schemas = False
-    if not active_schemas:
-        all_schemas = True
 
     pm = get_plugin_manager()
-    found: CollectedTODOs = {}
+    found_in_modules: CollectedTODOs = {}
     if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
         try:
             module = importlib.import_module(module_name)
-            found = collect_all_todos(module, include_submodules=False, include_exceptions=True)
+            found_in_modules = collect_all_todos(module, include_submodules=False, include_exceptions=True)
         except ImportError:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
 
-    found_folk_code_tags = []
-    found_pep350_code_tags = []
+    found_tags: list[DataTag | folk_code_tags.FolkTag] = []
+    schemas = []
+    if "todo" in active_schemas or active_schemas == []:
+        schemas.append(PEP350Schema)
 
     if source_path:
         src_found = 0
@@ -90,52 +92,39 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> CollectedTODOs:
         files = [path] if path.is_file() else path.rglob("*.*")
         for file in files:
             if file.name.endswith(".py"):
-                if all_schemas or "todo" in config.active_schemas():
-                    found_pep350_code_tags.extend(
-                        list(
-                            convert_pep350_tag_to_TODO(_)
-                            for _ in standard_code_tags.collect_pep350_code_tags(file=str(file))
-                        )
+                # Finds both folk and data tags
+                found_items = list(
+                    _
+                    for _ in iterate_comments(
+                        file=str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
                     )
-                    src_found += 1
-
-                if all_schemas or "folk" in config.active_schemas():
-                    found_folk_code_tags.extend(
-                        list(convert_folk_tag_to_TODO(_) for _ in folk_code_tags.find_source_tags(str(file)))
-                    )
-                    src_found += 1
+                )
+                found_tags.extend(found_items)
+                src_found += 1
             else:
                 # Collect folk tags from plugins
                 plugin_results = pm.hook.find_source_tags(
                     already_processed=False, file_path=str(file), config=get_code_tags_config()
                 )
                 for result_list in plugin_results:
-                    found_folk_code_tags.extend(convert_folk_tag_to_TODO(tag) for tag in result_list)
+                    found_tags.extend(result_list)
                 if plugin_results:
                     src_found += 1
         if src_found == 0:
             raise TypeError(f"Can't find any files in source folder {source_path}")
 
-    folk_separated: CollectedTODOs = {"todos": found_folk_code_tags, "exceptions": []}
-    pep30_separated = {"todos": found_pep350_code_tags, "exceptions": []}
+    found_TODOS: list[TODO] = []
+    for found_tag in found_tags:
+        if "fields" in found_tag.keys():
+            found_TODOS.append(convert_pep350_tag_to_TODO(found_tag))  # type: ignore[arg-type]
+        else:
+            found_TODOS.append(convert_folk_tag_to_TODO(found_tag))  # type: ignore[arg-type]
 
-    temp: CollectedTODOs = {}
-    for thing in (folk_separated, pep30_separated, found):
-        for key, value in thing.items():
-            if key not in temp:
-                # HACK: This is ugly.
-                if key == "todos":
-                    temp["todos"] = value  # type: ignore[typeddict-item]
-                else:
-                    temp["exceptions"] = value  # type: ignore[typeddict-item]
-            else:
-                if key == "todos":
-                    temp["todos"].extend(value)  # type: ignore[arg-type]
-                else:
-                    temp["exceptions"].extend(value)  # type: ignore[arg-type]
-
-    found = temp
-    return found
+    all_combined: CollectedTODOs = {
+        "todos": found_TODOS + found_in_modules.get("todos", []),
+        "exceptions": found_in_modules.get("exceptions", []),
+    }
+    return all_combined
 
 ```
 
@@ -489,9 +478,9 @@ class TodoExceptionCollector:
                         and isinstance(node.exc.func, ast.Name)
                         and node.exc.func.id == "TodoException"
                     ):
-
                         # Extract arguments from the TodoException call
                         exception_data = self._extract_exception_args(node.exc)
+
                         if exception_data:
                             exceptions.append(TodoException(**exception_data))
 
@@ -513,7 +502,7 @@ class TodoExceptionCollector:
 
         # Handle keyword arguments
         for keyword in call_node.keywords:
-            if keyword.arg in ["assignee", "due_date", "message"]:
+            if keyword.arg in ["assignee", "due", "message"]:
                 if isinstance(keyword.value, ast.Constant):
                     args[keyword.arg] = keyword.value.value
                 elif isinstance(keyword.value, ast.Str):  # Python < 3.8 compatibility
@@ -1124,8 +1113,8 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
     """
     kwargs = {
         "code_tag": folk_tag.get("code_tag"),
-        "file_path": folk_tag.get("file_path"),
-        "line_number": folk_tag.get("line_number"),
+        "_file_path": folk_tag.get("file_path"),
+        "_line_number": folk_tag.get("line_number"),
         # folk_tag.get("default_field"),
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
@@ -1133,8 +1122,8 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
         "assignee": blank_to_null(folk_tag.get("assignee")),
         "originator": blank_to_null(folk_tag.get("originator")),
         # person=folk_tag.get("person")
-        "original_text": folk_tag.get("original_text"),
-        "original_schema": "folk",
+        "_original_text": folk_tag.get("original_text"),
+        "_original_schema": "folk",
     }
     custom_fields = folk_tag.get("custom_fields", {})
     for keyword in TODO_KEYWORDS:
@@ -1176,10 +1165,10 @@ def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
         "status": data_fields.get("status"),
         "category": data_fields.get("category"),
         # Source Mapping
-        "file_path": data_fields.get("file_path"),
-        "line_number": data_fields.get("line_number"),
-        "original_text": pep350_tag.get("original_text"),
-        "original_schema": "pep350",
+        "_file_path": data_fields.get("_file_path"),
+        "_line_number": data_fields.get("_line_number"),
+        "_original_text": pep350_tag.get("original_text"),
+        "_original_schema": "pep350",
     }
 
     custom_fields = pep350_tag["fields"].get("custom_fields", {})
@@ -1232,7 +1221,12 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
+from typing import Any, Protocol
+
+
+class ParseABlock(Protocol):
+    def __call__(self, text_block: str, data_tag_schema: DataTagSchema, strict: bool) -> list[DataTag]: ...
+
 
 try:
     from typing import TypedDict
@@ -1274,7 +1268,7 @@ class DataTagFields(TypedDict):
 def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str) -> Any:
     values = []
     # default fields should already be resolved to a data_field by this point
-    if field_name in schema:
+    if field_name in schema["data_fields"]:
         if field_name in fields["data_fields"]:
             values.append(fields["data_fields"][field_name])
         if field_name in fields["custom_fields"]:
@@ -1285,7 +1279,9 @@ def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_nam
         raise TypeError(f"Double field with different values {field_name} : {values}")
     logger.warning(f"Double field with different values {field_name} : {values}")
     # TODO: do we want to support str | list[str]?
-    return values[0]
+    if values:
+        return values[0]
+    return ""
 
 
 class DataTag(TypedDict, total=False):
@@ -1329,7 +1325,7 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
     # promote a custom_field to root field if it should have been a root field.
     field_aliases: dict[str, str] = data_tag_schema["data_field_aliases"]
     # putative custom field, is it actually standard?
-    for custom_field, custom_value in fields["custom_fields"].items():
+    for custom_field, custom_value in fields["custom_fields"].copy().items():
         if custom_field in field_aliases:
             # Okay, found a custom field that should have been standard
             full_alias = field_aliases[custom_field]
@@ -1527,7 +1523,7 @@ def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> Data
                         # Assign default_key from a standalone date token
                         fields["default_fields"][default_key] = token  # type: ignore[assignment]
                         matched_default = True
-                    elif default_type == "str":  #  initials_pattern.match(token):
+                    elif default_type == "str":  # initials_pattern.match(token):
                         # Add standalone initials to assignees list
                         if default_key in fields["default_fields"]:
                             fields["default_fields"][default_key].extend([t.strip() for t in token.split(",") if t])
@@ -1599,6 +1595,66 @@ def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool
 
 ```
 
+## File: data_tags_parsers.py
+
+```python
+"""
+Parse specific schemas of data tags
+"""
+
+from __future__ import annotations
+
+import logging
+from collections.abc import Generator
+from pathlib import Path
+
+from pycodetags import folk_code_tags
+from pycodetags.comment_finder import find_comment_blocks
+from pycodetags.data_tags import DataTag, DataTagSchema, parse_codetags
+from pycodetags.folk_code_tags import FolkTag
+
+logger = logging.getLogger(__name__)
+
+
+def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags: bool) -> Generator[DataTag | FolkTag]:
+    """
+    Collect PEP-350 style code tags from a given file.
+
+    Args:
+        file (str): The path to the file to process.
+        schemas (DataTaSchema): Schemas that will be detected in file
+        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
+
+    Yields:
+        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
+    """
+    logger.info(f"collect_pep350_code_tags: processing {file}")
+    things: list[DataTag | FolkTag] = []
+    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks(Path(file)):
+        # Can only be one comment block now!
+        thing = []
+        for schema in schemas:
+            thing = parse_codetags(final_comment, schema, strict=False)
+            things.extend(thing)
+        if not thing and include_folk_tags:
+            # BUG: fails if there are two in th same.
+            # TODO: blank out consumed text, reconsume bock
+            found_folk_tags: list[FolkTag] = []
+            # TODO: support config of folk schema.
+            folk_code_tags.process_text(
+                final_comment,
+                allow_multiline=True,
+                default_field_meaning="assignee",
+                found_tags=found_folk_tags,
+                file_path=file,
+                valid_tags=[],
+            )
+            things.extend(found_folk_tags)
+
+    yield from things
+
+```
+
 ## File: data_tag_types.py
 
 ```python
@@ -1662,11 +1718,12 @@ class DATA(Serializable):
     strict: bool = False
 
     # Source mapping, original parsing info
-    file_path: str | None = None
-    line_number: int | None = None
-    original_text: str | None = None
-    original_schema: str | None = None
-    offsets: tuple[int, int, int, int] | None = None
+    # Do not deserialize these back into the comments!
+    _file_path: str | None = None
+    _line_number: int | None = None
+    _original_text: str | None = None
+    _original_schema: str | None = None
+    _offsets: tuple[int, int, int, int] | None = None
 
     data_meta: DATA | None = field(init=False, default=None)
     """Necessary internal field for decorators"""
@@ -1722,6 +1779,9 @@ class DATA(Serializable):
                     d[f.name] = val.isoformat()
                 else:
                     d[f.name] = str(val)
+            else:
+                print()
+
         return d
 
     def as_data_comment(self) -> str:
@@ -1741,7 +1801,12 @@ class DATA(Serializable):
             if field_set:
                 for key, value in field_set.items():
 
-                    if value and key != "custom_fields" and key not in to_skip:
+                    if (
+                        value  # skip blanks
+                        and key != "custom_fields"
+                        and key not in to_skip  # already in default
+                        and not key.startswith("_")  # metadata field
+                    ):
                         if isinstance(value, list) and len(value) == 1:
                             value = value[0]
                         elif isinstance(value, list):
@@ -1983,8 +2048,6 @@ def find_source_tags(
     if not valid_tags:
         valid_tags = []
 
-    found_tags: list[FolkTag] = []
-
     if not os.path.exists(source_path):
         raise FileNotFoundError(f"The path '{source_path}' does not exist.")
 
@@ -1996,17 +2059,41 @@ def find_source_tags(
             for file in files:
                 files_to_scan.append(os.path.join(root, file))
 
+    found_tags: list[FolkTag] = []
     for file_path in files_to_scan:
         with open(file_path, encoding="utf-8", errors="ignore") as f:
-            lines = f.readlines()
-            idx = 0
-            while idx < len(lines):
-                consumed = process_line(
-                    file_path, found_tags, lines, idx, valid_tags, allow_multiline, default_field_meaning
-                )
-                idx += consumed
+            text = f.read()
+
+            process_text(text, allow_multiline, default_field_meaning, found_tags, file_path, valid_tags)
 
     return found_tags
+
+
+def process_text(
+    text: str,
+    allow_multiline: bool,
+    default_field_meaning: DefaultFieldMeaning,
+    found_tags: list[FolkTag],
+    file_path: str,
+    valid_tags: list[str],
+) -> None:
+    if "\r\n" in text:
+        lines = text.split("\r\n")
+    else:
+        lines = text.split("\n")
+    idx = 0
+    while idx < len(lines):
+        consumed = process_line(
+            file_path,
+            found_tags,
+            lines,
+            idx,
+            # schema
+            valid_tags,
+            allow_multiline,
+            default_field_meaning,
+        )
+        idx += consumed
 
 
 def extract_first_url(text: str) -> str | None:
@@ -2132,7 +2219,9 @@ def process_line(
     if url:
         found_tag["tracker"] = url
 
-    found_tags.append(found_tag)
+    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag
+    if len(code_tag_candidate) > 1:
+        found_tags.append(found_tag)
     return consumed_lines
 
 ```
@@ -2277,6 +2366,16 @@ logger = logging.getLogger(__name__)
 PM = pluggy.PluginManager("pycodetags")
 PM.add_hookspecs(CodeTagsSpec)
 PM.load_setuptools_entrypoints("pycodetags")
+
+
+def reset_plugin_manager() -> None:
+    """For testing or events can double up"""
+    # pylint: disable=global-statement
+    global PM  # nosec # noqa
+    PM = pluggy.PluginManager("pycodetags")
+    PM.add_hookspecs(CodeTagsSpec)
+    PM.load_setuptools_entrypoints("pycodetags")
+
 
 if logger.isEnabledFor(logging.DEBUG):
     # magic line to set a writer function
@@ -2507,9 +2606,9 @@ class Fields(TypedDict, total=False):
     origination_date: str
 
     # Metadata, shouldn't be set by user.
-    file_path: str  # mutable across time, identity for same revision
-    line_number: str  # mutable across time, identity for same revision
-    file_revision: str  # With file_path, line_number, forms identity
+    _file_path: str  # mutable across time, identity for same revision
+    _line_number: str  # mutable across time, identity for same revision
+    _file_revision: str  # With file_path, line_number, forms identity
 
     # When all of these mutable fields, or almost all of these are they same, the object probably points
     # to the same real world entity.
@@ -2649,8 +2748,8 @@ TODO_KEYWORDS = [
     "tracker",
     # custom workflow fields
     # Source Mapping
-    "file_path",
-    "line_number",
+    "_file_path",
+    "_line_number",
     "custom_fields",
     # Idiosyncratic fields
     "iteration",
@@ -2944,7 +3043,11 @@ class TODO(DATA):
         authors_list = config.valid_authors()
         if authors_list:
             for person in (self.originator, self.assignee):
-                if person and person.lower() not in authors_list:
+                if isinstance(person, list):
+                    for subperson in person:
+                        if subperson.lower() not in authors_list:
+                            issues.append(f"Person '{subperson}' is not on the valid authors list")
+                elif isinstance(person, str) and person.lower() not in authors_list:
                     issues.append(f"Person '{person}' is not on the valid authors list")
 
         # TODO: Implement release/version from files
@@ -3080,10 +3183,10 @@ def REQUIREMENT(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3128,10 +3231,10 @@ def STORY(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3176,10 +3279,10 @@ def IDEA(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3224,10 +3327,10 @@ def FIXME(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3272,10 +3375,10 @@ def BUG(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3320,10 +3423,10 @@ def HACK(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3368,10 +3471,10 @@ def CLEVER(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3416,10 +3519,10 @@ def MAGIC(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3464,10 +3567,10 @@ def ALERT(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3512,10 +3615,10 @@ def PORT(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3560,10 +3663,10 @@ def DOCUMENT(
         closed_date=closed_date,
         closed_comment=closed_comment,
         tracker=tracker,
-        file_path=file_path,
-        line_number=line_number,
-        original_text=original_text,
-        original_schema=original_schema,
+        _file_path=file_path,
+        _line_number=line_number,
+        _original_text=original_text,
+        _original_schema=original_schema,
         custom_fields=custom_fields,
         priority=priority,
         status=status,
@@ -3581,13 +3684,13 @@ Generate main_types_aliases.py in a way that ensures intellisense works.
 
 import inspect
 import textwrap
-from dataclasses import field, fields
+from dataclasses import Field, field, fields
 from typing import Any
 
 from pycodetags.todo_tag_types import TODO
 
 
-def generate_code_tags_file(output_filename: str = "main_types_aliases.py") -> None:
+def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types_aliases.py") -> None:
     """
     Generates a Python file containing the TODO dataclass and
     aliased factory functions with full IntelliSense support.
@@ -3597,45 +3700,14 @@ def generate_code_tags_file(output_filename: str = "main_types_aliases.py") -> N
     # In a real project, you might import it from 'code_tags.main_types'.
 
     _temp_globals: dict[str, Any] = {}
-    _TODO_cls = TODO
+    _TODO_cls = cls
 
     # --- 2. Inspect TODO's fields for signature generation ---
     todo_init_fields = [f for f in fields(_TODO_cls) if f.init and f.name != "code_tag"]
 
-    # Build the parameters string for the function signature
-    params_str_parts = []
-    for f in todo_init_fields:
-        param_name = f.name
-        param_type = inspect.formatannotation(f.type)  # Gets the string representation of the type
+    params_str_parts = build_param_parts(todo_init_fields)
 
-        # Handle default values
-        if f.default is not field:
-            # For simple defaults (strings, numbers, None)
-            params_str_parts.append(f"{param_name}: {param_type} = {repr(f.default)}")
-        elif f.default_factory is not field:
-            # For default_factory, we can't put the factory in the signature directly.
-            # Treat it as Optional and let the TODO constructor handle the default_factory.
-            # Or you might omit it from the signature if it's always default-generated.
-            # For IntelliSense, making it Optional[Type] is often best.
-            if "None" not in param_type:  # Avoid double Optional or None | None
-                params_str_parts.append(f"{param_name}: {param_type} | None = None")
-            else:
-                params_str_parts.append(f"{param_name}: {param_type} = None")
-        else:
-            # Required parameter with no default
-            params_str_parts.append(f"{param_name}: {param_type}")
-
-    # Add **kwargs to allow for future flexibility or passing through other arguments
-    params_str = ", ".join(params_str_parts)
-    if params_str:
-        params_str += ", "
-    # params_str += "**kwargs: Any"
-
-    # Build the arguments string to pass to the TODO constructor
-    args_to_pass = ", ".join([f"{f.name}={f.name}" for f in todo_init_fields])
-    if args_to_pass:
-        args_to_pass += ", "
-    # args_to_pass += "**kwargs"
+    args_to_pass, params_str = param_string(params_str_parts, todo_init_fields)
 
     # --- 3. Define the aliases and their corresponding code_tag values and docstrings ---
     aliases = {
@@ -3682,6 +3754,46 @@ from pycodetags.main_types import TODO
         file.write("\n\n".join(full_output_content))
 
     print(f"Successfully generated '{output_filename}' with IntelliSense-friendly aliases.")
+
+
+def param_string(params_str_parts: list[str], todo_init_fields: list[Field[Any]]) -> tuple[str, str]:
+    # Add **kwargs to allow for future flexibility or passing through other arguments
+    params_str = ", ".join(params_str_parts)
+    if params_str:
+        params_str += ", "
+    # params_str += "**kwargs: Any"
+    # Build the arguments string to pass to the TODO constructor
+    args_to_pass = ", ".join([f"{f.name}={f.name}" for f in todo_init_fields])
+    if args_to_pass:
+        args_to_pass += ", "
+    # args_to_pass += "**kwargs"
+    return args_to_pass, params_str
+
+
+def build_param_parts(todo_init_fields: list[Field[Any]]) -> list[str]:
+    # Build the parameters string for the function signature
+    params_str_parts = []
+    for f in todo_init_fields:
+        param_name = f.name
+        param_type = inspect.formatannotation(f.type)  # Gets the string representation of the type
+
+        # Handle default values
+        if f.default is not field and "_MISSING_TYPE" not in repr(f.default):
+            # For simple defaults (strings, numbers, None)
+            params_str_parts.append(f"{param_name}: {param_type} = {repr(f.default)}")
+        elif f.default_factory is not field and "_MISSING_TYPE" not in repr(f.default):
+            # For default_factory, we can't put the factory in the signature directly.
+            # Treat it as Optional and let the TODO constructor handle the default_factory.
+            # Or you might omit it from the signature if it's always default-generated.
+            # For IntelliSense, making it Optional[Type] is often best.
+            if "None" not in param_type:  # Avoid double Optional or None | None
+                params_str_parts.append(f"{param_name}: {param_type} | None = None")
+            else:
+                params_str_parts.append(f"{param_name}: {param_type} = None")
+        else:
+            # Required parameter with no default
+            params_str_parts.append(f"{param_name}: {param_type}")
+    return params_str_parts
 
 
 if __name__ == "__main__":
@@ -3888,7 +4000,6 @@ def print_validate(found: CollectedTODOs) -> None:
         validations = item.validate()
         if validations:
             print(item.as_pep350_comment())
-            print(item.as_pep350_comment())
             for validation in validations:
                 print(f"  {validation}")
             print()
@@ -3968,7 +4079,7 @@ def print_json(found: CollectedTODOs) -> None:
 
     todo_exceptions = found.get("exceptions", [])
     output = {
-        "todos": [t.todo_meta.to_dict() for t in todos if t.todo_meta],
+        "todos": [t.to_dict() for t in todos],
         "exceptions": [e.to_dict() for e in todo_exceptions],
     }
 
@@ -4058,9 +4169,9 @@ def print_todo_md(found: CollectedTODOs) -> None:
     print("# Code Tags TODO Board")
     print("Tasks and progress overview.\n")
     print("Legend:")
-    print("~ means due")
-    print("@ means assignee")
-    print("# means category")
+    print("`~` means due")
+    print("`@` means assignee")
+    print("`#` means category")
 
     config = get_code_tags_config()
 
@@ -4210,7 +4321,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]
@@ -4303,6 +4414,42 @@ from pycodetags.views import (
 )
 
 
+class InternalViews:
+    """Register internal views as a plugin"""
+
+    @pluggy.HookimplMarker("pycodetags")
+    def code_tags_print_report(self, format_name: str, found_data: CollectedTODOs) -> bool:
+        """
+        Internal method to handle printing of reports in various formats.
+
+        Args:
+            format_name (str): The name of the format requested by the user.
+            found_data (CollectedTODOs): The data collected from the source code.
+
+        Returns:
+            bool: True if the format was handled, False otherwise.
+        """
+        if format_name == "text":
+            print_text(found_data)
+            return True
+        if format_name == "html":
+            print_html(found_data)
+            return True
+        if format_name == "json":
+            print_json(found_data)
+            return True
+        if format_name == "keep-a-changelog":
+            print_changelog(found_data)
+            return True
+        if format_name == "todo.md":
+            print_todo_md(found_data)
+            return True
+        if format_name == "done":
+            print_done_file(found_data)
+            return True
+        return False
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """
     Main entry point for the pycodetags CLI.
@@ -4311,41 +4458,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         argv (Sequence[str] | None): Command line arguments. If None, uses sys.argv.
     """
     pm = get_plugin_manager()
-
-    class InternalViews:
-        """Register internal views as a plugin"""
-
-        @pluggy.HookimplMarker("pycodetags")
-        def code_tags_print_report(self, format_name: str, found_data: CollectedTODOs) -> bool:
-            """
-            Internal method to handle printing of reports in various formats.
-
-            Args:
-                format_name (str): The name of the format requested by the user.
-                found_data (CollectedTODOs): The data collected from the source code.
-
-            Returns:
-                bool: True if the format was handled, False otherwise.
-            """
-            if format_name == "text":
-                print_text(found_data)
-                return True
-            if format_name == "html":
-                print_html(found_data)
-                return True
-            if format_name == "json":
-                print_json(found_data)
-                return True
-            if format_name == "keep-a-changelog":
-                print_changelog(found_data)
-                return True
-            if format_name == "todo.md":
-                print_todo_md(found_data)
-                return True
-            if format_name == "done":
-                print_done_file(found_data)
-                return True
-            return False
 
     pm.register(InternalViews())
     # --- end pluggy setup ---

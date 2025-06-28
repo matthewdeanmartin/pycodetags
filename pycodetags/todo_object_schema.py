@@ -19,8 +19,8 @@ TODO_KEYWORDS = [
     "tracker",
     # custom workflow fields
     # Source Mapping
-    "file_path",
-    "line_number",
+    "_file_path",
+    "_line_number",
     "custom_fields",
     # Idiosyncratic fields
     "iteration",

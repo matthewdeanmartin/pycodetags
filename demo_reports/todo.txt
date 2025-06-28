@@ -71,6 +71,9 @@
 # NOBUG: Ensure terminal state is reset correctly on exit.
 # <Kstar closed_date:2024-06-20 closed_date:2024-06-20 release:1.5.0>
 
+--- NOT ---
+# NOT: IMPLEMENTED: Plant animation logic for swaying or growing. <>
+
 --- TODO ---
 # TODO: Add background details and rocks at the bottom.
 # <Bob release_due:1.5.0 due:07/01/2025 release_due:1.5.0 tracker:"https://example.com/FSH-10" iteration:1 status:Planning category:"Flavor Text">
@@ -106,7 +109,7 @@
 # TODO: Initial screen setup and sizing for responsiveness.
 # <Alice originator:Alice tracker:"https://example.com/FSH-1">
 
-# TODO: demonstrate that js plugin works. <file_path:demo\demo.js line_number:1>
+# TODO: demonstrate that js plugin works. <>
 
 --- WONTFIX ---
 # WONTFIX: Add complex terminal cleanup for all OS types.
