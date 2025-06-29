@@ -87,8 +87,8 @@ import os
 import sys
 from typing import Any
 
-from pycodetags.user import get_current_user
-from pycodetags.users_from_authors import parse_authors_file_simple
+# from pycodetags.user import get_current_user
+# from pycodetags.users_from_authors import parse_authors_file_simple
 
 try:
     import tomllib  # Python 3.11+
@@ -125,10 +125,9 @@ class CodeTagsConfig:
         self._load()
         self.user_override = set_user
 
-    def current_user(self) -> str:
-        if self.user_override:
-            return self.user_override
-        return get_current_user(self.user_identification_technique(), self.user_env_var())
+    def user_env_var(self) -> str:
+        """Environment variable with active user."""
+        return str(self._config.get("user_env_var", ""))
 
     def _load(self) -> None:
         if not os.path.exists(self._pyproject_path):
@@ -140,22 +139,6 @@ class CodeTagsConfig:
             data = tomllib.load(f) if "tomllib" in sys.modules else toml.load(f)
 
         self._config = data.get("tool", {}).get("pycodetags", {})
-
-    # Property accessors
-    def valid_authors(self) -> list[str]:
-        """Author list, if empty or None, all are valid, unless file specified"""
-        author_file = self.valid_authors_file()
-        schema = self.valid_authors_schema()
-        if author_file and schema:
-            if schema == "single_column":
-                with open(author_file, encoding="utf-8") as file_handle:
-                    authors = [_ for _ in file_handle.readlines() if _]
-                return authors
-            if schema == "gnu_gnits":
-                authors = parse_authors_file_simple(author_file)
-                return authors
-
-        return [_.lower() for _ in self._config.get("valid_authors", [])]
 
     def valid_authors_file(self) -> str:
         """Author list, overrides valid authors if specified. File must exist."""
@@ -250,19 +233,6 @@ class CodeTagsConfig:
         if result not in accepted:
             raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
-
-    def user_identification_technique(self) -> str:
-        """Technique for identifying current user. If not set, related features are disabled."""
-        field = "user_identification_technique"
-        result = self._config.get(field, "")
-        accepted = ("os", "env", "git", "")
-        if result not in accepted:
-            raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
-        return str(result)
-
-    def user_env_var(self) -> str:
-        """Environment variable with active user."""
-        return str(self._config.get("user_env_var", ""))
 
     def disable_all_runtime_behavior(self) -> bool:
         """Minimize performance costs when in production"""

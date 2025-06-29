@@ -7,32 +7,7 @@ Everything else is a tool.
 """
 
 __all__ = [
-    "TODO",
-    "FIXME",
-    "TodoException",
-    "REQUIREMENT",
-    "STORY",
-    "IDEA",
-    "BUG",
-    "HACK",
-    "CLEVER",
-    "MAGIC",
-    "ALERT",
-    "PORT",
-    "DOCUMENT",
+    "DATA",
 ]
 
-from pycodetags.todo_tag_types import TODO, TodoException
-from pycodetags.todo_tag_types_aliases import (
-    ALERT,
-    BUG,
-    CLEVER,
-    DOCUMENT,
-    FIXME,
-    HACK,
-    IDEA,
-    MAGIC,
-    PORT,
-    REQUIREMENT,
-    STORY,
-)
+from pycodetags.data_tag_types import DATA

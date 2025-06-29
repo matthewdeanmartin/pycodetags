@@ -1,5 +1,17 @@
 # TODO
 
+## REFACTOR TO DOMAIN NEUTRAL TAGS
+- Including a strongly domain specific "app" like an issue tracker will sink data tags as a 3rd party library
+- chat, issue tracker, code review, documentation must be plugins
+  - each domain specific plugin app has 1 schema
+  - other plugins can additional functionality and filter for the schema they recognize.
+- Per schema plugins add functionality
+  - For cli commands
+  - Reports (filtered by schema)
+  - Validation (filtered by schema)
+- TODO exceptions are a problem. Like Warning, Deprecation, NotImplemented, they don't implement the same properties
+  - Remove for now.
+
 ## Basic Types Issues
 - Identity, strict, fuzzy, by schema
   - Need this for tracking issues across git history.

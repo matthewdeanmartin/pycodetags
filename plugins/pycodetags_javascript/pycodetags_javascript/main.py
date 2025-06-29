@@ -10,7 +10,12 @@ hookimpl = HookimplMarker("pycodetags")
 
 class JavascriptFolkTagPlugin:
     @hookimpl
-    def find_source_tags(self, file_path: str, config: CodeTagsConfig) -> list[FolkTag]:
+    def find_source_tags(
+        self,
+        file_path: str,
+        # pylint: disable=unused-argument
+        config: CodeTagsConfig,
+    ) -> list[FolkTag]:
         if not file_path.endswith((".js", ".ts", ".jsx", ".tsx")):
             return []
 

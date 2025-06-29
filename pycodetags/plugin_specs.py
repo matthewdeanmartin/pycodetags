@@ -9,10 +9,10 @@ import argparse
 
 import pluggy
 
-from pycodetags.collection_types import CollectedTODOs
 from pycodetags.config import CodeTagsConfig
+from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags import DataTag
 from pycodetags.folk_code_tags import FolkTag
-from pycodetags.todo_tag_types import TODO
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 
@@ -21,15 +21,20 @@ class CodeTagsSpec:
     """A hook specification namespace for pycodetags."""
 
     @hookspec
+    def register_app(self, pm: pluggy.PluginManager, parser: argparse.ArgumentParser) -> bool:
+        """Register a plugin that acts like an app with its own plugins and cli commands."""
+        return False
+
+    @hookspec
     def code_tags_print_report(
-        self, format_name: str, found_data: CollectedTODOs, output_path: str, config: CodeTagsConfig
+        self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
     ) -> bool:
         """
         Allows plugins to define new output report formats.
 
         Args:
             format_name: The name of the report format to print.
-            found_data: The CollectedTODOs data to be printed.
+            found_data: The list[DATA] data to be printed.
             output_path: The path where the report should be saved.
             config: The CodeTagsConfig instance containing configuration settings.
 
@@ -59,7 +64,7 @@ class CodeTagsSpec:
 
     @hookspec
     def code_tags_run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data: CollectedTODOs, config: CodeTagsConfig
+        self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
     ) -> bool:
         """
         Allows plugins to handle the execution of their registered CLI commands.
@@ -67,7 +72,7 @@ class CodeTagsSpec:
         Args:
             command_name: The name of the command to run.
             args: The parsed arguments for the command.
-            found_data: The CollectedTODOs data to be processed.
+            found_data: The list[DATA] data to be processed.
             config: The CodeTagsConfig instance containing configuration settings.
 
         Returns:
@@ -76,12 +81,12 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_validate_todo(self, todo_item: TODO, config: CodeTagsConfig) -> list[str]:
+    def code_tags_validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
         """
         Allows plugins to add custom validation logic to TODO items.
 
         Args:
-            todo_item: The TODO item to validate.
+            item: The TODO item to validate.
             config: The CodeTagsConfig instance containing configuration settings.
 
         Returns:

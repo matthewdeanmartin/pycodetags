@@ -13,35 +13,27 @@ from collections.abc import Sequence
 import pluggy
 
 import pycodetags.__about__ as __about__
-from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input, merge_collected
-from pycodetags.collection_types import CollectedTODOs
+from pycodetags import DATA
+from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_diagnostics import plugin_currently_loaded
 from pycodetags.plugin_manager import get_plugin_manager
-from pycodetags.views import (
-    print_changelog,
-    print_done_file,
-    print_html,
-    print_json,
-    print_text,
-    print_todo_md,
-    print_validate,
-)
+from pycodetags.views import print_html, print_json, print_text, print_validate
 
 
 class InternalViews:
     """Register internal views as a plugin"""
 
     @pluggy.HookimplMarker("pycodetags")
-    def code_tags_print_report(self, format_name: str, found_data: CollectedTODOs) -> bool:
+    def code_tags_print_report(self, format_name: str, found_data: list[DATA]) -> bool:
         """
         Internal method to handle printing of reports in various formats.
 
         Args:
             format_name (str): The name of the format requested by the user.
-            found_data (CollectedTODOs): The data collected from the source code.
+            found_data (list[DATA]): The data collected from the source code.
 
         Returns:
             bool: True if the format was handled, False otherwise.
@@ -54,15 +46,6 @@ class InternalViews:
             return True
         if format_name == "json":
             print_json(found_data)
-            return True
-        if format_name == "keep-a-changelog":
-            print_changelog(found_data)
-            return True
-        if format_name == "todo.md":
-            print_todo_md(found_data)
-            return True
-        if format_name == "done":
-            print_done_file(found_data)
             return True
         return False
 
@@ -178,11 +161,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 1
 
         if args.validate:
-            if len(found["todos"]) + len(found["exceptions"]) == 0:
+            if len(found) == 0:
                 raise TypeError("No data to validate.")
             print_validate(found)
         else:
-            if len(found["todos"]) + len(found["exceptions"]) == 0:
+            if len(found) == 0:
                 raise TypeError("No data to report.")
             # Call the hook.
             results = pm.hook.code_tags_print_report(
@@ -199,7 +182,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         # Pass control to plugins for other commands
         # Aggregate data if plugins might need it
-        found_data_for_plugins: CollectedTODOs = {}
+        found_data_for_plugins: list[DATA] = []
         modules = []
         src = []
         if hasattr(args, "module") and args.module:
@@ -213,17 +196,16 @@ def main(argv: Sequence[str] | None = None) -> int:
             modules = code_tags_config.source_folders_to_scan()
 
         try:
-            # BUG: this needs to be a list
-            all_found: list[CollectedTODOs] = []
+            all_found: list[DATA] = []
             for source in src:
-                all_found.append(aggregate_all_kinds("", source))
+                all_found.extend(aggregate_all_kinds("", source))
             for module in modules:
-                all_found.append(aggregate_all_kinds(module, ""))
+                all_found.extend(aggregate_all_kinds(module, ""))
 
-            found_data_for_plugins = merge_collected(all_found)
+            found_data_for_plugins = all_found
         except ImportError:
             logging.warning(f"Could not aggregate data for command {args.command}, proceeding without it.")
-            found_data_for_plugins = {"todos": [], "exceptions": []}
+            found_data_for_plugins = []
 
         handled_by_plugin = pm.hook.code_tags_run_cli_command(
             command_name=args.command, args=args, found_data=found_data_for_plugins, config=get_code_tags_config()

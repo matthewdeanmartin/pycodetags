@@ -36,12 +36,15 @@ from typing import Any
 try:
     from typing import TypedDict
 except ImportError:
-    from typing_extensions import TypedDict # noqa
+    from typing_extensions import TypedDict  # noqa
 
 logger = logging.getLogger(__name__)
 
 
 class DataTagSchema(TypedDict):
+    matching_tags: list[str]
+    """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
+
     default_fields: dict[str, str]
     """type:name, e.g. str:assignees"""
 

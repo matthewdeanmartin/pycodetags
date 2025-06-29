@@ -5,7 +5,7 @@ Like itertools, this is the functional programming code for list[TODO]
 from __future__ import annotations
 
 from collections import defaultdict
-from typing import Any, Callable # noqa
+from typing import Any, Callable  # noqa
 
 
 def group_and_sort(

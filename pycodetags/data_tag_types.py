@@ -8,7 +8,7 @@ import datetime
 import logging
 from dataclasses import dataclass, field, fields
 from functools import wraps
-from typing import Any, cast,Callable # noqa
+from typing import Any, Callable, cast  # noqa
 
 try:
     from typing import Literal  # type: ignore[assignment,unused-ignore]

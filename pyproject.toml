@@ -1,6 +1,6 @@
 [project]
 name = "pycodetags"
-version = "0.2.0"
+version = "1.0.0"
 description = "TODOs in source code as a first class construct, follows PEP350"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
@@ -43,6 +43,18 @@ packages = [
     "pycodetags",
 ]
 
+#[project.optional-dependencies]
+#chat = ["pycodetags-chat"]
+#issue-tracker = ["pycodetags-issue-tracker"]
+#code-review = ["pycodetags-code-review"]
+#documentation = ["pycodetags-documentation"]
+#all = [
+#    "pycodetags-chat",
+#    "pycodetags-issue-tracker",
+#    "pycodetags-code-review",
+#    "pycodetags-documentation"
+#]
+
 [dependency-groups]
 dev = [
     "detect-test-pollution",
@@ -63,7 +75,7 @@ dev = [
     "bug-trail-core>=3.1.0; python_version >= '3.9'",
     # build
     "vermin; python_version >= '3.8'",
-    "metametameta>=0.1.2; python_version >= '3.9'",
+    "metametameta>=0.1.3; python_version >= '3.9'",
     "hatchling; python_version >= '3.8'",
     "ruff>=0.12.0; python_version >= '3.8'",
     "pylint; python_version >= '3.8'",
@@ -92,9 +104,12 @@ default-groups = "all"
 
 [tool.uv.workspace]
 members = [".",
-    "plugins/pycodetags_github_issues_sync",
-    "plugins/pycodetags_markdown_view",
-    "plugins/pycodetags_ldap_validation",
+    # App plugins
+    "plugins/pycodetags_chat",
+    "plugins/pycodetags_issue_tracker",
+    "plugins/pycodetags_issue_tracker_gh_sync",
+    # data tags plugins
+    "plugins/pycodetags_javascript",
     "plugins/pycodetags_javascript"
 ]
 

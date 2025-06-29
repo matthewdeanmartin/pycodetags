@@ -8,7 +8,9 @@ logger = logging.getLogger(__name__)
 
 PM = pluggy.PluginManager("pycodetags")
 PM.add_hookspecs(CodeTagsSpec)
-PM.load_setuptools_entrypoints("pycodetags")
+# PM.set_blocked("malicious_plugin")
+PLUGIN_COUNT = PM.load_setuptools_entrypoints("pycodetags")
+logger.info(f"Found {PLUGIN_COUNT} plugins")
 
 
 def reset_plugin_manager() -> None:

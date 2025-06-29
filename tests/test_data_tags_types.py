@@ -1,5 +1,6 @@
 # tests/test_data.py
-from __future__ import  annotations
+from __future__ import annotations
+
 import datetime
 from dataclasses import dataclass, field
 

@@ -1,5 +1,4 @@
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -32,11 +31,6 @@ releases_schema = "semantic"
     return path
 
 
-def test_valid_authors_from_config(pyproject_file):
-    config = CodeTagsConfig(str(pyproject_file))
-    assert config.valid_authors() == ["alice", "bob"]
-
-
 def test_valid_status_lowercased(pyproject_file):
     config = CodeTagsConfig(str(pyproject_file))
     assert config.valid_status() == ["done", "closed"]
@@ -64,23 +58,6 @@ tracker_style = "invalid_style"
         config.tracker_style()
 
 
-def test_valid_authors_from_file(tmp_path):
-    authors_file = tmp_path / "AUTHORS.md"
-    authors_file.write_text("Alice\nBob\n", encoding="utf-8")
-
-    file_name = str(authors_file).replace("\\", "/")
-    config_text = f"""
-[tool.pycodetags]
-valid_authors_file = "{file_name}"
-valid_authors_schema = "single_column"
-"""
-    pyproject = tmp_path / "pyproject.toml"
-    pyproject.write_text(config_text, encoding="utf-8")
-
-    config = CodeTagsConfig(str(pyproject))
-    assert config.valid_authors() == ["Alice\n", "Bob\n"]  # Note: newline remains!
-
-
 def test_missing_valid_authors_schema_raises(tmp_path):
     authors_file = tmp_path / "AUTHORS.md"
     authors_file.write_text("Alice\n", encoding="utf-8")
@@ -97,19 +74,6 @@ valid_authors_file = "{file_name}"
     config = CodeTagsConfig(str(pyproject))
     with pytest.raises(Exception, match="must be valid_authors_schema must be set"):
         config.valid_authors_schema()
-
-
-def test_current_user_override(pyproject_file):
-    config = CodeTagsConfig(str(pyproject_file), set_user="Charlie")
-    assert config.current_user() == "Charlie"
-
-
-@patch("pycodetags.config.get_current_user")
-def test_current_user_from_os(mock_get_user, pyproject_file):
-    mock_get_user.return_value = "Dana"
-    config = CodeTagsConfig(str(pyproject_file))
-    assert config.current_user() == "Dana"
-    mock_get_user.assert_called_once()
 
 
 def test_singleton_get_set_instance(pyproject_file):

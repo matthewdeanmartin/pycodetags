@@ -19,9 +19,7 @@ import types
 from types import ModuleType, SimpleNamespace
 from typing import Any
 
-from pycodetags.collect_ast import TodoExceptionCollector
-from pycodetags.collection_types import CollectedTODOs
-from pycodetags.todo_tag_types import TODO, TodoException
+from pycodetags import DATA
 
 logger = logging.getLogger(__name__)
 
@@ -49,19 +47,18 @@ def is_stdlib_module(module: types.ModuleType | SimpleNamespace) -> bool:
     return module_path.startswith(os.path.abspath(stdlib_path))
 
 
-class TodoCollector:
-    """Comprehensive collector for TODO, Done, and TodoException items."""
+class DATACollector:
+    """Comprehensive collector for DATA items."""
 
     def __init__(self) -> None:
-        self.todos: list[TODO] = []
-        self.todo_exceptions: list[TodoException] = []
+        self.todos: list[DATA] = []
         self.visited: set[int] = set()
 
     def collect_from_module(
         self, module: ModuleType, include_submodules: bool = True, max_depth: int = 10
-    ) -> tuple[list[TODO], list[TodoException]]:
+    ) -> list[DATA]:
         """
-        Collect all TODO/Done items and TodoExceptions from a module.
+        Collect all DATA items.
 
         Args:
             module: The module to inspect
@@ -69,16 +66,15 @@ class TodoCollector:
             max_depth: Maximum recursion depth for submodules
 
         Returns:
-            Tuple of (todos, dones, todo_exceptions)
+            list of DATA
         """
         self._reset()
         self._collect_recursive(module, include_submodules, max_depth, 0)
-        return self.todos.copy(), self.todo_exceptions.copy()
+        return self.todos.copy()
 
     def _reset(self) -> None:
         """Reset internal collections."""
         self.todos.clear()
-        self.todo_exceptions.clear()
         self.visited.clear()
 
     def _collect_recursive(self, obj: Any, include_submodules: bool, max_depth: int, current_depth: int) -> None:
@@ -133,7 +129,7 @@ class TodoCollector:
     def _check_object_for_todos(self, obj: Any) -> None:
         """Check if an object has TODO/Done metadata."""
         if hasattr(obj, "todo_meta"):
-            if isinstance(obj.todo_meta, TODO):
+            if isinstance(obj.todo_meta, DATA):
                 logger.info(f"Found todo, by instance and has todo_meta attr on {obj}")
                 self.todos.append(obj.todo_meta)
 
@@ -214,58 +210,45 @@ class TodoCollector:
                 logger.error(f"ERROR ON attr_name {attr_name}")
                 continue
 
-    def collect_standalone_items(self, items_list: list[TODO]) -> tuple[list[TODO], list[TODO]]:
+    def collect_standalone_items(self, items_list: list[DATA]) -> list[DATA]:
         """
-        Collect standalone TODO/Done items from a list.
+        Collect standalone DATA items from a list.
 
         Args:
-            items_list: List containing TODO and Done instances
+            items_list: List containing DATA instances
 
         Returns:
-            Tuple of (todos, dones)
+            list of DATA
         """
-        todos = [item for item in items_list if isinstance(item, TODO)]
-        dones = []
-        for item in todos:
-            if item.is_probably_done():
-                dones.append(item)
-                todos.remove(item)
-        return todos, dones
+        data = [item for item in items_list if isinstance(item, DATA)]
+        return data
 
 
-def collect_all_todos(
+def collect_all_data(
     module: ModuleType,
-    standalone_items: list[TODO] | None = None,
+    standalone_items: list[DATA] | None = None,
     include_submodules: bool = True,
-    include_exceptions: bool = True,
-) -> CollectedTODOs:
+) -> list[DATA]:
     """
-    Comprehensive collection of all TODO/Done items and exceptions.
+    Comprehensive collection of all DATA items and exceptions.
 
     Args:
         module: Module to inspect
         standalone_items: List of standalone TODO/Done items
         include_submodules: Whether to inspect submodules
-        include_exceptions: Whether to analyze source for TodoExceptions
 
     Returns:
         Dictionary with 'todos', 'dones', and 'exceptions' keys
     """
-    collector = TodoCollector()
-    # BUG: _runtime_exceptions is never really used.
-    todos, _runtime_exceptions = collector.collect_from_module(module, include_submodules)
-    logger.info(f"Found {len(todos)} TODOs in module '{module.__name__}'.")
+    collector = DATACollector()
+
+    todos = collector.collect_from_module(module, include_submodules)
+    logger.info(f"Found {len(todos)} DATA in module '{module.__name__}'.")
 
     # Collect standalone items if provided
     if standalone_items:
-        standalone_todos, standalone_dones = collector.collect_standalone_items(standalone_items)
-        logger.info(f"Found {len(standalone_todos)} standalone TODOs and {len(standalone_dones)} standalone Dones.")
+        standalone_todos = collector.collect_standalone_items(standalone_items)
+        logger.info(f"Found {len(standalone_todos)} standalone DATA.")
         todos.extend(standalone_todos)
 
-    # Collect exceptions from source analysis
-    exceptions = []
-    if include_exceptions:
-        exception_collector = TodoExceptionCollector()
-        exceptions = exception_collector.collect_from_source_analysis(module)
-
-    return {"todos": todos, "exceptions": exceptions}
+    return todos

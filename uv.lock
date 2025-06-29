@@ -13,10 +13,10 @@ resolution-markers = [
 [manifest]
 members = [
     "pycodetags",
+    "pycodetags-chat",
     "pycodetags-github-issues-sync",
+    "pycodetags-issue-tracker",
     "pycodetags-javascript",
-    "pycodetags-ldap-validation",
-    "pycodetags-markdown-view",
 ]
 
 [[package]]
@@ -1227,7 +1227,7 @@ name = "jinja2"
 version = "3.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "markupsafe", version = "2.1.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.8.*'" },
+    { name = "markupsafe", version = "2.1.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "markupsafe", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/df/bf/f7da0350254c0ed7c72f3e33cef02e048281fec7ecec5f032d4aac52226b/jinja2-3.1.6.tar.gz", hash = "sha256:0137fb05990d35f1275a587e9aee6d56da821fc83491a0fb838183be43f66d6d", size = 245115, upload-time = "2025-03-05T20:05:02.478Z" }
@@ -1309,6 +1309,7 @@ version = "2.1.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "python_full_version == '3.8.*'",
+    "python_full_version < '3.8'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/87/5b/aae44c6655f3801e81aa3eef09dbbf012431987ba564d7231722f68df02d/MarkupSafe-2.1.5.tar.gz", hash = "sha256:d283d37a890ba4c1ae73ffadf8046435c76e7bc2247bbb63c00bd1a709c6544b", size = 19384, upload-time = "2024-02-02T16:31:22.863Z" }
 wheels = [
@@ -1504,15 +1505,15 @@ wheels = [
 
 [[package]]
 name = "metametameta"
-version = "0.1.2"
+version = "0.1.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorlog", marker = "python_full_version >= '3.9'" },
     { name = "toml", marker = "python_full_version >= '3.9'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/87/ae111fe80dc51681cc2f68b0bfbf00e62ab2147aae5e6a1f18048556b6a6/metametameta-0.1.2.tar.gz", hash = "sha256:b8d222f99a41754ffbfdcfaa9db61b58e86a60d065ba4cbac68141b2c737c8a5", size = 13520, upload-time = "2025-06-14T15:30:09.375Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/3c/c8a85a8a8213e511e1180736c95e377d8fa5a26c6249eb80d2649c9ca23e/metametameta-0.1.3.tar.gz", hash = "sha256:514f4b1e331eded112dfca88961d23d4f8eae58ccdad5e553713e4308c6efe05", size = 13617, upload-time = "2025-06-28T16:45:27.611Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/8c/b874edae9c5a550ef9caa903ea975687bc7e0a1e4568b3cd12ef135acacc/metametameta-0.1.2-py3-none-any.whl", hash = "sha256:f4b086bb386e308ca045d7f720ff27fd3ffac90da766139a54309b4cc75bf7b2", size = 15499, upload-time = "2025-06-14T15:30:08.251Z" },
+    { url = "https://files.pythonhosted.org/packages/73/5e/6c9fd0c6551a8d58563eed16c49eeacfdb11ab4465becfe1081ab74bd909/metametameta-0.1.3-py3-none-any.whl", hash = "sha256:413167d6a548f7a5bfa5b01a51eb89d2e45fda9f5b3e1041cb9520af75d0e6da", size = 15656, upload-time = "2025-06-28T16:45:26.794Z" },
 ]
 
 [[package]]
@@ -2211,7 +2212,7 @@ wheels = [
 
 [[package]]
 name = "pycodetags"
-version = "0.2.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "ast-comments", marker = "python_full_version >= '3.8'" },
@@ -2290,7 +2291,7 @@ dev = [
     { name = "jinja2", marker = "python_full_version >= '3.8'" },
     { name = "linkcheckmd", marker = "python_full_version >= '3.8'", specifier = ">=1.4.0" },
     { name = "mdformat", marker = "python_full_version >= '3.8'", specifier = ">=0.5.0" },
-    { name = "metametameta", marker = "python_full_version >= '3.9'", specifier = ">=0.1.2" },
+    { name = "metametameta", marker = "python_full_version >= '3.9'", specifier = ">=0.1.3" },
     { name = "mypy", marker = "python_full_version >= '3.8'" },
     { name = "packaging", marker = "python_full_version >= '3.8'" },
     { name = "pdoc3", marker = "python_full_version >= '3.8'", specifier = ">=0.5.0" },
@@ -2315,24 +2316,30 @@ dev = [
 ]
 
 [[package]]
+name = "pycodetags-chat"
+version = "0.1.0"
+source = { editable = "plugins/pycodetags_chat" }
+dependencies = [
+    { name = "jinja2" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "jinja2" }]
+
+[[package]]
 name = "pycodetags-github-issues-sync"
 version = "0.1.0"
-source = { editable = "plugins/pycodetags_github_issues_sync" }
+source = { editable = "plugins/pycodetags_issue_tracker_gh_sync" }
+
+[[package]]
+name = "pycodetags-issue-tracker"
+version = "0.1.0"
+source = { editable = "plugins/pycodetags_issue_tracker" }
 
 [[package]]
 name = "pycodetags-javascript"
 version = "0.1.0"
 source = { editable = "plugins/pycodetags_javascript" }
-
-[[package]]
-name = "pycodetags-ldap-validation"
-version = "0.1.0"
-source = { editable = "plugins/pycodetags_ldap_validation" }
-
-[[package]]
-name = "pycodetags-markdown-view"
-version = "0.1.0"
-source = { editable = "plugins/pycodetags_markdown_view" }
 
 [[package]]
 name = "pydoctest"
