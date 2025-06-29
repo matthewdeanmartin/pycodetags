@@ -20,14 +20,12 @@ class IssueTrackerSpec:
     """A hook specification namespace for pycodetags."""
 
     @hookspec
-    def register_app(self, pm: pluggy.PluginManager, parser:argparse.ArgumentParser)->bool:
+    def register_app(self, pm: pluggy.PluginManager, parser: argparse.ArgumentParser) -> bool:
         """Register a plugin that acts like an app with its own plugins and cli commands."""
         return False
 
     @hookspec
-    def print_report(
-        self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
-    ) -> bool:
+    def print_report(self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig) -> bool:
         """
         Allows plugins to define new output report formats.
 

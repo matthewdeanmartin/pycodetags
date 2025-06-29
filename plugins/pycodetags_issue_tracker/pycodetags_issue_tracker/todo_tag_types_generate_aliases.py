@@ -1,6 +1,7 @@
 """
 Generate main_types_aliases.py in a way that ensures intellisense works.
 """
+
 from __future__ import annotations
 
 import inspect
@@ -8,7 +9,7 @@ import textwrap
 from dataclasses import Field, field, fields
 from typing import Any
 
-from pycodetags.todo_tag_types import TODO
+from pycodetags_issue_tracker.todo_tag_types import TODO
 
 
 def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types_aliases.py") -> None:

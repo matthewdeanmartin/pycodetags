@@ -5,7 +5,8 @@ from pycodetags_issue_tracker.plugin_specs import IssueTrackerSpec
 
 logger = logging.getLogger(__name__)
 
-PM = pluggy.PluginManager=pluggy.PluginManager("pycodetags")
+PM: pluggy.PluginManager = pluggy.PluginManager("pycodetags")
+
 
 def set_plugin_manager(new_pm: pluggy.PluginManager) -> None:
     """For testing or events can double up"""

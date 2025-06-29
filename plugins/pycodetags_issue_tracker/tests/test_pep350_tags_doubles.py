@@ -1,11 +1,11 @@
 import textwrap
 
 import pytest
+from pycodetags_issue_tracker.specific_schemas import PEP350Schema
+from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
+from pycodetags_issue_tracker.todo_collector import collect_pep350_code_tags
 
 from pycodetags.data_tags import parse_codetags, parse_fields, promote_fields
-from pycodetags.specific_schemas import PEP350Schema
-from pycodetags.standard_code_tags import collect_pep350_code_tags
-from pycodetags.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
 
 
 # Helper function to create a dummy file for testing file operations

@@ -10,7 +10,7 @@
   - Reports (filtered by schema)
   - Validation (filtered by schema)
 - TODO exceptions are a problem. Like Warning, Deprecation, NotImplemented, they don't implement the same properties
-  - Remove for now.
+  - Remove for now. - DONE
 
 ## Basic Types Issues
 - Identity, strict, fuzzy, by schema
@@ -19,6 +19,7 @@
   - See promotion code, which lacks a good unit test.
 - Huge mess with assignee/assignees being both `str | list[str]` Should probably force to always be list[str]: STILL A MESS
   - Maybe implement S() type that is a wrapper of str and list[str] with reasonable interface
+- Need to check if roundtripping is possible
 
 ## Tracker/Config
 - Need

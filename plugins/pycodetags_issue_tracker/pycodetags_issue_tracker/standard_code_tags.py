@@ -143,5 +143,3 @@ def extract_comment_blocks_fallback(filename: str) -> list[list[str]]:
         comment_blocks.append(current_block)
 
     return comment_blocks
-
-

@@ -1,6 +1,6 @@
 import subprocess
 
-from pycodetags.user import get_git_user, get_os_user
+from pycodetags_issue_tracker.user import get_git_user, get_os_user
 
 
 def test_get_git_user_success(monkeypatch):

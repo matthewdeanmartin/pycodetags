@@ -1,14 +1,12 @@
 import datetime
 
+import pycodetags_issue_tracker.views as views
 import pytest
-
-import pycodetags.views as views
-from pycodetags import TODO
-from pycodetags.collection_types import CollectedTODOs
+from pycodetags_issue_tracker import TODO
 
 
 @pytest.fixture(scope="session", autouse=True)
-def sample_data() -> CollectedTODOs:
+def sample_data() -> list[TODO]:
     td = TODO(tracker="http://x/1", change_type="Added", comment="Desc1")
     td.todo_meta = td
 
@@ -31,7 +29,7 @@ def sample_data() -> CollectedTODOs:
     d3 = TODO(status="todo", tracker="http://x/3", change_type="Changed", comment="Desc3", release="2.0")
     d3.todo_meta = d3
 
-    found = {"todos": [td, d1, d2, d3]}
+    found = [td, d1, d2, d3]
     return found
 
 
@@ -41,10 +39,6 @@ def test_html(sample_data):
 
 def test_text(sample_data):
     views.print_text(sample_data)
-
-
-def test_json(sample_data):
-    views.print_json(sample_data)
 
 
 def test_print_changelog(sample_data):

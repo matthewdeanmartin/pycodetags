@@ -10,6 +10,9 @@ Responsible for
 - Validate (raise event)
 - Default views for code tags as pure data (view events)
 
+Core library has no domain specific things. Core library can use data structure that are python, e.g. strings, ints,
+etc work the way they do in python.
+
 ## Apps
 - Issue Tracker
 - Discussion/Chat

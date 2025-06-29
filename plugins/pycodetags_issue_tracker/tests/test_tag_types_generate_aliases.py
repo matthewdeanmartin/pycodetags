@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field, fields
 
-from pycodetags.todo_tag_types_generate_aliases import build_param_parts, param_string
+from pycodetags_issue_tracker.todo_tag_types_generate_aliases import build_param_parts, param_string
 
 
 # A dummy TODO with varied fields to test default, default_factory, and type annotation formatting
@@ -13,6 +13,7 @@ class DummyTODO:
     b: str = "hello"
     c: list[int] = field(default_factory=list)
     code_tag: str = "UNUSED"  # init field ignored by your logic
+
 
 # @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
 # def test_build_param_parts_required_default_and_factory():

@@ -25,8 +25,8 @@ def test_blank_to_null(val, expected):
 # -- convert_folk_tag_to_TODO tests --
 
 
-@patch("pycodetags.converters.TODO")
-@patch("pycodetags.converters.TODO_KEYWORDS", ["priority", "status"])
+@patch("pycodetags_issue_tracker.converters.TODO")
+@patch("pycodetags_issue_tracker.converters.TODO_KEYWORDS", ["priority", "status"])
 def test_convert_folk_tag_to_TODO_promotes_custom_fields(mock_todo):
     tag = {
         "code_tag": "TODO",
@@ -46,9 +46,9 @@ def test_convert_folk_tag_to_TODO_promotes_custom_fields(mock_todo):
     assert kwargs["custom_fields"] == {"priority": "high", "x": "y"}
 
 
-@patch("pycodetags.converters.logger")
-@patch("pycodetags.converters.TODO")
-@patch("pycodetags.converters.TODO_KEYWORDS", ["priority"])
+@patch("pycodetags_issue_tracker.converters.logger")
+@patch("pycodetags_issue_tracker.converters.TODO")
+@patch("pycodetags_issue_tracker.converters.TODO_KEYWORDS", ["priority"])
 def test_convert_folk_tag_to_TODO_duplicate_keyword_warns(mock_todo, mock_logger):
     tag = {
         "code_tag": "TODO",
@@ -75,8 +75,8 @@ def test_convert_folk_tag_to_TODO_duplicate_keyword_warns(mock_todo, mock_logger
 # -- convert_pep350_tag_to_TODO tests --
 
 
-@patch("pycodetags.converters.TODO")
-@patch("pycodetags.converters.TODO_KEYWORDS", ["category", "status"])
+@patch("pycodetags_issue_tracker.converters.TODO")
+@patch("pycodetags_issue_tracker.converters.TODO_KEYWORDS", ["category", "status"])
 def test_convert_pep350_tag_to_TODO_field_promotion(mock_todo):
     tag: DataTag = {
         "code_tag": "NOTE",
@@ -100,9 +100,9 @@ def test_convert_pep350_tag_to_TODO_field_promotion(mock_todo):
     assert kwargs["custom_fields"] == {"blah": "in-progress"}
 
 
-@patch("pycodetags.converters.logger")
-@patch("pycodetags.converters.TODO")
-@patch("pycodetags.converters.TODO_KEYWORDS", ["priority"])
+@patch("pycodetags_issue_tracker.converters.logger")
+@patch("pycodetags_issue_tracker.converters.TODO")
+@patch("pycodetags_issue_tracker.converters.TODO_KEYWORDS", ["priority"])
 def test_convert_pep350_tag_to_TODO_duplicate_warns(mock_todo, mock_logger):
     tag = {
         "code_tag": "XXX",

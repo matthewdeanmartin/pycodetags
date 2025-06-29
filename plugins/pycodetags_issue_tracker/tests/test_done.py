@@ -1,4 +1,4 @@
-from pycodetags.todo_tag_types import TODO
+from pycodetags_issue_tracker.todo_tag_types import TODO
 
 
 def sample_fn(x):

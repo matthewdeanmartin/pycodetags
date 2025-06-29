@@ -1,7 +1,8 @@
 import os
 import tempfile
 
-from pycodetags.converters import convert_folk_tag_to_TODO
+from pycodetags_issue_tracker.converters import convert_folk_tag_to_TODO
+
 from pycodetags.folk_code_tags import find_source_tags
 
 

@@ -35,14 +35,14 @@ def print_html(found: list[TODO], output: Path = Path("todo_site")) -> None:
 
     # Render HTML with data
     template = jinja2.Template(template_src)
-    total_to_render = len(found["todos"])
+    total_to_render = len(found)
     logger.info(f"Total to render: {total_to_render}")
     if total_to_render == 0:
         raise TypeError("No data to render.")
 
     rendered = template.render(
-        dones=list(_ for _ in found["todos"] if _.is_probably_done()),
-        todos=list(_ for _ in found["todos"] if not _.is_probably_done()),
+        dones=list(_ for _ in found if _.is_probably_done()),
+        todos=list(_ for _ in found if not _.is_probably_done()),
         exceptions=[],
         undefined=jinja2.StrictUndefined,
     )

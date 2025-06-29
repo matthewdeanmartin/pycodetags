@@ -1,6 +1,7 @@
 """
 Register plugin hooks
 """
+
 import argparse
 
 import pluggy
@@ -12,7 +13,7 @@ hookimpl = HookimplMarker("pycodetags")
 
 class IssueTrackerApp:
     @hookimpl
-    def register_app(self, pm: pluggy.PluginManager, parser:argparse.ArgumentParser)->bool:
+    def register_app(self, pm: pluggy.PluginManager, parser: argparse.ArgumentParser) -> bool:
         set_plugin_manager(new_pm=pm)
         # TODO: register issue tracker specific commands, e.g. remove DONE
         return True

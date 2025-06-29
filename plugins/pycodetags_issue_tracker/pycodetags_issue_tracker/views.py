@@ -5,19 +5,19 @@ Given data structure returned by collect submodule, creates human-readable repor
 from __future__ import annotations
 
 import datetime
-import json
 import logging
 from collections import defaultdict
 from typing import Any
 
-from pycodetags.config import get_code_tags_config
-from pycodetags.data_tag_types import DATA
+from pycodetags_issue_tracker import TODO
+from pycodetags_issue_tracker.issue_tracker_config import get_issue_tracker_config
+
 from pycodetags.view_tools import group_and_sort
 
 logger = logging.getLogger(__name__)
 
 
-def print_validate(found: list[DATA]) -> None:
+def print_validate(found: list[TODO]) -> None:
     """
     Prints validation errors for TODOs.
 
@@ -34,14 +34,14 @@ def print_validate(found: list[DATA]) -> None:
             print()
 
 
-def print_html(found: list[DATA]) -> None:
+def print_html(found: list[TODO]) -> None:
     """
     Prints TODOs and Dones in a structured HTML format.
 
     Args:
         found (list[DATA]): The collected TODOs and Dones.
     """
-    todos= found
+    todos = found
 
     tags = set()
     for todo in todos:
@@ -63,13 +63,13 @@ def print_html(found: list[DATA]) -> None:
     print("</ul>")
 
 
-def print_text(found: list[DATA]) -> None:
+def print_text(found: list[TODO]) -> None:
     """
     Prints TODOs and Dones in text format.
     Args:
         found (list[DATA]): The collected TODOs and Dones.
     """
-    todos =found
+    todos = found
     if todos:
         grouped = group_and_sort(
             todos, key_fn=lambda x: x.code_tag or "N/A", sort_items=True, sort_key=lambda x: x.comment or "N/A"
@@ -83,28 +83,7 @@ def print_text(found: list[DATA]) -> None:
         print("No Code Tags found.")
 
 
-def print_json(found: list[DATA]) -> None:
-    """
-    Prints TODOs and Dones in a structured JSON format.
-    Args:
-        found (list[DATA]): The collected TODOs and Dones.
-    """
-    todos = found
-
-    output = {
-        "todos": [t.to_dict() for t in todos],
-    }
-
-    def default(o: Any) -> str:
-        if hasattr(o, "todo_meta"):
-            o.todo_meta = None
-
-        return json.dumps(o.to_dict()) if hasattr(o, "to_dict") else str(o)
-
-    print(json.dumps(output, indent=2, default=default))
-
-
-def print_changelog(found: list[DATA]) -> None:
+def print_changelog(found: list[TODO]) -> None:
     """Prints Done items in the 'Keep a Changelog' format.
 
     Args:
@@ -158,7 +137,7 @@ def print_changelog(found: list[DATA]) -> None:
                 print()
 
 
-def print_todo_md(found: list[DATA]) -> None:
+def print_todo_md(found: list[TODO]) -> None:
     """
     Outputs TODO and Done items in a markdown board-style format.
 
@@ -175,7 +154,7 @@ def print_todo_md(found: list[DATA]) -> None:
     ### Completed Column ✓
     - [x] Completed task title
     """
-    todos = found.get("todos", [])
+    todos = found
 
     print("# Code Tags TODO Board")
     print("Tasks and progress overview.\n")
@@ -184,7 +163,7 @@ def print_todo_md(found: list[DATA]) -> None:
     print("`@` means assignee")
     print("`#` means category")
 
-    config = get_code_tags_config()
+    config = get_issue_tracker_config()
 
     custom_status = config.valid_status()
     closed_status = config.closed_status()
@@ -219,7 +198,7 @@ def print_todo_md(found: list[DATA]) -> None:
                 print(task_line)
 
 
-def print_done_file(found: list[DATA]) -> None:
+def print_done_file(found: list[TODO]) -> None:
     """
     Structure:
         TODO in comment format.
@@ -240,7 +219,7 @@ def print_done_file(found: list[DATA]) -> None:
         ...
 
     """
-    dones = found.get("todos", [])
+    dones = found
     for done in dones:
         if not done.is_probably_done():
             continue

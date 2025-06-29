@@ -1,11 +1,13 @@
 from pycodetags.data_tags import DataTagSchema
 
 PEP350Schema: DataTagSchema = {
-    "matching_tags":[
-        "TODO","FIXME",
-        "BUG", "HACK",
-        "CLEVER", "MAGIC",
-
+    "matching_tags": [
+        "TODO",
+        "FIXME",
+        "BUG",
+        "HACK",
+        "CLEVER",
+        "MAGIC",
     ],
     "default_fields": {"str": "assignee", "date": "origination_date"},
     "data_fields": {

@@ -9,6 +9,7 @@ from pycodetags.data_tags import DataTag, parse_codetags
 
 logger = logging.getLogger(__name__)
 
+
 def collect_pep350_code_tags(file: str) -> Generator[DataTag]:
     """
     Collect PEP-350 style code tags from a given file.

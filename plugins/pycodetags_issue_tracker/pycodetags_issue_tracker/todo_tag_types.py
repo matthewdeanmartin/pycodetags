@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 from functools import wraps
 from typing import Any, Callable, cast  # noqa
 
+from pycodetags_issue_tracker.issue_tracker_config import get_issue_tracker_config
 from pycodetags_issue_tracker.specific_schemas import PEP350Schema
 
 from pycodetags.data_tag_types import DATA
@@ -26,6 +27,7 @@ from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 from pycodetags.config import get_code_tags_config
 
 logger = logging.getLogger(__name__)
+
 
 class DueException(Exception):
     pass
@@ -139,7 +141,7 @@ class TODO(DATA):
         self.todo_meta = self
 
     def is_probably_done(self) -> bool:
-        config = get_code_tags_config()
+        config = get_issue_tracker_config()
         date_is_done = bool(self.closed_date)
         status_is_done = bool(self.status) and (self.status or "").lower() in config.closed_status()
 
@@ -147,7 +149,7 @@ class TODO(DATA):
 
     @property
     def current_user(self) -> str:
-        config = get_code_tags_config()
+        config = get_issue_tracker_config()
         return config.current_user()
 
     def _is_condition_met(self) -> bool:
@@ -211,7 +213,7 @@ class TODO(DATA):
 
         Only developer tooling should call this.
         """
-        config = get_code_tags_config()
+        config = get_issue_tracker_config()
 
         issues = []
         # Required if done to support features
@@ -292,9 +294,7 @@ class TODO(DATA):
         # pylint: disable=import-outside-toplevel
         from pycodetags.plugin_manager import get_plugin_manager
 
-        for new_issues in get_plugin_manager().hook.code_tags_validate_todo(
-            todo_item=self, config=get_code_tags_config()
-        ):
+        for new_issues in get_plugin_manager().hook.code_tags_validate(todo_item=self, config=get_code_tags_config()):
             plugin_issues += new_issues
             issues.extend(plugin_issues)
 
