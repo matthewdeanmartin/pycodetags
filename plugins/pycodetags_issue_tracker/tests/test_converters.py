@@ -89,7 +89,6 @@ def test_convert_pep350_tag_to_TODO_field_promotion(mock_todo):
                 "originator": "b",
                 "due": "soon",
             },
-            "strict": False,
         },
     }
 

@@ -34,7 +34,6 @@ def test_parse_fields_basic():
             "assignee": ["john.doe"],
         },
         "custom_fields": {},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -50,7 +49,6 @@ def test_parse_fields_with_aliases():
             "tracker": "bugtracker",
         },
         "custom_fields": {},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -64,7 +62,6 @@ def test_parse_fields_quoted_values():
         },
         "default_fields": {},
         "custom_fields": {"custom": "some value with spaces"},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -80,7 +77,6 @@ def test_parse_fields_mixed_separators_and_spacing():
         },
         "custom_fields": {"custom_field": "value"},
         "default_fields": {},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -97,7 +93,6 @@ def test_parse_fields_origination_date_and_assignee_initials():
             "assignee": ["JRS", "AB"],
         },
         "custom_fields": {},
-        "strict": False,
     }
     result = parse_fields(field_string, PEP350Schema, strict=False)
     promote_fields({"fields": result}, PEP350Schema)
@@ -106,7 +101,7 @@ def test_parse_fields_origination_date_and_assignee_initials():
 
 def test_parse_fields_no_fields():
     field_string = ""
-    expected = {"default_fields": {}, "custom_fields": {}, "data_fields": {}, "strict": False}
+    expected = {"default_fields": {}, "custom_fields": {}, "data_fields": {}}
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
 
@@ -116,7 +111,6 @@ def test_parse_fields_only_custom_fields():
         "default_fields": {},
         "data_fields": {},
         "custom_fields": {"custom1": "value1", "custom2": "value2"},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -135,7 +129,6 @@ def test_parse_fields_unquoted_value_stops_at_whitespace():
             "origination_date": "2025-06-15",
         },
         "custom_fields": {},
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 
@@ -145,7 +138,6 @@ def test_parse_fields_multiple_assignees_comma_separated():
     expected = {
         "data_fields": {"assignee": ["alice", "bob", "charlie"]},
         "custom_fields": {},
-        "strict": False,
         "default_fields": {},
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
@@ -231,7 +223,7 @@ def test_parse_codetags_empty_field_string():
     assert len(results) == 1
     assert results[0]["code_tag"] == "REVIEW"
     assert results[0]["comment"] == "Check this code"
-    assert results[0]["fields"] == {"default_fields": {}, "custom_fields": {}, "data_fields": {}, "strict": False}
+    assert results[0]["fields"] == {"default_fields": {}, "custom_fields": {}, "data_fields": {}}
 
 
 # Tests for extract_comment_blocks function
@@ -491,7 +483,6 @@ def test_parse_fields_originator_field():
         "data_fields": {
             "originator": "john.doe",
         },
-        "strict": False,
     }
     assert parse_fields(field_string, PEP350Schema, strict=False) == expected
 

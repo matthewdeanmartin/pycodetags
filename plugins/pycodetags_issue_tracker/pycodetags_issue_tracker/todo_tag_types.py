@@ -160,7 +160,7 @@ class TODO(DATA):
         is_past_due = bool(self._due_date_obj and datetime.datetime.now() > self._due_date_obj)
 
         user_matches = self.assignee.lower() == self.current_user.lower() if self.assignee else False
-        config = get_code_tags_config()
+        config = get_issue_tracker_config()
 
         on_past_due = config.action_on_past_due()
         only_on_user_match = config.action_only_on_responsible_user()

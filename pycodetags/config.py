@@ -152,14 +152,6 @@ class CodeTagsConfig:
             raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
 
-    #
-    # def action_on_past_due(self) -> bool:
-    #     """Do actions do the default action"""
-    #     return careful_to_bool(self.config.get("action_on_past_due", False), False)
-
-    # def action_only_on_responsible_user(self) -> bool:
-    #     """Do actions do the default action when active user matches"""
-    #     return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
 
     def disable_on_ci(self) -> bool:
         """Disable actions on CI, overrides other."""

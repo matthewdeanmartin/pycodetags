@@ -7,6 +7,7 @@ class CHAT(DATA):
 
 
 ChatSchema: DataTagSchema = {
+    "name": "CHAT",
     "matching_tags": ["CHAT", "DISCUSSION", "QUESTION", "ANSWER", "POST", "COMMENT"],
     "default_fields": {"str": "op", "date": "posting_date"},
     "data_fields": {

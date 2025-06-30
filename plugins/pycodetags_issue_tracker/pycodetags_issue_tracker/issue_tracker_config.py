@@ -1,7 +1,7 @@
 from pycodetags_issue_tracker.user import get_current_user
 from pycodetags_issue_tracker.users_from_authors import parse_authors_file_simple
 
-from pycodetags.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.config import CodeTagsConfig, careful_to_bool, get_code_tags_config
 
 
 class IssueTrackerConfig:
@@ -137,6 +137,14 @@ class IssueTrackerConfig:
         """If status equals this,then it is closed, needed for business rules"""
         closed_status = self.parent_config.config.get("closed_status", [])
         return [str(_).lower() for _ in closed_status]
+
+    def action_on_past_due(self) -> bool:
+        """Do actions do the default action"""
+        return careful_to_bool(self.parent_config.config.get("action_on_past_due", False), False)
+
+    def action_only_on_responsible_user(self) -> bool:
+        """Do actions do the default action when active user matches"""
+        return careful_to_bool(self.parent_config.config.get("action_only_on_responsible_user", False), False)
 
 
 def get_issue_tracker_config() -> IssueTrackerConfig:

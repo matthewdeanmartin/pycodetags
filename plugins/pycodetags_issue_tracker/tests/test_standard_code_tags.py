@@ -19,7 +19,6 @@ def test_single_line_fixme_tag():
                     "due": "2015-1-1",
                 },
                 "custom_fields": {},
-                "strict": False,
             },
             "original_text": "N/A",
         }
@@ -47,7 +46,6 @@ def test_inline_bug_tag():
                     "origination_date": "2005-09-04",
                 },
                 "custom_fields": {},
-                "strict": False,
             },
             "original_text": "N/A",
         }
@@ -79,7 +77,6 @@ def test_multiline_todo_tag():
                     "due": "2025-12-25",
                 },
                 "custom_fields": {"custom_field": "some_value"},
-                "strict": False,
             },
             "original_text": "N/A",
         }
@@ -111,7 +108,6 @@ def test_tag_with_mixed_fields():
                     "origination_date": "2025-06-15",
                 },
                 "custom_fields": {},
-                "strict": False,
             },
             "original_text": "N/A",
         }
@@ -127,7 +123,7 @@ def test_tag_with_empty_field_block():
         {
             "code_tag": "NOTE",
             "comment": "Remember to check performance.",
-            "fields": {"default_fields": {}, "custom_fields": {}, "data_fields": {}, "strict": False},
+            "fields": {"default_fields": {}, "custom_fields": {}, "data_fields": {}},
             "original_text": "N/A",
         }
     ]
@@ -142,7 +138,7 @@ def test_consecutive_tags_in_block():
     # RFE: 3 <>
     """
     result = parse_codetags(input_text, PEP350Schema, strict=False)
-    empties = {"default_fields": {}, "data_fields": {}, "custom_fields": {}, "strict": False}
+    empties = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
     assert result == [
         {"code_tag": "TODO", "comment": "1", "fields": empties, "original_text": "N/A"},
         {"code_tag": "NOTE", "comment": "2", "fields": empties, "original_text": "N/A"},
