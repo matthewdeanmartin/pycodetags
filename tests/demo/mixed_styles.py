@@ -1,13 +1,13 @@
-from pycodetags import TODO
+from pycodetags import DATA
 
 # Standalone items. They don't throw.
 ITEMS = [
-    TODO(comment="Write documentation", due="05/01/2025"),
+    DATA(comment="Write documentation"),
 ]
 
 
 # Stand alone functions with TODO/Done decorators
-@TODO(assignee="matth", due="06/01/2025", comment="Implement payment logic")
+@DATA(comment="Implement payment logic")
 def unfinished_feature():
     print("This should not run if overdue and assignee is Matthew.")
 

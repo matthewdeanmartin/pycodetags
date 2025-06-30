@@ -300,11 +300,11 @@ wheels = [
 
 [[package]]
 name = "ast-comments"
-version = "1.2.2"
+version = "1.2.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/8b/85/e2bea931f371bde73c5e6f450c51f173ee451cb68978372f7b222f803133/ast_comments-1.2.2.tar.gz", hash = "sha256:04f86e0a8010569ea279d470b4dcb86f0913a8a39bd80e0fe358e11aa5bfa8d6", size = 5345, upload-time = "2024-03-26T15:55:18.485Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/54/9f/be024de83c52e7aecb7d3871c3e4c24bc0df377fb752fa65745c36b8f35f/ast_comments-1.2.3.tar.gz", hash = "sha256:f9d003e9608b54195bd822b1d359a18e24573d2d8beff0307d7dc6f9d0cd0ba6", size = 5360, upload-time = "2025-06-29T09:53:20.08Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/85/ab/e7f191cd70fe861367a55449381832d6703b475ab320a9d96f3d61ea672b/ast_comments-1.2.2-py3-none-any.whl", hash = "sha256:6468c6b91d971b3fca2e3cd6f7a6d52e7385b6e4d25809444372960c74a8cbc2", size = 5801, upload-time = "2024-03-26T15:55:16.877Z" },
+    { url = "https://files.pythonhosted.org/packages/3a/c3/85f81c3fe2f7a2bd634239056bffac4bfb4324761c787845f78dc264082c/ast_comments-1.2.3-py3-none-any.whl", hash = "sha256:2b2319312027a523dd4b30381a7662da8fdd16210786db3402d8e1b1df12a886", size = 5840, upload-time = "2025-06-29T09:53:19.211Z" },
 ]
 
 [[package]]
@@ -2273,7 +2273,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ast-comments", marker = "python_full_version >= '3.8'" },
+    { name = "ast-comments", marker = "python_full_version >= '3.8'", specifier = ">=1.2.3" },
     { name = "importlib-resources", marker = "python_full_version < '3.9'" },
     { name = "pluggy" },
     { name = "toml", marker = "python_full_version < '3.11'" },

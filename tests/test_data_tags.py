@@ -1,13 +1,6 @@
 import pytest
 
-from pycodetags.data_tags import (
-    get_data_field_value,
-    is_int,
-    merge_two_dicts,
-    parse_codetags,
-    parse_fields,
-    promote_fields,
-)
+from pycodetags.data_tags import is_int, merge_two_dicts, parse_codetags, parse_fields, promote_fields
 
 
 @pytest.mark.parametrize(
@@ -51,25 +44,23 @@ def test_parse_fields_handles_quoted_values():
     assert "she said 'hi' today" in fields["custom_fields"]["y"]
 
 
-def test_get_data_field_value_single_value():
-    fields = {
-        "data_fields": {"priority": "high"},
-        "custom_fields": {},
-        "default_fields": {},
-        "strict": False,
-    }
-    assert get_data_field_value(schema_stub(), fields, "priority") == "high"
+# def test_get_data_field_value_single_value():
+#     fields = {
+#         "data_fields": {"priority": "high"},
+#         "custom_fields": {},
+#         "default_fields": {},
+#     }
+#     assert get_data_field_value(schema_stub(), fields, "priority", strict=False) == "high"
 
 
-def test_get_data_field_value_conflict_strict_raises():
-    fields = {
-        "data_fields": {"priority": "high"},
-        "custom_fields": {"priority": "low"},
-        "default_fields": {},
-        "strict": True,
-    }
-    with pytest.raises(TypeError):
-        get_data_field_value(schema_stub(), fields, "priority")
+# def test_get_data_field_value_conflict_strict_raises():
+#     fields = {
+#         "data_fields": {"priority": "high"},
+#         "custom_fields": {"priority": "low"},
+#         "default_fields": {},
+#     }
+#     with pytest.raises(TypeError):
+#         get_data_field_value(schema_stub(), fields, "priority", strict=True)
 
 
 # Test pollution, this changes global state and causes other tests to faial
@@ -97,7 +88,6 @@ def test_promote_fields_merges_and_removes_custom():
             "default_fields": {"assignee": ["JD"], "origination_date": "2025-06-15"},
             "data_fields": {"priority": "high"},
             "custom_fields": {"p": "low"},
-            "strict": False,
         },
     }
     promote_fields(tag, schema_stub())

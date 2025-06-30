@@ -65,7 +65,7 @@ def print_text(found: list[DATA]) -> None:
         for tag, items in grouped.items():
             print(f"--- {tag.upper()} ---")
             for todo in items:
-                print(todo.as_pep350_comment())
+                print(todo.as_data_comment())
                 print()
     else:
         print("No Code Tags found.")
@@ -82,8 +82,8 @@ def print_json(found: list[DATA]) -> None:
     output = [t.to_dict() for t in todos]
 
     def default(o: Any) -> str:
-        if hasattr(o, "todo_meta"):
-            o.todo_meta = None
+        if hasattr(o, "data_meta"):
+            o.data_meta = None
 
         return json.dumps(o.to_dict()) if hasattr(o, "to_dict") else str(o)
 
@@ -95,6 +95,13 @@ def print_data_md(found: list[DATA]) -> None:
     Outputs DATA items in a markdown format.
 
     """
-    # config = get_code_tags_config()
-
-    print(found)
+    # pylint:disable=protected-access
+    grouped = group_and_sort(found, lambda _: "" if not _._file_path else _._file_path, sort_items=False)
+    for file, items in grouped.items():
+        print(file)
+        print("```python")
+        for item in items:
+            print(item.as_data_comment())
+            print()
+        print("```")
+        print()

@@ -135,6 +135,12 @@ def process_text(
         lines = text.split("\r\n")
     else:
         lines = text.split("\n")
+
+    if len(lines) == 1:
+        logger.debug(f"Processing  {file_path}: {lines[0]}")
+    else:
+        for line in lines:
+            logger.debug(f"Processing {file_path} ==>: {line}")
     idx = 0
     while idx < len(lines):
         consumed = process_line(

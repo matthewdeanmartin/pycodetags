@@ -12,17 +12,15 @@
 #
 #options:
 #  -h, --help            show this help message and exit
-set -e
+set -euo pipefail
 export PYCODETAGS_NO_OPEN_BROWSER=1
 # Don't export reports to same folder where you search for code tags!
+echo "----------------default format (txt)---------------------"
 pycodetags report --module demo.__main__ --src demo>demo_reports/default.txt
-echo "-------------------------------------"
+echo "------------------txt format-------------------"
 pycodetags report --module demo.__main__ --src demo --format text>demo_reports/todo.txt
-echo "-------------------------------------"
+echo "-------------------html------------------"
 pycodetags report  --module demo.__main__ --src demo --format html
-echo "-------------------------------------"
+echo "-------------------JSON------------------"
 pycodetags report  --module demo.__main__ --src demo --format json>demo_reports/todo.json
-echo "-------------------------------------"
-pycodetags report  --module demo.__main__ --src demo --format keep-a-changelog>demo_reports/CHANGELOG.md
-echo "-------------------------------------"
-pycodetags report  --module demo.__main__ --src demo --format todo.md>demo_reports/todo.md
+echo "---------------------No more formats----------------"

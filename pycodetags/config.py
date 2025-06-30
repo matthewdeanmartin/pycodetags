@@ -119,15 +119,10 @@ class CodeTagsConfig:
     _instance: CodeTagsConfig | None = None
     config: dict[str, Any] = {}
 
-    def __init__(self, pyproject_path: str = "pyproject.toml", set_user: str | None = None):
+    def __init__(self, pyproject_path: str = "pyproject.toml"):
 
         self._pyproject_path = pyproject_path
         self._load()
-        self.user_override = set_user
-
-    def user_env_var(self) -> str:
-        """Environment variable with active user."""
-        return str(self.config.get("user_env_var", ""))
 
     def _load(self) -> None:
         if not os.path.exists(self._pyproject_path):
@@ -157,13 +152,14 @@ class CodeTagsConfig:
             raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
 
-    def action_on_past_due(self) -> bool:
-        """Do actions do the default action"""
-        return careful_to_bool(self.config.get("action_on_past_due", False), False)
+    #
+    # def action_on_past_due(self) -> bool:
+    #     """Do actions do the default action"""
+    #     return careful_to_bool(self.config.get("action_on_past_due", False), False)
 
-    def action_only_on_responsible_user(self) -> bool:
-        """Do actions do the default action when active user matches"""
-        return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
+    # def action_only_on_responsible_user(self) -> bool:
+    #     """Do actions do the default action when active user matches"""
+    #     return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
 
     def disable_on_ci(self) -> bool:
         """Disable actions on CI, overrides other."""

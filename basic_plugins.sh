@@ -23,3 +23,7 @@ echo "Mock integration plugin"
 pycodetags github-issues-sync --project foo --dry-run
 echo "Mock integration plugin"
 pycodetags github-issues-sync --project foo
+
+pycodetags report  --module demo.__main__ --src demo --format keep-a-changelog>demo_reports/CHANGELOG.md
+echo "-------------------------------------"
+pycodetags report  --module demo.__main__ --src demo --format todo.md>demo_reports/todo.md

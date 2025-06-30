@@ -10,9 +10,12 @@ import logging.config
 import pathlib
 import sys
 
+import pycodetags.data_schema as data_schema
 import pycodetags.folk_code_tags as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
+from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
+from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag, DataTagSchema
 from pycodetags.data_tags_parsers import iterate_comments
@@ -27,20 +30,35 @@ def aggregate_all_kinds_multiple_input(module_names: list[str], source_paths: li
         module_names = []
     if not source_paths:
         source_paths = []
-    collected: list[DATA] = []
-
+    logger.info(f"aggregate_all_kinds_multiple_input: module_names={module_names}, source_paths={source_paths}")
+    collected_DATA: list[DATA] = []
+    collected: list[DataTag | folk_code_tags.FolkTag] = []
+    found_in_modules: list[DATA] = []
     for module_name in module_names:
-        found = aggregate_all_kinds(module_name, "")
-        collected += found
+        found_tags, found_in_modules = aggregate_all_kinds(module_name, "")
+        collected.extend(found_tags)
+        logger.debug(f"Found {len(found_in_modules)} by looking at imported module: {module_name}")
 
     for source_path in source_paths:
-        found = aggregate_all_kinds("", source_path)
-        collected += found
+        found_tags, found_in_modules = aggregate_all_kinds("", source_path)
+        collected.extend(found_tags)
+        logger.debug(f"Found {len(found_tags)} by looking at src folder {source_path}")
 
-    return collected
+    for found_tag in collected:
+        if "fields" in found_tag.keys():
+            item = convert_pep350_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            collected_DATA.append(item)
+        else:
+            item = convert_folk_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            collected_DATA.append(item)
+    collected_DATA.extend(found_in_modules)
+
+    return collected_DATA
 
 
-def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
+def aggregate_all_kinds(
+    module_name: str, source_path: str
+) -> tuple[list[DataTag | folk_code_tags.FolkTag], list[DATA]]:
     """
     Aggregate all TODOs and DONEs from a module and source files.
 
@@ -55,6 +73,9 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
 
     active_schemas = config.active_schemas()
 
+    logger.info(
+        f"aggregate_all_kinds: module_name={module_name}, source_path={source_path}, active_schemas={active_schemas}"
+    )
     found_in_modules: list[DATA] = []
     if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
@@ -63,9 +84,10 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
             found_in_modules = collect_all_data(module, include_submodules=False)
         except ImportError:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
+            raise
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
-    schemas: list[DataTagSchema] = []
+    schemas: list[DataTagSchema] = [PureDataSchema]
     # TODO: get schemas from plugins.
 
     if source_path:
@@ -96,7 +118,7 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
         if src_found == 0:
             raise TypeError(f"Can't find any files in source folder {source_path}")
 
-    found_TODOS: list[DATA] = []
+    # found_TODOS: list[DATA] = []
     # TODO: hand off to plugin to convert to specific type
     # for found_tag in found_tags:
     #     if "fields" in found_tag.keys():
@@ -104,5 +126,4 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
     #     else:
     #         found_TODOS.append(convert_folk_tag_to_TODO(found_tag))  # type: ignore[arg-type]
 
-    all_combined = found_TODOS + found_in_modules
-    return all_combined
+    return found_tags, found_in_modules

@@ -31,7 +31,7 @@ class Serializable:
                 d[key] = value.isoformat()
             if key.startswith("_"):
                 del d[key]
-            if key == "todo_meta":
+            if key == "data_meta":
                 del d[key]
         return d
 
@@ -54,7 +54,6 @@ class DATA(Serializable):
     default_fields: dict[str, str] | None = None
     data_fields: dict[str, str] | None = None
     custom_fields: dict[str, str] | None = None
-    strict: bool = False
 
     # Source mapping, original parsing info
     # Do not deserialize these back into the comments!
@@ -85,7 +84,7 @@ class DATA(Serializable):
             self._perform_action()
             return cast(Callable[..., Any], func(*args, **kwargs))
 
-        cast(Any, wrapper).todo_meta = self
+        cast(Any, wrapper).data_meta = self
         return wrapper
 
     def __enter__(self) -> DATA:

@@ -14,7 +14,7 @@ import pluggy
 
 import pycodetags.__about__ as __about__
 from pycodetags import DATA
-from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
+from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
 from pycodetags.logging_config import generate_config
@@ -156,6 +156,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         try:
             found = aggregate_all_kinds_multiple_input(modules, src)
+
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
             return 1
@@ -198,10 +199,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             all_found: list[DATA] = []
             for source in src:
-                all_found.extend(aggregate_all_kinds("", source))
-            for module in modules:
-                all_found.extend(aggregate_all_kinds(module, ""))
-
+                found_tags = aggregate_all_kinds_multiple_input([""], [source])
+                all_found.extend(found_tags)
+            more_found = aggregate_all_kinds_multiple_input(modules, [])
+            all_found.extend(more_found)
             found_data_for_plugins = all_found
         except ImportError:
             logging.warning(f"Could not aggregate data for command {args.command}, proceeding without it.")

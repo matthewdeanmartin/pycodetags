@@ -28,15 +28,21 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
     Yields:
         PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
     """
-    logger.info(f"collect_pep350_code_tags: processing {file}")
+    if not schemas and not include_folk_tags:
+        raise TypeError("No active schemas, not looking for folk tags. Won't find anything.")
+    logger.info(f"iterate_comments: processing {file}")
     things: list[DataTag | FolkTag] = []
     for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks(Path(file)):
         # Can only be one comment block now!
-        thing = []
+        logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
+        found_data_tags = []
         for schema in schemas:
-            thing = parse_codetags(final_comment, schema, strict=False)
-            things.extend(thing)
-        if not thing and include_folk_tags:
+            found_data_tags = parse_codetags(final_comment, schema, strict=False)
+            if found_data_tags:
+                logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
+            things.extend(found_data_tags)
+
+        if not found_data_tags and include_folk_tags:
             # BUG: fails if there are two in th same.
             # TODO: blank out consumed text, reconsume bock
             found_folk_tags: list[FolkTag] = []
@@ -49,6 +55,8 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
                 file_path=file,
                 valid_tags=[],
             )
+            if found_folk_tags:
+                logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
             things.extend(found_folk_tags)
 
     yield from things

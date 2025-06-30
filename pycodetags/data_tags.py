@@ -42,6 +42,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataTagSchema(TypedDict):
+    name: str
+
     matching_tags: list[str]
     """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
 
@@ -67,29 +69,25 @@ class DataTagFields(TypedDict):
     custom_fields: dict[str, str]
     """Key value pairs, e.g. SAFe program increment number"""
 
-    # TODO: think about adding meaning of default fields here?
 
-    strict: bool
-    """If true, the same field can't appear in two places"""
-
-
-def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str) -> Any:
-    values = []
-    # default fields should already be resolved to a data_field by this point
-    if field_name in schema["data_fields"]:
-        if field_name in fields["data_fields"]:
-            values.append(fields["data_fields"][field_name])
-        if field_name in fields["custom_fields"]:
-            values.append(fields["custom_fields"][field_name])
-    if len(set(values)) == 1:
-        return values[0]
-    if fields["strict"]:
-        raise TypeError(f"Double field with different values {field_name} : {values}")
-    logger.warning(f"Double field with different values {field_name} : {values}")
-    # TODO: do we want to support str | list[str]?
-    if values:
-        return values[0]
-    return ""
+# def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str, strict: bool) -> Any:
+#     values = []
+#     # default fields should already be resolved to a data_field by this point
+#     if field_name in schema["data_fields"]:
+#         if field_name in fields["data_fields"]:
+#             values.append(fields["data_fields"][field_name])
+#         if field_name in fields["custom_fields"]:
+#             values.append(fields["custom_fields"][field_name])
+#     if len(set(values)) == 1:
+#         return values[0]
+#     if strict:
+#         raise TypeError(f"Double field with different values {field_name} : {values}")
+#     logger.warning(f"Double field with different values {field_name} : {values}")
+#
+#     # TODO: do we want to support str | list[str]?
+#     if values:
+#         return values[0]
+#     return ""
 
 
 class DataTag(TypedDict, total=False):
@@ -212,7 +210,9 @@ def is_int(s: str) -> bool:
     return s.isdigit()
 
 
-def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> DataTagFields:
+def parse_fields(
+    field_string: str, schema: DataTagSchema, strict: bool  # pylint: disable=unused-argument
+) -> DataTagFields:
     """
     Parse a field string from a PEP-350 style code tag and return a dictionary of fields.
 
@@ -224,9 +224,12 @@ def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> Data
     Returns:
         Fields: A dictionary containing the parsed fields.
     """
-    field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], schema["data_fields"])
+    legit_names = {}
+    for key in schema["data_fields"]:
+        legit_names[key] = key
+    field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], legit_names)
 
-    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}, "strict": strict}
+    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
 
     # Updated key_value_pattern:
     # - Handles quoted values (single or double) allowing any characters inside.

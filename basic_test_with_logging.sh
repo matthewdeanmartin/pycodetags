@@ -12,18 +12,15 @@
 #
 #options:
 #  -h, --help            show this help message and exit
-set -e
-if [[ -z "$CI" ]]; then
-  export PYCODETAGS_NO_OPEN_BROWSER=1
-  uv run pycodetags report --module demo.__main__ --src demo --verbose --bug-trail
-  echo "-------------------------------------"
-  uv run pycodetags report --module demo.__main__ --src demo --format text --verbose --bug-trail
-  echo "-------------------------------------"
-  uv run pycodetags report --module demo.__main__ --src demo --format html --verbose --bug-trail
-  echo "-------------------------------------"
-  uv run pycodetags report --module demo.__main__ --src demo --format json --verbose --bug-trail
-  echo "-------------------------------------"
-  uv run pycodetags report --module demo.__main__ --src demo --format keep-a-changelog --verbose --bug-trail
-  echo "-------------------------------------"
-  uv run pycodetags report --module demo.__main__ --src demo --format todo.md --verbose --bug-trail
-fi
+set -euo pipefail
+export PYCODETAGS_NO_OPEN_BROWSER=1
+# Don't export reports to same folder where you search for code tags!
+echo "----------------default format (txt)---------------------"
+pycodetags report --module demo.__main__ --src demo>demo_reports/default.txt  --verbose --bug-trail
+echo "------------------txt format-------------------"
+pycodetags report --module demo.__main__ --src demo --format text>demo_reports/todo.txt  --verbose --bug-trail
+echo "-------------------html------------------"
+pycodetags report  --module demo.__main__ --src demo --format html  --verbose --bug-trail
+echo "-------------------JSON------------------"
+pycodetags report  --module demo.__main__ --src demo --format json>demo_reports/todo.json  --verbose --bug-trail
+echo "---------------------No more formats----------------"

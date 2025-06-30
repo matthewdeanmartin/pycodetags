@@ -16,7 +16,7 @@ dependencies = [
     "pluggy",
     # no additional dependencies, if it needs a dep, implement as plugin
     # For getting the comments in the first place
-    "ast-comments; python_version >= '3.8'"
+    "ast-comments>=1.2.3; python_version >= '3.8'"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -335,9 +335,9 @@ disable_on_ci = true
 use_dot_env = true
 
 # default CLI arguments
-modules = ["demo","pycodetags"]
-src = ["demo", "pycodetags", "tests", "plugins"]
-active_schemas = ["todo", "folk"]
+modules = [] # "demo","pycodetags"]
+src = ["demo"]# , "pycodetags", "tests", "plugins"]
+active_schemas = ["todo", "folk", "data"]
 
 [tool.pycodetags.synonyms]
 REQUIREMENT = ["REQ", "REQS", "REQUIREMENTS"]

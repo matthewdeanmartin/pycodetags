@@ -1,899 +1,521 @@
-{
-  "todos": [
-    {
-      "code_tag": "DATA",
-      "comment": "Refactor Fish class for better extensibility and maintainability.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": "09/15/2025",
-      "release_due": "2.0.0",
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-20",
-      "priority": null,
-      "status": "Development",
-      "category": "Fish Movement"
-    },
-    {
-      "code_tag": "BUG",
-      "comment": "Chase algorithm causes fish to get stuck on edges. This needs a significant fix.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": "08/01/2025",
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-7",
-      "priority": null,
-      "status": "Testing",
-      "category": "Chase Algorithm"
-    },
-    {
-      "code_tag": "HACK",
-      "comment": "Simplified bounce logic, consider more realistic physics.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Bob",
-      "originator": null,
-      "origination_date": null,
-      "due": "07/30/2025",
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Add dynamic environment elements like bubbles, currents, and lighting effects.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": "09/01/2025",
-      "release_due": "2.0.0",
-      "release": null,
-      "iteration": "3",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Planning",
-      "category": "Flavor Text"
-    },
-    {
-      "code_tag": "BUG",
-      "comment": "Screen clearing works sufficiently for a terminal app.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": null,
-      "originator": "Kstar",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": "1.5.0",
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": "2024-06-20",
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "NOBUG",
-      "category": null
-    },
-    {
-      "code_tag": "ALERT",
-      "comment": "User input is critical for interactivity, needs immediate implementation.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Bob",
-      "originator": null,
-      "origination_date": null,
-      "due": "07/15/2025",
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Consider different fish types with unique behaviors, beyond just character.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Carl",
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": "1",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Planning",
-      "category": "Fish Movement"
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Implement fish spawning logic to replenish tank population.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": "10/01/2025",
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-15",
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Add background details and rocks at the bottom.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Bob",
-      "originator": null,
-      "origination_date": null,
-      "due": "07/01/2025",
-      "release_due": "1.5.0",
-      "release": null,
-      "iteration": "1",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-10",
-      "priority": null,
-      "status": "Planning",
-      "category": "Flavor Text"
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Implement collision detection for fish and tank walls.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": "1.5.0",
-      "release": null,
-      "iteration": "2",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-13",
-      "priority": null,
-      "status": "Development",
-      "category": "Fish Movement"
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Enhance Plant class to support different types and interactions.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Carl",
-      "originator": null,
-      "origination_date": null,
-      "due": "10/01/2025",
-      "release_due": "2.0.0",
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Planning",
-      "category": "Plant Generator"
-    },
-    {
-      "code_tag": "DOCUMENT",
-      "comment": "Add detailed documentation for Plant.update and explain why NotImplementedError is raised.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": null,
-      "originator": "Kstar",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Make wave generation more realistic and less static.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Kstar",
-      "originator": null,
-      "origination_date": null,
-      "due": "08/15/2025",
-      "release_due": "1.5.0",
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Development",
-      "category": "Wave Generator"
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Refine wave pattern generation for more organic look.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": null,
-      "originator": "Bob",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": "2",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Planning",
-      "category": "Wave Generator"
-    },
-    {
-      "code_tag": "FIXME",
-      "comment": "Wave animation is choppy, needs smoother transitions.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Carl",
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": "Added",
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-4",
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Hero screen display implemented and functional.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": null,
-      "originator": "Bob",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": "2024-06-20",
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Done",
-      "category": null
-    },
-    {
-      "code_tag": "DATA",
-      "comment": "Add proper game over screen and restart option for enhanced gameplay loop.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": null,
-      "strict": false,
-      "assignee": "Alice",
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": "2.0.0",
-      "release": null,
-      "iteration": "3",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-16",
-      "priority": null,
-      "status": "Planning",
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "demonstrate that js plugin works.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": null,
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DONE",
-      "comment": "Basic fish movement implemented.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "closed_date": "2024-06-19"
-      },
-      "strict": false,
-      "assignee": [
-        "Carl"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": "1.0.0",
-      "iteration": null,
-      "change_type": null,
+BugTrailConfig(app_name='pycodetags', app_author='matth', report_folder='C:\\Users\\matth\\AppData\\Local\\matth\\pycodetags\\reports', database_path='C:\\Users\\matth\\AppData\\Local\\matth\\pycodetags\\bug_trail.db', source_folder='pycodetags', ctags_file='')
+[32mINFO    [0m [32maggregate_all_kinds_multiple_input: module_names=['demo.__main__'], source_paths=['demo'][0m
+[32mINFO    [0m [32maggregate_all_kinds: module_name=demo.__main__, source_path=, active_schemas=['todo', 'folk', 'data'][0m
+[32mINFO    [0m [32mCollecting from module demo.__main__ with max depth 10[0m
+[37mDEBUG   [0m [32mCollecting module <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : ALERT[0m
+[37mDEBUG   [0m [32mCollecting something ...ALERT: <function ALERT at 0x000002B8DF9E0E00>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function ALERT at 0x000002B8DF9E0E00>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function ALERT at 0x000002B8DF9E0E00>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : BUG[0m
+[37mDEBUG   [0m [32mCollecting something ...BUG: <function BUG at 0x000002B8DF9E0B80>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function BUG at 0x000002B8DF9E0B80>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function BUG at 0x000002B8DF9E0B80>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : DOCUMENT[0m
+[37mDEBUG   [0m [32mCollecting something ...DOCUMENT: <function DOCUMENT at 0x000002B8DF9E0F40>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DOCUMENT at 0x000002B8DF9E0F40>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DOCUMENT at 0x000002B8DF9E0F40>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FISH_CHARS[0m
+[37mDEBUG   [0m [32mCollecting something ...FISH_CHARS: ['<><', '><>', ')-<', '>-(', '=^..^='][0m
+[37mDEBUG   [0m [32mFound a list/set/tuple ['<><', '><>', ')-<', '>-(', '=^..^='][0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FIXME[0m
+[37mDEBUG   [0m [32mCollecting something ...FIXME: <function FIXME at 0x000002B8DF9E0AE0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FIXME at 0x000002B8DF9E0AE0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FIXME at 0x000002B8DF9E0AE0>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FRAME_RATE[0m
+[37mDEBUG   [0m [32mCollecting something ...FRAME_RATE: 0.1[0m
+[37mDEBUG   [0m [32mDon't know what to do with 0.1[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Fish[0m
+[37mDEBUG   [0m [32mCollecting something ...Fish: <function Fish at 0x000002B8E13816C0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish at 0x000002B8E13816C0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish.chase at 0x000002B8E13AD6C0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='BUG', comment='Chase algorithm causes fish to get stuck on edges. This needs a significant fix.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='08/01/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker='https://example.com/FSH-7', priority=None, status='Testing', category='Chase Algorithm', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish.chase at 0x000002B8E13AD6C0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish.move at 0x000002B8E13AD580>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='HACK', comment='Simplified bounce logic, consider more realistic physics.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/30/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish.move at 0x000002B8E13AD580>[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Refactor Fish class for better extensibility and maintainability.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='09/15/2025', release_due='2.0.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-20', priority=None, status='Development', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish at 0x000002B8E13816C0>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FishTank[0m
+[37mDEBUG   [0m [32mCollecting something ...FishTank: <function FishTank at 0x000002B8E13ADE40>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank at 0x000002B8E13ADE40>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._clear_screen at 0x000002B8E13AE160>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='BUG', comment='Screen clearing works sufficiently for a terminal app.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Kstar', origination_date=None, due=None, release_due=None, release='1.5.0', iteration=None, change_type='Added', closed_date='2024-06-20', closed_comment=None, tracker=None, priority=None, status='NOBUG', category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._clear_screen at 0x000002B8E13AE160>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._handle_user_input at 0x000002B8E13AE8E0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='ALERT', comment='User input is critical for interactivity, needs immediate implementation.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/15/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._handle_user_input at 0x000002B8E13AE8E0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._initialize_elements at 0x000002B8E13AE020>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Consider different fish types with unique behaviors, beyond just character.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due=None, release_due=None, release=None, iteration='1', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._initialize_elements at 0x000002B8E13AE020>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._spawn_new_fish_if_needed at 0x000002B8E13AE7A0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Implement fish spawning logic to replenish tank population.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='10/01/2025', release_due=None, release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-15', priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._spawn_new_fish_if_needed at 0x000002B8E13AE7A0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank.render at 0x000002B8E13AE480>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add background details and rocks at the bottom.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/01/2025', release_due='1.5.0', release=None, iteration='1', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-10', priority=None, status='Planning', category='Flavor Text', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.render at 0x000002B8E13AE480>[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add dynamic environment elements like bubbles, currents, and lighting effects.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='09/01/2025', release_due='2.0.0', release=None, iteration='3', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Flavor Text', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank.update at 0x000002B8E13AE660>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Implement collision detection for fish and tank walls.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due=None, release_due='1.5.0', release=None, iteration='2', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-13', priority=None, status='Development', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.update at 0x000002B8E13AE660>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank at 0x000002B8E13ADE40>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : HACK[0m
+[37mDEBUG   [0m [32mCollecting something ...HACK: <function HACK at 0x000002B8DF9E0C20>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function HACK at 0x000002B8DF9E0C20>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function HACK at 0x000002B8DF9E0C20>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : PLANT_CHARS[0m
+[37mDEBUG   [0m [32mCollecting something ...PLANT_CHARS: ['Y', '|', '!', '/', '\\'][0m
+[37mDEBUG   [0m [32mFound a list/set/tuple ['Y', '|', '!', '/', '\\'][0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Plant[0m
+[37mDEBUG   [0m [32mCollecting something ...Plant: <function Plant at 0x000002B8E13AD760>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Plant at 0x000002B8E13AD760>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Enhance Plant class to support different types and interactions.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due='10/01/2025', release_due='2.0.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Plant Generator', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Plant.update at 0x000002B8E13AD940>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DOCUMENT', comment='Add detailed documentation for Plant.update and explain why NotImplementedError is raised.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Kstar', origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Plant.update at 0x000002B8E13AD940>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Plant at 0x000002B8E13AD760>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : SCREEN_HEIGHT[0m
+[37mDEBUG   [0m [32mCollecting something ...SCREEN_HEIGHT: 24[0m
+[37mDEBUG   [0m [32mDon't know what to do with 24[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : SCREEN_WIDTH[0m
+[37mDEBUG   [0m [32mCollecting something ...SCREEN_WIDTH: 80[0m
+[37mDEBUG   [0m [32mDon't know what to do with 80[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : TODO[0m
+[37mDEBUG   [0m [32mCollecting something ...TODO: <class 'pycodetags_issue_tracker.todo_tag_types.TODO'>[0m
+[37mDEBUG   [0m [32mCollecting class <class 'pycodetags_issue_tracker.todo_tag_types.TODO'>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with None[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA._extract_data_fields at 0x000002B8DF2D31A0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA._extract_data_fields at 0x000002B8DF2D31A0>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO._is_condition_met at 0x000002B8DF9E00E0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO._is_condition_met at 0x000002B8DF9E00E0>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO._perform_action at 0x000002B8DF9E0180>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO._perform_action at 0x000002B8DF9E0180>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA.as_data_comment at 0x000002B8DF2D3240>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA.as_data_comment at 0x000002B8DF2D3240>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.as_pep350_comment at 0x000002B8DF9E04A0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.as_pep350_comment at 0x000002B8DF9E04A0>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mDon't know what to do with DATA[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mDon't know what to do with <property object at 0x000002B8DF96E5C0>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.disable_behaviors at 0x000002B8DF9D7E20>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.disable_behaviors at 0x000002B8DF9D7E20>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.is_probably_done at 0x000002B8DF9D7F60>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.is_probably_done at 0x000002B8DF9D7F60>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Serializable.to_dict at 0x000002B8DF2D2D40>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Serializable.to_dict at 0x000002B8DF2D2D40>[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mAlready visited 140736047256080[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.validate at 0x000002B8DF9E0400>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.validate at 0x000002B8DF9E0400>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <class 'pycodetags_issue_tracker.todo_tag_types.TODO'>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : WAVE_CHARS[0m
+[37mDEBUG   [0m [32mCollecting something ...WAVE_CHARS: ['~', '-', '_', '^'][0m
+[37mDEBUG   [0m [32mFound a list/set/tuple ['~', '-', '_', '^'][0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Wave[0m
+[37mDEBUG   [0m [32mCollecting something ...Wave: <function Wave at 0x000002B8E13AD9E0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave at 0x000002B8E13AD9E0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave._generate_pattern at 0x000002B8E13ADBC0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Refine wave pattern generation for more organic look.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Bob', origination_date=None, due=None, release_due=None, release=None, iteration='2', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Wave Generator', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave._generate_pattern at 0x000002B8E13ADBC0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Make wave generation more realistic and less static.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Kstar', originator=None, origination_date=None, due='08/15/2025', release_due='1.5.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Development', category='Wave Generator', _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave.update at 0x000002B8E13ADDA0>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='FIXME', comment='Wave animation is choppy, needs smoother transitions.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker='https://example.com/FSH-4', priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave.update at 0x000002B8E13ADDA0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave at 0x000002B8E13AD9E0>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : hero_screen[0m
+[37mDEBUG   [0m [32mCollecting something ...hero_screen: <function hero_screen at 0x000002B8E13AEA20>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function hero_screen at 0x000002B8E13AEA20>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Hero screen display implemented and functional.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Bob', origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type=None, closed_date='2024-06-20', closed_comment=None, tracker=None, priority=None, status='Done', category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function hero_screen at 0x000002B8E13AEA20>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : main[0m
+[37mDEBUG   [0m [32mCollecting something ...main: <function main at 0x000002B8E13AEB60>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function main at 0x000002B8E13AEB60>[0m
+[37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
+[37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add proper game over screen and restart option for enhanced gameplay loop.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due=None, release_due='2.0.0', release=None, iteration='3', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-16', priority=None, status='Planning', category=None, _due_date_obj=None, todo_meta=...)[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function main at 0x000002B8E13AEB60>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : os[0m
+[37mDEBUG   [0m [32mCollecting something ...os: <module 'os' (frozen)>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <module 'os' (frozen)>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : random[0m
+[37mDEBUG   [0m [32mCollecting something ...random: <module 'random' from 'C:\\Users\\matth\\AppData\\Roaming\\uv\\python\\cpython-3.13.0-windows-x86_64-none\\Lib\\random.py'>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <module 'random' from 'C:\\Users\\matth\\AppData\\Roaming\\uv\\python\\cpython-3.13.0-windows-x86_64-none\\Lib\\random.py'>[0m
+[37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : time[0m
+[37mDEBUG   [0m [32mCollecting something ...time: <module 'time' (built-in)>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <module 'time' (built-in)>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'>[0m
+[32mINFO    [0m [32mFound 0 DATA in module 'demo.__main__'.[0m
+[37mDEBUG   [0m [32mFound 0 by looking at imported module: demo.__main__[0m
+[32mINFO    [0m [32maggregate_all_kinds: module_name=, source_path=demo, active_schemas=['todo', 'folk', 'data'][0m
+[32mINFO    [0m [32miterate_comments: processing demo\__init__.py[0m
+[32mINFO    [0m [32miterate_comments: processing demo\__main__.py[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # --- Import Actual Code Tag System ---[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # Assuming code_tags library is available in the environment[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: from pycodetags_issue_tracker import DOCUMENT  # Added for a decorator example[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Constants[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # seconds per frame[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Character sets[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : DONE[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO,TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : DONE[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO,TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : DONE[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Wait for user to press Enter[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # Initial horizontal direction[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:         self.dy = 0  # Fish mostly move horizontally, vertical movement will be slight[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Simple bounce off walls[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Slight vertical drift[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # Keep fish within the "water" area (below waves, above plants)[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:         self.y = max(2, min(self.y, screen_height - 3))  # Avoid waves and very bottom[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Apply movement based on chase or bounce[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # NOT IMPLEMENTED: Plant animation logic for swaying or growing.[0m
+[37mDEBUG   [0m [32mFound folk tags! : NOT[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Simple scrolling wave animation[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO,DONE[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Draw waves[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Second row of waves for thickness[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Draw plants (at the very bottom)[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Draw fish[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO,TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Print the buffer[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Update fish movement, potentially chasing others[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Try to update plants, but it will raise NotImplementedError[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : TODO[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # Check for immediate quit (requires non-blocking input, which is complex in standard Python terminal)[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             # This is a placeholder for demonstration. In a real game, you'd use libraries like curses or keyboard.[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             # print("Press 'q' to quit...", end='\r')[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             # For simplicity, we just run until interrupted or a specific condition.[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : NOBUG,WONTFIX[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Flip character if it's a directional one[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # 10% chance to change vertical direction[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Avoid wave and bottom plant line[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Place plants at the very bottom[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # Simple chase logic: each fish chases a random other fish[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>: # Example of how a TodoException could be triggered and handled if the feature was attempted[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             # try:[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             #     tank._spawn_new_fish_if_needed()[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             # except TodoException as e:[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             #     print(f"\n[INFO] {e.message}")[0m
+[37mDEBUG   [0m [32mProcessing demo\__main__.py ==>:             #     # In a real game, this might be handled more gracefully, or simply not called yet.[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mProcessing  demo\__main__.py: # 30% chance to chase[0m
+[37mDEBUG   [0m [32mSearch for ['DATA'] schema tags[0m
+[37mDEBUG   [0m [32mFound data tags! : WONTFIX[0m
+[37mDEBUG   [0m [32mFound 21 by looking at src folder demo[0m
+[
+  {
+    "code_tag": "TODO",
+    "comment": "demonstrate that js plugin works.",
+    "default_fields": null,
+    "data_fields": null,
+    "custom_fields": {}
+  },
+  {
+    "code_tag": "DONE",
+    "comment": "Basic fish movement implemented.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
       "closed_date": "2024-06-19",
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Add fish health and hunger stats.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Kstar"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Implement fish personality (e.g., aggressive, timid).",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Kstar",
-        "Text"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
+      "release": "1.0.0"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Add fish health and hunger stats.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {}
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Implement fish personality (e.g., aggressive, timid).",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "category": "Flavor",
+      "status": "Planning",
       "iteration": "1",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-5",
-      "priority": null,
-      "status": "Planning",
-      "category": "Flavor"
-    },
-    {
-      "code_tag": "DONE",
-      "comment": "Static wave character setup completed.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Bob",
-        "Generator"
-      ],
-      "originator": null,
-      "origination_date": null,
+      "tracker": "https://example.com/FSH-5"
+    }
+  },
+  {
+    "code_tag": "DONE",
+    "comment": "Static wave character setup completed.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
       "due": "05/01/2024",
-      "release_due": null,
       "release": "1.0.0",
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
       "category": "Wave"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Display debug information (e.g., FPS, fish count).",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Bob",
-        "Text"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": "Development",
-      "category": "Flavor"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Implement collision detection for fish and tank walls.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "release_due": "1.5.0"
-      },
-      "strict": false,
-      "assignee": [
-        "Alice"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Display debug information (e.g., FPS, fish count).",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "category": "Flavor",
+      "status": "Development"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Implement collision detection for fish and tank walls.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "iteration": "2",
       "release_due": "1.5.0",
-      "release": null,
-      "iteration": "2",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-13",
-      "priority": null,
+      "category": "Fish Movement",
       "status": "Development",
-      "category": "Fish Movement"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Add food pellets for fish to eat.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Carl",
-        "Text"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
+      "tracker": "https://example.com/FSH-13"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Add food pellets for fish to eat.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "category": "Flavor",
+      "status": "Planning",
       "iteration": "2",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-14",
-      "priority": null,
-      "status": "Planning",
-      "category": "Flavor"
-    },
-    {
-      "code_tag": "DONE",
-      "comment": "Hero screen display implemented.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Bob"
-      ],
-      "originator": "Bob",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Add proper game over screen and restart option.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "release_due": "2.0.0"
-      },
-      "strict": false,
-      "assignee": [
-        "Alice"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": "2.0.0",
-      "release": null,
+      "tracker": "https://example.com/FSH-14"
+    }
+  },
+  {
+    "code_tag": "DONE",
+    "comment": "Hero screen display implemented.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "originator": "Bob"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Add proper game over screen and restart option.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
       "iteration": "3",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-16",
-      "priority": null,
       "status": "Planning",
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Improve chase logic to avoid obstacles (plants).",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "release_due": "2.0.0"
-      },
-      "strict": false,
-      "assignee": [
-        "Bob",
-        "Algorithm"
-      ],
-      "originator": null,
-      "origination_date": null,
+      "release_due": "2.0.0",
+      "tracker": "https://example.com/FSH-16"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Improve chase logic to avoid obstacles (plants).",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
       "due": "09/01/2025",
       "release_due": "2.0.0",
-      "release": null,
-      "iteration": "3",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-8",
-      "priority": null,
+      "category": "Chase",
       "status": "Development",
-      "category": "Chase"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Implement plant growth over time.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Carl"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "NOT",
-      "comment": "IMPLEMENTED: Plant animation logic for swaying or growing.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": null,
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Initial screen setup and sizing for responsiveness.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Alice"
-      ],
-      "originator": "Alice",
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-1",
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "DONE",
-      "comment": "Basic screen buffer initialization completed.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Alice",
-        "Text"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": "06/15/2024",
-      "release_due": null,
-      "release": "1.0.0",
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-2",
-      "priority": null,
-      "status": "Done",
-      "category": "Flavor"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Add background details and rocks at the bottom.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "release_due": "1.5.0"
-      },
-      "strict": false,
-      "assignee": [
-        "Bob"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": "07/01/2025",
-      "release_due": "1.5.0",
-      "release": null,
-      "iteration": "1",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-10",
-      "priority": null,
-      "status": "Planning",
-      "category": "Flavor Text"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Implement a \"hero\" fish that the player controls.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "release_due": "2.0.0"
-      },
-      "strict": false,
-      "assignee": [
-        "Alice"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": "2.0.0",
-      "release": null,
-      "iteration": "2",
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-11",
-      "priority": null,
-      "status": "Planning",
-      "category": "Fish Movement"
-    },
-    {
-      "code_tag": "TODO",
-      "comment": "Implement fish spawning logic.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Alice"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": "10/01/2025",
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-15",
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "NOBUG",
-      "comment": "Ensure terminal state is reset correctly on exit.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {
-        "closed_date": "2024-06-20"
-      },
-      "strict": false,
-      "assignee": [
-        "Kstar"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": "1.5.0",
-      "iteration": null,
-      "change_type": null,
-      "closed_date": "2024-06-20",
-      "closed_comment": null,
-      "tracker": null,
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "WONTFIX",
-      "comment": "Add complex terminal cleanup for all OS types.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Carl"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-17",
-      "priority": null,
-      "status": null,
-      "category": null
-    },
-    {
-      "code_tag": "WONTFIX",
-      "comment": "Plant animation is not critical for MVP.",
-      "default_fields": null,
-      "data_fields": null,
-      "custom_fields": {},
-      "strict": false,
-      "assignee": [
-        "Kstar"
-      ],
-      "originator": null,
-      "origination_date": null,
-      "due": null,
-      "release_due": null,
-      "release": null,
-      "iteration": null,
-      "change_type": null,
-      "closed_date": null,
-      "closed_comment": null,
-      "tracker": "https://example.com/FSH-12",
-      "priority": null,
-      "status": null,
-      "category": null
+      "iteration": "3",
+      "tracker": "https://example.com/FSH-8"
     }
-  ],
-  "exceptions": []
-}
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Implement plant growth over time.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {}
+  },
+  {
+    "code_tag": "NOT",
+    "comment": "IMPLEMENTED: Plant animation logic for swaying or growing.",
+    "default_fields": null,
+    "data_fields": null,
+    "custom_fields": {}
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Initial screen setup and sizing for responsiveness.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "originator": "Alice",
+      "tracker": "https://example.com/FSH-1"
+    }
+  },
+  {
+    "code_tag": "DONE",
+    "comment": "Basic screen buffer initialization completed.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "due": "06/15/2024",
+      "release": "1.0.0",
+      "category": "Flavor",
+      "status": "Done",
+      "tracker": "https://example.com/FSH-2"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Add background details and rocks at the bottom.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "due": "07/01/2025",
+      "category": "Flavor Text",
+      "status": "Planning",
+      "iteration": "1",
+      "release_due": "1.5.0",
+      "tracker": "https://example.com/FSH-10"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Implement a \"hero\" fish that the player controls.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "category": "Fish Movement",
+      "status": "Planning",
+      "release_due": "2.0.0",
+      "iteration": "2",
+      "tracker": "https://example.com/FSH-11"
+    }
+  },
+  {
+    "code_tag": "TODO",
+    "comment": "Implement fish spawning logic.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "assignee": "Alice",
+      "due": "10/01/2025",
+      "tracker": "https://example.com/FSH-15"
+    }
+  },
+  {
+    "code_tag": "NOBUG",
+    "comment": "Ensure terminal state is reset correctly on exit.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "release": "1.5.0",
+      "closed_date": "2024-06-20"
+    }
+  },
+  {
+    "code_tag": "WONTFIX",
+    "comment": "Add complex terminal cleanup for all OS types.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "tracker": "https://example.com/FSH-17"
+    }
+  },
+  {
+    "code_tag": "WONTFIX",
+    "comment": "Plant animation is not critical for MVP.",
+    "default_fields": null,
+    "data_fields": {},
+    "custom_fields": {
+      "tracker": "https://example.com/FSH-12"
+    }
+  }
+]

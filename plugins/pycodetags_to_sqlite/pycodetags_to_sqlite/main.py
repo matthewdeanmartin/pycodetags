@@ -17,7 +17,8 @@ def code_tags_print_report(
     # pylint: disable=unused-argument
     config: CodeTagsConfig,
 ) -> bool:
-    raise NotImplementedError()
+    pass
+    # raise NotImplementedError()
     # return False  # This plugin does not handle the requested format
 
 

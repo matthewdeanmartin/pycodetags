@@ -32,9 +32,9 @@ test: clean uv.lock install_plugins
 	$(VENV) pytest --doctest-modules pycodetags
 	# $(VENV) python -m unittest discover
 	$(VENV) py.test tests -vv -n 2 --cov=pycodetags --cov-report=html --cov-fail-under 50
-#	$(VENV) bash basic_test.sh
+	$(VENV) bash basic_test.sh
+	$(VENV) bash basic_test_with_logging.sh
 #	$(VENV) bash basic_plugins.sh
-#	$(VENV) bash basic_test_with_logging.sh
 #	$(VENV) bash basic_test_via_config.sh
 #	$(VENV) bash basic_test_with_multiple_sources.sh
 

@@ -10,8 +10,8 @@ import time
 
 # --- Import Actual Code Tag System ---
 # Assuming code_tags library is available in the environment
-from pycodetags import DOCUMENT  # Added for a decorator example
-from pycodetags import ALERT, BUG, FIXME, HACK, TODO, TodoException
+from pycodetags_issue_tracker import DOCUMENT  # Added for a decorator example
+from pycodetags_issue_tracker import ALERT, BUG, FIXME, HACK, TODO
 
 # Constants
 SCREEN_WIDTH = 80
@@ -361,7 +361,7 @@ class FishTank:
         """
         # TODO: Implement fish spawning logic. <Alice assignee=Alice due=10/01/2025 tracker=https://example.com/FSH-15>
         # This feature is not implemented yet.
-        raise TodoException("Fish spawning logic is a future enhancement. Assignee: Alice, Due: 10/01/2025")
+        raise NotImplementedError("Fish spawning logic is a future enhancement. Assignee: Alice, Due: 10/01/2025")
 
     @ALERT(
         assignee="Bob",

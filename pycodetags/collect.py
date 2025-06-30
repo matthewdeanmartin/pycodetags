@@ -51,7 +51,7 @@ class DATACollector:
     """Comprehensive collector for DATA items."""
 
     def __init__(self) -> None:
-        self.todos: list[DATA] = []
+        self.data: list[DATA] = []
         self.visited: set[int] = set()
 
     def collect_from_module(
@@ -68,13 +68,14 @@ class DATACollector:
         Returns:
             list of DATA
         """
+        logger.info(f"Collecting from module {module.__name__} with max depth {max_depth}")
         self._reset()
         self._collect_recursive(module, include_submodules, max_depth, 0)
-        return self.todos.copy()
+        return self.data.copy()
 
     def _reset(self) -> None:
         """Reset internal collections."""
-        self.todos.clear()
+        self.data.clear()
         self.visited.clear()
 
     def _collect_recursive(self, obj: Any, include_submodules: bool, max_depth: int, current_depth: int) -> None:
@@ -115,23 +116,23 @@ class DATACollector:
         # Handle functions and methods
         if inspect.isfunction(obj) or inspect.ismethod(obj):
             logger.debug(f"Collecting function/method {obj}")
-            self._check_object_for_todos(obj)
+            self._check_object_for_metadata(obj)
             # Classes are showing up as functions?! Yes.
             self._collect_from_class_attributes(obj, include_submodules, max_depth, current_depth)
         if isinstance(obj, (list, set, tuple)) and obj:
             logger.debug(f"Found a list/set/tuple {obj}")
             for item in obj:
-                self._check_object_for_todos(item)
+                self._check_object_for_metadata(item)
         else:
             # self._collect_from_class_attributes(obj, include_submodules, max_depth, current_depth)
             logger.debug(f"Don't know what to do with {obj}")
 
-    def _check_object_for_todos(self, obj: Any) -> None:
-        """Check if an object has TODO/Done metadata."""
-        if hasattr(obj, "todo_meta"):
-            if isinstance(obj.todo_meta, DATA):
-                logger.info(f"Found todo, by instance and has todo_meta attr on {obj}")
-                self.todos.append(obj.todo_meta)
+    def _check_object_for_metadata(self, obj: Any) -> None:
+        """Check if an object has metadata."""
+        if hasattr(obj, "data_meta"):
+            if isinstance(obj.data_meta, DATA):
+                logger.info(f"Found todo, by instance and has data_meta attr on {obj}")
+                self.data.append(obj.data_meta)
 
     def _collect_from_module_attributes(
         self, module: ModuleType | SimpleNamespace, include_submodules: bool, max_depth: int, current_depth: int

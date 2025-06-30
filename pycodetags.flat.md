@@ -15,9 +15,12 @@ import logging.config
 import pathlib
 import sys
 
+import pycodetags.data_schema as data_schema
 import pycodetags.folk_code_tags as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
+from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
+from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag, DataTagSchema
 from pycodetags.data_tags_parsers import iterate_comments
@@ -32,20 +35,35 @@ def aggregate_all_kinds_multiple_input(module_names: list[str], source_paths: li
         module_names = []
     if not source_paths:
         source_paths = []
-    collected: list[DATA] = []
-
+    logger.info(f"aggregate_all_kinds_multiple_input: module_names={module_names}, source_paths={source_paths}")
+    collected_DATA: list[DATA] = []
+    collected: list[DataTag | folk_code_tags.FolkTag] = []
+    found_in_modules: list[DATA] = []
     for module_name in module_names:
-        found = aggregate_all_kinds(module_name, "")
-        collected += found
+        found_tags, found_in_modules = aggregate_all_kinds(module_name, "")
+        collected.extend(found_tags)
+        logger.debug(f"Found {len(found_in_modules)} by looking at imported module: {module_name}")
 
     for source_path in source_paths:
-        found = aggregate_all_kinds("", source_path)
-        collected += found
+        found_tags, found_in_modules = aggregate_all_kinds("", source_path)
+        collected.extend(found_tags)
+        logger.debug(f"Found {len(found_tags)} by looking at src folder {source_path}")
 
-    return collected
+    for found_tag in collected:
+        if "fields" in found_tag.keys():
+            item = convert_pep350_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            collected_DATA.append(item)
+        else:
+            item = convert_folk_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            collected_DATA.append(item)
+    collected_DATA.extend(found_in_modules)
+
+    return collected_DATA
 
 
-def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
+def aggregate_all_kinds(
+    module_name: str, source_path: str
+) -> tuple[list[DataTag | folk_code_tags.FolkTag], list[DATA]]:
     """
     Aggregate all TODOs and DONEs from a module and source files.
 
@@ -60,6 +78,9 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
 
     active_schemas = config.active_schemas()
 
+    logger.info(
+        f"aggregate_all_kinds: module_name={module_name}, source_path={source_path}, active_schemas={active_schemas}"
+    )
     found_in_modules: list[DATA] = []
     if bool(module_name) and module_name is not None and not module_name == "None":
         logging.info(f"Checking {module_name}")
@@ -68,9 +89,10 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
             found_in_modules = collect_all_data(module, include_submodules=False)
         except ImportError:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
+            raise
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
-    schemas: list[DataTagSchema] = []
+    schemas: list[DataTagSchema] = [PureDataSchema]
     # TODO: get schemas from plugins.
 
     if source_path:
@@ -101,7 +123,7 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
         if src_found == 0:
             raise TypeError(f"Can't find any files in source folder {source_path}")
 
-    found_TODOS: list[DATA] = []
+    # found_TODOS: list[DATA] = []
     # TODO: hand off to plugin to convert to specific type
     # for found_tag in found_tags:
     #     if "fields" in found_tag.keys():
@@ -109,8 +131,7 @@ def aggregate_all_kinds(module_name: str, source_path: str) -> list[DATA]:
     #     else:
     #         found_TODOS.append(convert_folk_tag_to_TODO(found_tag))  # type: ignore[arg-type]
 
-    all_combined = found_TODOS + found_in_modules
-    return all_combined
+    return found_tags, found_in_modules
 
 ```
 
@@ -170,7 +191,7 @@ class DATACollector:
     """Comprehensive collector for DATA items."""
 
     def __init__(self) -> None:
-        self.todos: list[DATA] = []
+        self.data: list[DATA] = []
         self.visited: set[int] = set()
 
     def collect_from_module(
@@ -187,13 +208,14 @@ class DATACollector:
         Returns:
             list of DATA
         """
+        logger.info(f"Collecting from module {module.__name__} with max depth {max_depth}")
         self._reset()
         self._collect_recursive(module, include_submodules, max_depth, 0)
-        return self.todos.copy()
+        return self.data.copy()
 
     def _reset(self) -> None:
         """Reset internal collections."""
-        self.todos.clear()
+        self.data.clear()
         self.visited.clear()
 
     def _collect_recursive(self, obj: Any, include_submodules: bool, max_depth: int, current_depth: int) -> None:
@@ -234,23 +256,23 @@ class DATACollector:
         # Handle functions and methods
         if inspect.isfunction(obj) or inspect.ismethod(obj):
             logger.debug(f"Collecting function/method {obj}")
-            self._check_object_for_todos(obj)
+            self._check_object_for_metadata(obj)
             # Classes are showing up as functions?! Yes.
             self._collect_from_class_attributes(obj, include_submodules, max_depth, current_depth)
         if isinstance(obj, (list, set, tuple)) and obj:
             logger.debug(f"Found a list/set/tuple {obj}")
             for item in obj:
-                self._check_object_for_todos(item)
+                self._check_object_for_metadata(item)
         else:
             # self._collect_from_class_attributes(obj, include_submodules, max_depth, current_depth)
             logger.debug(f"Don't know what to do with {obj}")
 
-    def _check_object_for_todos(self, obj: Any) -> None:
-        """Check if an object has TODO/Done metadata."""
-        if hasattr(obj, "todo_meta"):
-            if isinstance(obj.todo_meta, DATA):
-                logger.info(f"Found todo, by instance and has todo_meta attr on {obj}")
-                self.todos.append(obj.todo_meta)
+    def _check_object_for_metadata(self, obj: Any) -> None:
+        """Check if an object has metadata."""
+        if hasattr(obj, "data_meta"):
+            if isinstance(obj.data_meta, DATA):
+                logger.info(f"Found todo, by instance and has data_meta attr on {obj}")
+                self.data.append(obj.data_meta)
 
     def _collect_from_module_attributes(
         self, module: ModuleType | SimpleNamespace, include_submodules: bool, max_depth: int, current_depth: int
@@ -685,15 +707,10 @@ class CodeTagsConfig:
     _instance: CodeTagsConfig | None = None
     config: dict[str, Any] = {}
 
-    def __init__(self, pyproject_path: str = "pyproject.toml", set_user: str | None = None):
+    def __init__(self, pyproject_path: str = "pyproject.toml"):
 
         self._pyproject_path = pyproject_path
         self._load()
-        self.user_override = set_user
-
-    def user_env_var(self) -> str:
-        """Environment variable with active user."""
-        return str(self.config.get("user_env_var", ""))
 
     def _load(self) -> None:
         if not os.path.exists(self._pyproject_path):
@@ -723,13 +740,14 @@ class CodeTagsConfig:
             raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
 
-    def action_on_past_due(self) -> bool:
-        """Do actions do the default action"""
-        return careful_to_bool(self.config.get("action_on_past_due", False), False)
+    #
+    # def action_on_past_due(self) -> bool:
+    #     """Do actions do the default action"""
+    #     return careful_to_bool(self.config.get("action_on_past_due", False), False)
 
-    def action_only_on_responsible_user(self) -> bool:
-        """Do actions do the default action when active user matches"""
-        return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
+    # def action_only_on_responsible_user(self) -> bool:
+    #     """Do actions do the default action when active user matches"""
+    #     return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
 
     def disable_on_ci(self) -> bool:
         """Disable actions on CI, overrides other."""
@@ -804,6 +822,113 @@ if __name__ == "__main__":
 
 ```
 
+## File: converters.py
+
+```python
+"""
+Converters for FolkTag and PEP350Tag to TODO
+"""
+
+from __future__ import annotations
+
+import logging
+
+from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.folk_code_tags import FolkTag
+
+logger = logging.getLogger(__name__)
+
+
+def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA:  # pylint: disable=unused-argument
+    """
+    Convert a FolkTag to a DATA object. A DATA object does not attempt to
+    convert domain specific fields to strongly typed properties/fields
+
+    Args:
+        folk_tag (FolkTag): The FolkTag to convert.
+        schema (DataTagSchema): Which schema to force the folk tag into
+    """
+    kwargs = {
+        "code_tag": folk_tag.get("code_tag"),
+        "custom_fields": folk_tag.get("custom_fields"),
+        "comment": folk_tag["comment"],  # required
+        "_file_path": folk_tag.get("file_path"),
+        "_line_number": folk_tag.get("line_number"),
+        "_original_text": folk_tag.get("original_text"),
+        "_original_schema": "folk",
+    }
+    return DATA(**kwargs)  # type: ignore[arg-type]
+
+
+def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DATA:
+    """
+    Convert a PEP350Tag to a DATA object.
+
+    Args:
+        pep350_tag (PEP350Tag): The PEP350Tag to convert.
+        schema (DataTagSchema): Schema for DataTag
+    """
+    # default fields should have already been promoted to data_fields by now.
+    data_fields = pep350_tag["fields"]["data_fields"]
+    custom_fields = pep350_tag["fields"]["custom_fields"]
+
+    final_data = {}
+    final_custom = {}
+    for found, value in data_fields.items():
+        if found in schema["data_fields"]:
+            final_data[found] = value
+        else:
+            final_custom[found] = value
+
+    for found, value in custom_fields.items():
+        if found in schema["data_fields"]:
+            if found in final_data:
+                logger.warning("Found same field in both data and custom")
+            final_data[found] = value
+        else:
+            if found in final_custom:
+                logger.warning("Found same field in both data and custom")
+            final_custom[found] = value
+
+    kwargs = {
+        "code_tag": pep350_tag["code_tag"],
+        "comment": pep350_tag["comment"],
+        "data_fields": final_data,
+        "custom_fields": final_custom,
+        # Source Mapping
+        "_file_path": data_fields.get("_file_path"),
+        "_line_number": data_fields.get("_line_number"),
+        "_original_text": pep350_tag.get("original_text"),
+        "_original_schema": "pep350",
+    }
+    return DATA(**kwargs)  # type: ignore[arg-type]
+
+```
+
+## File: data_schema.py
+
+```python
+from pycodetags.data_tags import DataTagSchema
+
+PureDataSchema: DataTagSchema = {
+    "name": "DATA",
+    "matching_tags": [
+        # Everything matches!
+    ],
+    "default_fields": {
+        # No defaults, no domain!
+    },
+    "data_fields": {
+        # No domain fields, pure data!
+    },
+    "data_field_aliases": {
+        # No alias, no domain!
+    },
+}
+
+```
+
 ## File: data_tags.py
 
 ```python
@@ -851,6 +976,8 @@ logger = logging.getLogger(__name__)
 
 
 class DataTagSchema(TypedDict):
+    name: str
+
     matching_tags: list[str]
     """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
 
@@ -876,29 +1003,25 @@ class DataTagFields(TypedDict):
     custom_fields: dict[str, str]
     """Key value pairs, e.g. SAFe program increment number"""
 
-    # TODO: think about adding meaning of default fields here?
 
-    strict: bool
-    """If true, the same field can't appear in two places"""
-
-
-def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str) -> Any:
-    values = []
-    # default fields should already be resolved to a data_field by this point
-    if field_name in schema["data_fields"]:
-        if field_name in fields["data_fields"]:
-            values.append(fields["data_fields"][field_name])
-        if field_name in fields["custom_fields"]:
-            values.append(fields["custom_fields"][field_name])
-    if len(set(values)) == 1:
-        return values[0]
-    if fields["strict"]:
-        raise TypeError(f"Double field with different values {field_name} : {values}")
-    logger.warning(f"Double field with different values {field_name} : {values}")
-    # TODO: do we want to support str | list[str]?
-    if values:
-        return values[0]
-    return ""
+# def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str, strict: bool) -> Any:
+#     values = []
+#     # default fields should already be resolved to a data_field by this point
+#     if field_name in schema["data_fields"]:
+#         if field_name in fields["data_fields"]:
+#             values.append(fields["data_fields"][field_name])
+#         if field_name in fields["custom_fields"]:
+#             values.append(fields["custom_fields"][field_name])
+#     if len(set(values)) == 1:
+#         return values[0]
+#     if strict:
+#         raise TypeError(f"Double field with different values {field_name} : {values}")
+#     logger.warning(f"Double field with different values {field_name} : {values}")
+#
+#     # TODO: do we want to support str | list[str]?
+#     if values:
+#         return values[0]
+#     return ""
 
 
 class DataTag(TypedDict, total=False):
@@ -1021,7 +1144,9 @@ def is_int(s: str) -> bool:
     return s.isdigit()
 
 
-def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> DataTagFields:
+def parse_fields(
+    field_string: str, schema: DataTagSchema, strict: bool  # pylint: disable=unused-argument
+) -> DataTagFields:
     """
     Parse a field string from a PEP-350 style code tag and return a dictionary of fields.
 
@@ -1033,9 +1158,12 @@ def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> Data
     Returns:
         Fields: A dictionary containing the parsed fields.
     """
-    field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], schema["data_fields"])
+    legit_names = {}
+    for key in schema["data_fields"]:
+        legit_names[key] = key
+    field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], legit_names)
 
-    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}, "strict": strict}
+    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
 
     # Updated key_value_pattern:
     # - Handles quoted values (single or double) allowing any characters inside.
@@ -1245,15 +1373,21 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
     Yields:
         PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
     """
-    logger.info(f"collect_pep350_code_tags: processing {file}")
+    if not schemas and not include_folk_tags:
+        raise TypeError("No active schemas, not looking for folk tags. Won't find anything.")
+    logger.info(f"iterate_comments: processing {file}")
     things: list[DataTag | FolkTag] = []
     for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks(Path(file)):
         # Can only be one comment block now!
-        thing = []
+        logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
+        found_data_tags = []
         for schema in schemas:
-            thing = parse_codetags(final_comment, schema, strict=False)
-            things.extend(thing)
-        if not thing and include_folk_tags:
+            found_data_tags = parse_codetags(final_comment, schema, strict=False)
+            if found_data_tags:
+                logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
+            things.extend(found_data_tags)
+
+        if not found_data_tags and include_folk_tags:
             # BUG: fails if there are two in th same.
             # TODO: blank out consumed text, reconsume bock
             found_folk_tags: list[FolkTag] = []
@@ -1266,6 +1400,8 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
                 file_path=file,
                 valid_tags=[],
             )
+            if found_folk_tags:
+                logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
             things.extend(found_folk_tags)
 
     yield from things
@@ -1308,7 +1444,7 @@ class Serializable:
                 d[key] = value.isoformat()
             if key.startswith("_"):
                 del d[key]
-            if key == "todo_meta":
+            if key == "data_meta":
                 del d[key]
         return d
 
@@ -1331,7 +1467,6 @@ class DATA(Serializable):
     default_fields: dict[str, str] | None = None
     data_fields: dict[str, str] | None = None
     custom_fields: dict[str, str] | None = None
-    strict: bool = False
 
     # Source mapping, original parsing info
     # Do not deserialize these back into the comments!
@@ -1362,7 +1497,7 @@ class DATA(Serializable):
             self._perform_action()
             return cast(Callable[..., Any], func(*args, **kwargs))
 
-        cast(Any, wrapper).todo_meta = self
+        cast(Any, wrapper).data_meta = self
         return wrapper
 
     def __enter__(self) -> DATA:
@@ -1696,6 +1831,12 @@ def process_text(
         lines = text.split("\r\n")
     else:
         lines = text.split("\n")
+
+    if len(lines) == 1:
+        logger.debug(f"Processing  {file_path}: {lines[0]}")
+    else:
+        for line in lines:
+            logger.debug(f"Processing {file_path} ==>: {line}")
     idx = 0
     while idx < len(lines):
         consumed = process_line(
@@ -2137,107 +2278,6 @@ class CodeTagsSpec:
 
 ```
 
-## File: users_from_authors.py
-
-```python
-"""
-Author file parsing.
-"""
-
-from __future__ import annotations
-
-import logging
-import os
-import re
-from typing import Any
-
-logger = logging.getLogger(__name__)
-
-
-def parse_authors_file_simple(file_path: str) -> list[str]:
-    """Parses an AUTHORS file to extract unique author names."""
-    authors = set()
-    for item in parse_authors_file(file_path):
-        for _, value in item.items():
-            authors.add(value)
-    return list(authors)
-
-
-def parse_authors_file(file_path: str) -> list[dict[str, str | Any]]:
-    """
-    Parses an AUTHORS file, attempting to extract names and emails.
-    Handles common formats but is flexible due to the "folk schema" nature.
-
-    Args:
-        file_path (str): The path to the AUTHORS file.
-
-    Returns:
-        list: A list of dictionaries, where each dictionary represents an author
-              and may contain 'name' and 'email' keys.
-    """
-    authors = []
-    # Regex to capture name and optional email
-    # Groups: 1=name, 2=email (if present)
-    author_pattern = re.compile(r"^\s*(.*?)(?:\s+<([^>]+)>)?\s*$")
-
-    with open(file_path, encoding="utf-8") as file_handle:
-        for line in file_handle:
-            line = line.strip()
-            if not line or line.startswith("#"):  # Skip empty lines and comments
-                continue
-
-            match = author_pattern.match(line)
-            if match:
-                name = match.group(1).strip()
-                email = match.group(2)
-
-                author_info = {"name": name}
-                if email:
-                    author_info["email"] = email.strip()
-                authors.append(author_info)
-            else:
-                # If a line doesn't match the common pattern, you might
-                # want to log it or handle it differently.
-                # For simplicity, we'll just add the whole line as a name.
-                authors.append({"name": line})
-                print(f"Warning: Could not fully parse line: '{line}'")
-
-    return authors
-
-
-# --- Example Usage ---
-if __name__ == "__main__":
-
-    def example() -> None:
-        """
-        Example function to demonstrate how to use the parse_authors_file function.
-        """
-        # Create a dummy AUTHORS file for testing
-        dummy_authors_content = """
-# Project Contributors
-
-John Doe <john.doe@example.com>
-Jane Smith
-Alice Wonderland <alice@wonderland.org>
-Bob The Builder (Maintenance Lead)
-    # A comment line
-Charlie Chaplin
-    """
-        with open("AUTHORS_test.txt", "w", encoding="utf-8") as f:
-            f.write(dummy_authors_content.strip())
-
-        parsed_authors = parse_authors_file("AUTHORS_test.txt")
-
-        print("Parsed Authors:")
-        for author in parsed_authors:
-            print(author)
-
-        os.remove("AUTHORS_test.txt")
-
-    example()
-
-```
-
 ## File: views.py
 
 ```python
@@ -2308,7 +2348,7 @@ def print_text(found: list[DATA]) -> None:
         for tag, items in grouped.items():
             print(f"--- {tag.upper()} ---")
             for todo in items:
-                print(todo.as_pep350_comment())
+                print(todo.as_data_comment())
                 print()
     else:
         print("No Code Tags found.")
@@ -2325,8 +2365,8 @@ def print_json(found: list[DATA]) -> None:
     output = [t.to_dict() for t in todos]
 
     def default(o: Any) -> str:
-        if hasattr(o, "todo_meta"):
-            o.todo_meta = None
+        if hasattr(o, "data_meta"):
+            o.data_meta = None
 
         return json.dumps(o.to_dict()) if hasattr(o, "to_dict") else str(o)
 
@@ -2338,9 +2378,16 @@ def print_data_md(found: list[DATA]) -> None:
     Outputs DATA items in a markdown format.
 
     """
-    # config = get_code_tags_config()
-
-    print(found)
+    # pylint:disable=protected-access
+    grouped = group_and_sort(found, lambda _: "" if not _._file_path else _._file_path, sort_items=False)
+    for file, items in grouped.items():
+        print(file)
+        print("```python")
+        for item in items:
+            print(item.as_data_comment())
+            print()
+        print("```")
+        print()
 
 ```
 
@@ -2465,7 +2512,7 @@ import pluggy
 
 import pycodetags.__about__ as __about__
 from pycodetags import DATA
-from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
+from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
 from pycodetags.logging_config import generate_config
@@ -2607,6 +2654,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         try:
             found = aggregate_all_kinds_multiple_input(modules, src)
+
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
             return 1
@@ -2649,10 +2697,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         try:
             all_found: list[DATA] = []
             for source in src:
-                all_found.extend(aggregate_all_kinds("", source))
-            for module in modules:
-                all_found.extend(aggregate_all_kinds(module, ""))
-
+                found_tags = aggregate_all_kinds_multiple_input([""], [source])
+                all_found.extend(found_tags)
+            more_found = aggregate_all_kinds_multiple_input(modules, [])
+            all_found.extend(more_found)
             found_data_for_plugins = all_found
         except ImportError:
             logging.warning(f"Could not aggregate data for command {args.command}, proceeding without it.")

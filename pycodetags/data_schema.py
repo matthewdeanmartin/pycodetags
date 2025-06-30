@@ -1,0 +1,17 @@
+from pycodetags.data_tags import DataTagSchema
+
+PureDataSchema: DataTagSchema = {
+    "name": "DATA",
+    "matching_tags": [
+        # Everything matches!
+    ],
+    "default_fields": {
+        # No defaults, no domain!
+    },
+    "data_fields": {
+        # No domain fields, pure data!
+    },
+    "data_field_aliases": {
+        # No alias, no domain!
+    },
+}
