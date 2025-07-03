@@ -1,9 +1,9 @@
-site_name: "pygount"
-site_url: "https://pygount.readthedocs.io/"
-site_author: "Thomas Aglassinger <roskakori@users.sourceforge.net>"
-site_description: "Documentation of pygount, a tool to count lines of code for hundreds of languages using pygments"
+site_name: "pycodetags"
+site_url: "https://pycodetags.readthedocs.io/"
+site_author: "Matthew Dean Martin <matthewdeanmartin@gmail.com>"
+site_description: "Documentation of pycodetags, a tool for TODO comments in source code"
 
-repo_url: "https://github.com/roskakori/pygount"
+repo_url: "https://github.com/matthewdeanmartin/pycodetags"
 
 theme:
   name: material
@@ -29,8 +29,6 @@ nav:
   - "Prior Art": "PRIOR_ART.md"
   - "Changes": "../CHANGELOG.md"
   - "Contributing": "../CONTRIBUTING.md"
-
-
 
 validation:
   nav:
