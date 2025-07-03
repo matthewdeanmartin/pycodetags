@@ -6,7 +6,7 @@ site_description: "Documentation of pycodetags, a tool for TODO comments in sour
 repo_url: "https://github.com/matthewdeanmartin/pycodetags"
 
 theme:
-  name: material
+  name: readthedocs
   features:
     - navigation.footer
 
