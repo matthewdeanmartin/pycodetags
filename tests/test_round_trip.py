@@ -5,7 +5,7 @@ from pycodetags.data_tag_types import DATA
 
 # Assuming pycodetags is installed or accessible in the Python path
 from pycodetags.data_tags import DataTag, DataTagFields, DataTagSchema, parse_codetags, promote_fields
-from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.data_tags_parsers import iterate_comments_from_file
 
 # Define a sample schema for testing
 TEST_SCHEMA: DataTagSchema = {
@@ -90,7 +90,7 @@ class MyClass:
     file_path.write_text(python_code_with_tags)
 
     # 1. Parse source code into DataTag objects
-    parsed_data_tags_raw = list(iterate_comments(str(file_path), [TEST_SCHEMA], include_folk_tags=False))
+    parsed_data_tags_raw = list(iterate_comments_from_file(str(file_path), [TEST_SCHEMA], include_folk_tags=False))
 
     parsed_data_tags = list(convert_pep350_tag_to_DATA(_, TEST_SCHEMA) for _ in parsed_data_tags_raw)
     # Ensure some tags were found

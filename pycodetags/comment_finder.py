@@ -6,6 +6,8 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
+from pycodetags.exceptions import FileParsingError
+
 try:
     from ast_comments import Comment, parse
 except ImportError:
@@ -31,9 +33,25 @@ def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str],
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
     if path.suffix != ".py":
-        raise ValueError(f"Expected a Python file (.py), got: {path.suffix}")
+        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
 
     source = path.read_text(encoding="utf-8")
+    return find_comment_blocks_from_string(source)
+
+
+def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, int, int, str], None, None]:
+    """Parses a Python source file and yields comment block ranges.
+
+    Uses `ast-comments` to locate all comments, and determines the exact offsets
+    for each block of contiguous comments.
+
+    Args:
+        source (str): Python source text.
+
+    Yields:
+        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
+        representing the comment block's position in the file (0-based).
+    """
     tree = parse(source)
     lines = source.splitlines()
 
@@ -47,7 +65,7 @@ def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str],
             idx = line.find(comment.value)
             if idx != -1:
                 return (i, idx, i, idx + len(comment.value))
-        raise ValueError(f"Could not locate comment in source: {comment.value}")
+        raise FileParsingError(f"Could not locate comment in source: {comment.value}")
 
     # Group comments into blocks
     block: list[tuple[int, int, int, int]] = []
@@ -121,7 +139,7 @@ def find_comment_blocks_fallback(path: Path) -> Generator[tuple[int, int, int, i
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
     if path.suffix != ".py":
-        raise ValueError(f"Expected a Python file (.py), got: {path.suffix}")
+        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
 
     LOGGER.info("Reading Python file: %s", path)
 

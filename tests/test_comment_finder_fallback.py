@@ -1,6 +1,7 @@
 import pytest
 
 from pycodetags.comment_finder import find_comment_blocks_fallback
+from pycodetags.exceptions import FileParsingError
 
 
 def test_missing_file(tmp_path):
@@ -12,7 +13,7 @@ def test_missing_file(tmp_path):
 def test_wrong_extension(tmp_path):
     txt = tmp_path / "not_python.txt"
     txt.write_text("foo = 1")
-    with pytest.raises(ValueError):
+    with pytest.raises(FileParsingError):
         list(find_comment_blocks_fallback(txt))
 
 

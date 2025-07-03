@@ -24,6 +24,8 @@ import logging
 import os
 import re
 
+from pycodetags.exceptions import SchemaError
+
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
 except ImportError:
@@ -97,7 +99,7 @@ def find_source_tags(
         list[FolkTag]: A list of FolkTag dictionaries found in the source files.
     """
     if allow_multiline and not valid_tags:
-        raise TypeError("Must include valid tag list if you want to allow multiline comments")
+        raise SchemaError("Must include valid tag list if you want to allow multiline comments")
 
     if not valid_tags:
         valid_tags = []

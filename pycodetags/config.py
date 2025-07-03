@@ -87,6 +87,8 @@ import os
 import sys
 from typing import Any
 
+from pycodetags.exceptions import ConfigError
+
 # from pycodetags.user import get_current_user
 # from pycodetags.users_from_authors import parse_authors_file_simple
 
@@ -149,9 +151,8 @@ class CodeTagsConfig:
         result = self.config.get(field, "")
         accepted = ("warn", "warning", "stop", "nothing", "")
         if result not in accepted:
-            raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
+            raise ConfigError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
-
 
     def disable_on_ci(self) -> bool:
         """Disable actions on CI, overrides other."""

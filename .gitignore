@@ -69,7 +69,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+docs_wip/_build/
 
 # PyBuilder
 .pybuilder/
@@ -193,3 +193,5 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 /pydocs/
+.build_history
+.cli_tool_audit_cache

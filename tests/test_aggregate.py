@@ -8,6 +8,7 @@ import pytest
 
 from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
 from pycodetags.data_tag_types import DATA
+from pycodetags.exceptions import FileParsingError
 
 
 def create_python_file(path: Path, content: str) -> Path:
@@ -85,5 +86,5 @@ def test_aggregate_with_empty_inputs(tmp_path):
 def test_aggregate_raises_on_invalid_path(tmp_path):
     bad_path = tmp_path / "nonexistent"
 
-    with pytest.raises(TypeError, match="Can't find any files in source folder"):
+    with pytest.raises(FileParsingError, match="Can't find any files in source folder"):
         aggregate_all_kinds(module_name="", source_path=str(bad_path))

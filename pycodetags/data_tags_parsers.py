@@ -9,14 +9,17 @@ from collections.abc import Generator
 from pathlib import Path
 
 from pycodetags import folk_code_tags
-from pycodetags.comment_finder import find_comment_blocks
+from pycodetags.comment_finder import find_comment_blocks_from_string
 from pycodetags.data_tags import DataTag, DataTagSchema, parse_codetags
+from pycodetags.exceptions import SchemaError
 from pycodetags.folk_code_tags import FolkTag
 
 logger = logging.getLogger(__name__)
 
 
-def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags: bool) -> Generator[DataTag | FolkTag]:
+def iterate_comments_from_file(
+    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
     """
     Collect PEP-350 style code tags from a given file.
 
@@ -28,11 +31,29 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
     Yields:
         PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
     """
-    if not schemas and not include_folk_tags:
-        raise TypeError("No active schemas, not looking for folk tags. Won't find anything.")
     logger.info(f"iterate_comments: processing {file}")
+    yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
+
+
+def iterate_comments(
+    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
+    """
+    Collect PEP-350 style code tags from a given file.
+
+    Args:
+        source (str): The source text to process.
+        source_file (Path): Where did the source come from
+        schemas (DataTaSchema): Schemas that will be detected in file
+        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
+
+    Yields:
+        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
+    """
+    if not schemas and not include_folk_tags:
+        raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
     things: list[DataTag | FolkTag] = []
-    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks(Path(file)):
+    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
         # Can only be one comment block now!
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
         found_data_tags = []
@@ -52,7 +73,7 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
                 allow_multiline=True,
                 default_field_meaning="assignee",
                 found_tags=found_folk_tags,
-                file_path=file,
+                file_path=str(source_file) if source_file else "",
                 valid_tags=[],
             )
             if found_folk_tags:

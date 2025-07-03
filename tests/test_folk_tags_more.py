@@ -1,5 +1,6 @@
 import pytest
 
+from pycodetags.exceptions import SchemaError
 from pycodetags.folk_code_tags import extract_first_url, find_source_tags, folk_tag_to_comment, process_line
 
 # -- folk_tag_to_comment tests --
@@ -137,7 +138,7 @@ def test_find_source_tags_directory(tmp_path):
 
 
 def test_find_source_tags_multiline_without_valid_tags():
-    with pytest.raises(TypeError):
+    with pytest.raises(SchemaError):
         # allow_multiline True requires valid_tags
         find_source_tags("dummy", None, True)
 

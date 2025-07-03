@@ -18,7 +18,8 @@ from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_t
 from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag, DataTagSchema
-from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.data_tags_parsers import iterate_comments_from_file
+from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.plugin_manager import get_plugin_manager
 
 logger = logging.getLogger(__name__)
@@ -82,9 +83,9 @@ def aggregate_all_kinds(
         try:
             module = importlib.import_module(module_name)
             found_in_modules = collect_all_data(module, include_submodules=False)
-        except ImportError:
+        except ImportError as ie:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
-            raise
+            raise ModuleImportError(f"Error: Could not import module(s) '{module_name}'") from ie
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
     schemas: list[DataTagSchema] = [PureDataSchema]
@@ -99,8 +100,8 @@ def aggregate_all_kinds(
                 # Finds both folk and data tags
                 found_items = list(
                     _
-                    for _ in iterate_comments(
-                        file=str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
+                    for _ in iterate_comments_from_file(
+                        str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
                     )
                 )
                 found_tags.extend(found_items)
@@ -116,7 +117,7 @@ def aggregate_all_kinds(
                 if plugin_results:
                     src_found += 1
         if src_found == 0:
-            raise TypeError(f"Can't find any files in source folder {source_path}")
+            raise FileParsingError(f"Can't find any files in source folder {source_path}")
 
     # found_TODOS: list[DATA] = []
     # TODO: hand off to plugin to convert to specific type

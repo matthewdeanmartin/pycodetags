@@ -105,3 +105,23 @@ def print_data_md(found: list[DATA]) -> None:
             print()
         print("```")
         print()
+
+
+def print_summary(found: list[DATA]) -> None:
+    """
+    Prints a summary count of code tags (e.g., TODO, DONE) from found DATA items.
+
+    Args:
+        found (list[DATA]): The collected TODOs and DONEs.
+    """
+    from collections import Counter
+
+    tag_counter = Counter(tag.code_tag or "UNKNOWN" for tag in found)
+
+    if not tag_counter:
+        print("No code tags found.")
+        return
+
+    print("Code Tag Summary:")
+    for tag, count in sorted(tag_counter.items()):
+        print(f"{tag.upper()}: {count}")

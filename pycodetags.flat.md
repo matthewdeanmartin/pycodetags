@@ -23,7 +23,8 @@ from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_t
 from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag, DataTagSchema
-from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.data_tags_parsers import iterate_comments_from_file
+from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.plugin_manager import get_plugin_manager
 
 logger = logging.getLogger(__name__)
@@ -87,9 +88,9 @@ def aggregate_all_kinds(
         try:
             module = importlib.import_module(module_name)
             found_in_modules = collect_all_data(module, include_submodules=False)
-        except ImportError:
+        except ImportError as ie:
             print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
-            raise
+            raise ModuleImportError(f"Error: Could not import module(s) '{module_name}'") from ie
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
     schemas: list[DataTagSchema] = [PureDataSchema]
@@ -104,8 +105,8 @@ def aggregate_all_kinds(
                 # Finds both folk and data tags
                 found_items = list(
                     _
-                    for _ in iterate_comments(
-                        file=str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
+                    for _ in iterate_comments_from_file(
+                        str(file), schemas=schemas, include_folk_tags="folk" in active_schemas
                     )
                 )
                 found_tags.extend(found_items)
@@ -121,7 +122,7 @@ def aggregate_all_kinds(
                 if plugin_results:
                     src_found += 1
         if src_found == 0:
-            raise TypeError(f"Can't find any files in source folder {source_path}")
+            raise FileParsingError(f"Can't find any files in source folder {source_path}")
 
     # found_TODOS: list[DATA] = []
     # TODO: hand off to plugin to convert to specific type
@@ -407,6 +408,8 @@ from collections.abc import Generator
 from pathlib import Path
 from typing import Any
 
+from pycodetags.exceptions import FileParsingError
+
 try:
     from ast_comments import Comment, parse
 except ImportError:
@@ -432,9 +435,25 @@ def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str],
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
     if path.suffix != ".py":
-        raise ValueError(f"Expected a Python file (.py), got: {path.suffix}")
+        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
 
     source = path.read_text(encoding="utf-8")
+    return find_comment_blocks_from_string(source)
+
+
+def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, int, int, str], None, None]:
+    """Parses a Python source file and yields comment block ranges.
+
+    Uses `ast-comments` to locate all comments, and determines the exact offsets
+    for each block of contiguous comments.
+
+    Args:
+        source (str): Python source text.
+
+    Yields:
+        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
+        representing the comment block's position in the file (0-based).
+    """
     tree = parse(source)
     lines = source.splitlines()
 
@@ -448,7 +467,7 @@ def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str],
             idx = line.find(comment.value)
             if idx != -1:
                 return (i, idx, i, idx + len(comment.value))
-        raise ValueError(f"Could not locate comment in source: {comment.value}")
+        raise FileParsingError(f"Could not locate comment in source: {comment.value}")
 
     # Group comments into blocks
     block: list[tuple[int, int, int, int]] = []
@@ -522,7 +541,7 @@ def find_comment_blocks_fallback(path: Path) -> Generator[tuple[int, int, int, i
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {path}")
     if path.suffix != ".py":
-        raise ValueError(f"Expected a Python file (.py), got: {path.suffix}")
+        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
 
     LOGGER.info("Reading Python file: %s", path)
 
@@ -580,6 +599,133 @@ def find_comment_blocks_fallback(path: Path) -> Generator[tuple[int, int, int, i
 if parse is None:
     # Hack for 3.7!
     find_comment_blocks = find_comment_blocks_fallback  # type: ignore[no-redef,unused-ignore]
+
+```
+
+## File: common_interfaces.py
+
+```python
+"""
+Support for dump, dumps, load, loads
+"""
+
+from __future__ import annotations
+
+import io
+import os
+from collections.abc import Iterable
+from io import StringIO, TextIOWrapper
+from pathlib import Path
+from typing import TextIO, Union, cast
+
+from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
+from pycodetags.data_schema import PureDataSchema
+from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.folk_code_tags import FolkTag
+
+IOInput = Union[str, os.PathLike, TextIO]
+IOSource = Union[str, IOInput]
+
+
+def string_to_data(
+    value: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> Iterable[DATA]:
+    if schema is None:
+        schema = PureDataSchema
+    tags = []
+    for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
+        if "fields" in tag:
+            tags.append(convert_pep350_tag_to_DATA(cast(DataTag, tag), schema))
+        else:
+            tags.append(convert_folk_tag_to_DATA(cast(FolkTag, tag), schema))
+    return tags
+
+
+def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    if isinstance(source, str):
+        return io.StringIO(source)
+    elif isinstance(source, os.PathLike) or isinstance(source, str):
+        return open(source, encoding="utf-8")
+    elif hasattr(source, "read"):
+        return source  # file-like
+    else:
+        raise TypeError(f"Unsupported input type: {type(source)}")
+
+
+def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    if isinstance(dest, io.StringIO):
+        return dest  # already writable string buffer
+    elif isinstance(dest, os.PathLike) or isinstance(dest, str):
+        return open(dest, "w", encoding="utf-8")
+    elif hasattr(dest, "write"):
+        return dest  # file-like
+    else:
+        raise TypeError(f"Unsupported output type: {type(dest)}")
+
+
+# mypy fails this on no-redef
+# @overload
+# def dump(obj: DATA, dest: str) -> None: ...
+# @overload
+# def dump(obj: DATA, dest: Path) -> None: ...
+# @overload
+# def dump(obj: DATA, dest: os.PathLike) -> None: ...
+# @overload
+# def dump(obj: DATA, dest: TextIO) -> None: ...
+
+# Public API
+
+
+def dumps(obj: DATA) -> str:
+    if not obj:
+        return ""
+    # TODO: check plugins to answer for _schema
+    return obj.as_data_comment()
+
+
+def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
+    with _open_for_write(dest) as f:
+        f.write(obj.as_data_comment())
+
+
+def loads(
+    s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> DATA | None:
+    items = string_to_data(s, file_path, schema, include_folk_tags)
+    return next((_ for _ in items), None)
+
+
+def load(
+    source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> DATA | None:
+    with _open_for_read(source) as f:
+        items = string_to_data(f.read(), file_path, schema, include_folk_tags)
+        return next((_ for _ in items), None)
+
+
+def dump_all(objs: Iterable[DATA], dest: IOInput) -> None:
+    with _open_for_write(dest) as f:
+        for obj in objs:
+            f.write(obj.as_data_comment() + "\n")
+
+
+def dumps_all(objs: Iterable[DATA]) -> str:
+    return "\n".join(obj.as_data_comment() for obj in objs)
+
+
+def load_all(
+    source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> Iterable[DATA]:
+    with _open_for_read(source) as f:
+        return string_to_data(f.read(), file_path, schema, include_folk_tags)
+
+
+def loads_all(
+    s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> Iterable[DATA]:
+    return string_to_data(s, file_path, schema, include_folk_tags)
 
 ```
 
@@ -675,6 +821,8 @@ import os
 import sys
 from typing import Any
 
+from pycodetags.exceptions import ConfigError
+
 # from pycodetags.user import get_current_user
 # from pycodetags.users_from_authors import parse_authors_file_simple
 
@@ -737,17 +885,8 @@ class CodeTagsConfig:
         result = self.config.get(field, "")
         accepted = ("warn", "warning", "stop", "nothing", "")
         if result not in accepted:
-            raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
+            raise ConfigError(f"Invalid configuration: {field} must be in {accepted}")
         return str(result)
-
-    #
-    # def action_on_past_due(self) -> bool:
-    #     """Do actions do the default action"""
-    #     return careful_to_bool(self.config.get("action_on_past_due", False), False)
-
-    # def action_only_on_responsible_user(self) -> bool:
-    #     """Do actions do the default action when active user matches"""
-    #     return careful_to_bool(self.config.get("action_only_on_responsible_user", False), False)
 
     def disable_on_ci(self) -> bool:
         """Disable actions on CI, overrides other."""
@@ -1354,14 +1493,17 @@ from collections.abc import Generator
 from pathlib import Path
 
 from pycodetags import folk_code_tags
-from pycodetags.comment_finder import find_comment_blocks
+from pycodetags.comment_finder import find_comment_blocks_from_string
 from pycodetags.data_tags import DataTag, DataTagSchema, parse_codetags
+from pycodetags.exceptions import SchemaError
 from pycodetags.folk_code_tags import FolkTag
 
 logger = logging.getLogger(__name__)
 
 
-def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags: bool) -> Generator[DataTag | FolkTag]:
+def iterate_comments_from_file(
+    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
     """
     Collect PEP-350 style code tags from a given file.
 
@@ -1373,11 +1515,29 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
     Yields:
         PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
     """
-    if not schemas and not include_folk_tags:
-        raise TypeError("No active schemas, not looking for folk tags. Won't find anything.")
     logger.info(f"iterate_comments: processing {file}")
+    yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
+
+
+def iterate_comments(
+    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
+    """
+    Collect PEP-350 style code tags from a given file.
+
+    Args:
+        source (str): The source text to process.
+        source_file (Path): Where did the source come from
+        schemas (DataTaSchema): Schemas that will be detected in file
+        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
+
+    Yields:
+        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
+    """
+    if not schemas and not include_folk_tags:
+        raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
     things: list[DataTag | FolkTag] = []
-    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks(Path(file)):
+    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
         # Can only be one comment block now!
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
         found_data_tags = []
@@ -1397,7 +1557,7 @@ def iterate_comments(file: str, schemas: list[DataTagSchema], include_folk_tags:
                 allow_multiline=True,
                 default_field_meaning="assignee",
                 found_tags=found_folk_tags,
-                file_path=file,
+                file_path=str(source_file) if source_file else "",
                 valid_tags=[],
             )
             if found_folk_tags:
@@ -1422,6 +1582,8 @@ import logging
 from dataclasses import dataclass, field, fields
 from functools import wraps
 from typing import Any, Callable, cast  # noqa
+
+from pycodetags.exceptions import ValidationError
 
 try:
     from typing import Literal  # type: ignore[assignment,unused-ignore]
@@ -1449,7 +1611,7 @@ class Serializable:
         return d
 
 
-@dataclass
+@dataclass(eq=False)
 class DATA(Serializable):
     """
     Represents a data record that can be serialized into python source code comments.
@@ -1517,6 +1679,11 @@ class DATA(Serializable):
         """Validates the Data item."""
         return []
 
+    def validate_or_raise(self):
+        errors = self.validate()
+        if errors:
+            raise ValidationError(errors)
+
     def _extract_data_fields(self) -> dict[str, str]:
         d = {}
         for f in fields(self):
@@ -1581,6 +1748,32 @@ class DATA(Serializable):
             first_line += "\n# "
             complete = f"{first_line}<{the_fields.strip()}>"
         return complete
+
+    def __eq__(self, other):
+        # @dataclasses autogenerated __eq__ calls __repr__ so eval(repr(x)) == x causes infinite loop detection
+        # TODO: this needs to support subclasses.
+        # if not isinstance(other, type(self)):
+        #     return NotImplemented
+
+        for f in fields(self):
+            self_val = getattr(self, f.name)
+            other_val = getattr(other, f.name)
+
+            # Skip self-references (simple identity check)
+            if self_val is self and other_val is other:
+                continue
+
+            if self_val != other_val:
+                return False
+
+        return True
+
+    def __repr__(self):
+        field_strings = []
+        for f in fields(self):
+            if f.name != "data_meta" and f.name != "type":
+                field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
+        return f"{self.__class__.__name__}({', '.join(field_strings)})"
 
 ```
 
@@ -1691,6 +1884,66 @@ if __name__ == "__main__":
 
 ```
 
+## File: exceptions.py
+
+```python
+class PyCodeTagsError(Exception):
+    """Base exception for all PyCodeTags errors."""
+
+
+class ConfigError(PyCodeTagsError):
+    pass
+
+
+class InvalidActionError(ConfigError):
+    pass
+
+
+class SchemaError(PyCodeTagsError):
+    pass
+
+
+class DataTagParseError(PyCodeTagsError):
+    pass
+
+
+class AggregationError(PyCodeTagsError):
+    pass
+
+
+class ModuleImportError(AggregationError):
+    pass
+
+
+class SourceNotFoundError(AggregationError):
+    pass
+
+
+class PluginError(PyCodeTagsError):
+    pass
+
+
+class PluginLoadError(PluginError):
+    pass
+
+
+class PluginHookError(PluginError):
+    pass
+
+
+class FileParsingError(PyCodeTagsError):
+    pass
+
+
+class CommentNotFoundError(FileParsingError):
+    pass
+
+
+class ValidationError(PyCodeTagsError):
+    pass
+
+```
+
 ## File: folk_code_tags.py
 
 ```python
@@ -1719,6 +1972,8 @@ from __future__ import annotations
 import logging
 import os
 import re
+
+from pycodetags.exceptions import SchemaError
 
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
@@ -1793,7 +2048,7 @@ def find_source_tags(
         list[FolkTag]: A list of FolkTag dictionaries found in the source files.
     """
     if allow_multiline and not valid_tags:
-        raise TypeError("Must include valid tag list if you want to allow multiline comments")
+        raise SchemaError("Must include valid tag list if you want to allow multiline comments")
 
     if not valid_tags:
         valid_tags = []
@@ -2389,6 +2644,26 @@ def print_data_md(found: list[DATA]) -> None:
         print("```")
         print()
 
+
+def print_summary(found: list[DATA]) -> None:
+    """
+    Prints a summary count of code tags (e.g., TODO, DONE) from found DATA items.
+
+    Args:
+        found (list[DATA]): The collected TODOs and DONEs.
+    """
+    from collections import Counter
+
+    tag_counter = Counter(tag.code_tag or "UNKNOWN" for tag in found)
+
+    if not tag_counter:
+        print("No code tags found.")
+        return
+
+    print("Code Tag Summary:")
+    for tag, count in sorted(tag_counter.items()):
+        print(f"{tag.upper()}: {count}")
+
 ```
 
 ## File: view_tools.py
@@ -2478,18 +2753,37 @@ __documentation__ = "https://github.com/matthewdeanmartin/pycodetags"
 
 ```python
 """
-Code Tags is a tool and library for putting TODOs into source code.
+Code Tags is a tool and library for working with TODOs into source code.
 
 Only the strongly typed decorators, exceptions and context managers are exported.
 
-Everything else is a tool.
+Everything else is a plugin.
 """
 
 __all__ = [
+    # Data tag support
     "DATA",
+    "DataTagSchema",
+    "PureDataSchema",
+    # Serialization interfaces
+    "dumps",
+    "dump",
+    "dump_all",
+    "dumps_all",
+    # Deserialization interfaces
+    "loads",
+    "load",
+    "load_all",
+    "loads_all",
+    # Plugin interfaces
+    "CodeTagsSpec",
 ]
 
+from pycodetags.common_interfaces import dump, dump_all, dumps, dumps_all, load, load_all, loads, loads_all
+from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags import DataTagSchema
+from pycodetags.plugin_specs import CodeTagsSpec
 
 ```
 
@@ -2515,10 +2809,11 @@ from pycodetags import DATA
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
+from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_diagnostics import plugin_currently_loaded
 from pycodetags.plugin_manager import get_plugin_manager
-from pycodetags.views import print_html, print_json, print_text, print_validate
+from pycodetags.views import print_html, print_json, print_summary, print_text, print_validate
 
 
 class InternalViews:
@@ -2544,6 +2839,9 @@ class InternalViews:
             return True
         if format_name == "json":
             print_json(found_data)
+            return True
+        if format_name == "summary":
+            print_summary(found_data)
             return True
         return False
 
@@ -2588,7 +2886,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     report_parser.add_argument(
         "--format",
-        choices=["text", "html", "json", "keep-a-changelog", "todo.md", "done"] + extra_supported_formats,
+        choices=["text", "html", "json", "summary"] + extra_supported_formats,
         default="text",
         help="Output format for the report.",
     )
@@ -2661,11 +2959,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.validate:
             if len(found) == 0:
-                raise TypeError("No data to validate.")
+                raise CommentNotFoundError("No data to validate.")
             print_validate(found)
         else:
             if len(found) == 0:
-                raise TypeError("No data to report.")
+                raise CommentNotFoundError("No data to report.")
             # Call the hook.
             results = pm.hook.code_tags_print_report(
                 format_name=args.format, output_path=args.output, found_data=found, config=get_code_tags_config()

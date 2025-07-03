@@ -17,10 +17,11 @@ from pycodetags import DATA
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
+from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_diagnostics import plugin_currently_loaded
 from pycodetags.plugin_manager import get_plugin_manager
-from pycodetags.views import print_html, print_json, print_text, print_validate
+from pycodetags.views import print_html, print_json, print_summary, print_text, print_validate
 
 
 class InternalViews:
@@ -46,6 +47,9 @@ class InternalViews:
             return True
         if format_name == "json":
             print_json(found_data)
+            return True
+        if format_name == "summary":
+            print_summary(found_data)
             return True
         return False
 
@@ -90,7 +94,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     report_parser.add_argument(
         "--format",
-        choices=["text", "html", "json", "keep-a-changelog", "todo.md", "done"] + extra_supported_formats,
+        choices=["text", "html", "json", "summary"] + extra_supported_formats,
         default="text",
         help="Output format for the report.",
     )
@@ -163,11 +167,11 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         if args.validate:
             if len(found) == 0:
-                raise TypeError("No data to validate.")
+                raise CommentNotFoundError("No data to validate.")
             print_validate(found)
         else:
             if len(found) == 0:
-                raise TypeError("No data to report.")
+                raise CommentNotFoundError("No data to report.")
             # Call the hook.
             results = pm.hook.code_tags_print_report(
                 format_name=args.format, output_path=args.output, found_data=found, config=get_code_tags_config()
