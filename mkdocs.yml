@@ -21,9 +21,6 @@ nav:
   - "Installation": "installation.md"
   - "Usage":
       - "Usage": "usage.md"
-      - "JSON format": "json.md"
-      - "Continuous integration": "continuous-integration.md"
-      - "Background": "background.md"
   # - "API": "api.md"
   - "Plugin Directory": "plugin_list.md"
   - "Prior Art": "PRIOR_ART.md"
