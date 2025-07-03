@@ -24,8 +24,8 @@ nav:
   # - "API": "api.md"
   - "Plugin Directory": "plugin_list.md"
   - "Prior Art": "PRIOR_ART.md"
-  - "Changes": "../CHANGELOG.md"
-  - "Contributing": "../CONTRIBUTING.md"
+  - "Changes": "CHANGELOG.md"
+  - "Contributing": "CONTRIBUTING.md"
 
 validation:
   nav:
