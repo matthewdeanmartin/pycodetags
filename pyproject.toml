@@ -4,7 +4,7 @@ version = "0.3.0"
 description = "TODOs in source code as a first class construct, follows PEP350"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
-keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]
+keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME","pycodetags"]
 license = "MIT"
 requires-python = ">=3.7"
 dependencies = [
