@@ -82,3 +82,9 @@ You get
 - Config file
 - Iteration across files
 - Tag parsing
+
+You provide
+- Pretty output reports
+- Business rules for validation and actions
+- A schema for data fields, default fields
+- A domain to decide what the fields mean, what the action mean, etc.

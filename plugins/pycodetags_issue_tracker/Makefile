@@ -34,7 +34,7 @@ bandit:
 pylint: black
 	@echo "Linting with pylint"
 	$(VENV) ruff check --fix
-	$(VENV) pylint pycodetags_issue_tracker --fail-under 9.8
+	$(VENV) pylint pycodetags_issue_tracker --fail-under 9.99
 
 
 check: mypy test pylint bandit

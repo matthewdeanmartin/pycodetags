@@ -19,7 +19,12 @@ hookimpl = HookimplMarker("pycodetags")
 
 class IssueTrackerApp:
     @hookimpl
-    def register_app(self, pm: pluggy.PluginManager, parser: argparse.ArgumentParser) -> bool:
+    def register_app(
+        self,
+        pm: pluggy.PluginManager,
+        # pylint: disable=unused-argument
+        parser: argparse.ArgumentParser,
+    ) -> bool:
         set_plugin_manager(new_pm=pm)
         # TODO: register issue tracker specific commands, e.g. remove DONE
         return True
@@ -48,7 +53,7 @@ class IssueTrackerApp:
         # Returns a new way to view raw data.
         # This doesn't work for domain specific TODOs
 
-        [convert_data_to_TODO(_) for _ in found_data]
+        # [convert_data_to_TODO(_) for _ in found_data]
 
         if format_name == "todo.md":
             print("hello!")

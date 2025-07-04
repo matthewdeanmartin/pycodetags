@@ -4,93 +4,93 @@ BugTrailConfig(app_name='pycodetags', app_author='matth', report_folder='C:\\Use
 [32mINFO    [0m [32mCollecting from module demo.__main__ with max depth 10[0m
 [37mDEBUG   [0m [32mCollecting module <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : ALERT[0m
-[37mDEBUG   [0m [32mCollecting something ...ALERT: <function ALERT at 0x000001E6E4CC1EE0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function ALERT at 0x000001E6E4CC1EE0>[0m
+[37mDEBUG   [0m [32mCollecting something ...ALERT: <function ALERT at 0x00000228E40A1EE0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function ALERT at 0x00000228E40A1EE0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function ALERT at 0x000001E6E4CC1EE0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function ALERT at 0x00000228E40A1EE0>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : BUG[0m
-[37mDEBUG   [0m [32mCollecting something ...BUG: <function BUG at 0x000001E6E4CC1C60>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function BUG at 0x000001E6E4CC1C60>[0m
+[37mDEBUG   [0m [32mCollecting something ...BUG: <function BUG at 0x00000228E40A1C60>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function BUG at 0x00000228E40A1C60>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function BUG at 0x000001E6E4CC1C60>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function BUG at 0x00000228E40A1C60>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : DOCUMENT[0m
-[37mDEBUG   [0m [32mCollecting something ...DOCUMENT: <function DOCUMENT at 0x000001E6E4CC2020>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function DOCUMENT at 0x000001E6E4CC2020>[0m
+[37mDEBUG   [0m [32mCollecting something ...DOCUMENT: <function DOCUMENT at 0x00000228E40A2020>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DOCUMENT at 0x00000228E40A2020>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function DOCUMENT at 0x000001E6E4CC2020>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DOCUMENT at 0x00000228E40A2020>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FISH_CHARS[0m
 [37mDEBUG   [0m [32mCollecting something ...FISH_CHARS: ['<><', '><>', ')-<', '>-(', '=^..^='][0m
 [37mDEBUG   [0m [32mFound a list/set/tuple ['<><', '><>', ')-<', '>-(', '=^..^='][0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FIXME[0m
-[37mDEBUG   [0m [32mCollecting something ...FIXME: <function FIXME at 0x000001E6E4CC1BC0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FIXME at 0x000001E6E4CC1BC0>[0m
+[37mDEBUG   [0m [32mCollecting something ...FIXME: <function FIXME at 0x00000228E40A1BC0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FIXME at 0x00000228E40A1BC0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FIXME at 0x000001E6E4CC1BC0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FIXME at 0x00000228E40A1BC0>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FRAME_RATE[0m
 [37mDEBUG   [0m [32mCollecting something ...FRAME_RATE: 0.1[0m
 [37mDEBUG   [0m [32mDon't know what to do with 0.1[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Fish[0m
-[37mDEBUG   [0m [32mCollecting something ...Fish: <function Fish at 0x000001E6E667F9C0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Fish at 0x000001E6E667F9C0>[0m
+[37mDEBUG   [0m [32mCollecting something ...Fish: <function Fish at 0x00000228E59FF9C0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish at 0x00000228E59FF9C0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Fish.chase at 0x000001E6E66AB9C0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish.chase at 0x00000228E5A2B9C0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='BUG', comment='Chase algorithm causes fish to get stuck on edges. This needs a significant fix.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='08/01/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker='https://example.com/FSH-7', priority=None, status='Testing', category='Chase Algorithm', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Fish.chase at 0x000001E6E66AB9C0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Fish.move at 0x000001E6E66AB880>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish.chase at 0x00000228E5A2B9C0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Fish.move at 0x00000228E5A2B880>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='HACK', comment='Simplified bounce logic, consider more realistic physics.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/30/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Fish.move at 0x000001E6E66AB880>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish.move at 0x00000228E5A2B880>[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Refactor Fish class for better extensibility and maintainability.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='09/15/2025', release_due='2.0.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-20', priority=None, status='Development', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Fish at 0x000001E6E667F9C0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Fish at 0x00000228E59FF9C0>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : FishTank[0m
-[37mDEBUG   [0m [32mCollecting something ...FishTank: <function FishTank at 0x000001E6E66C4180>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank at 0x000001E6E66C4180>[0m
+[37mDEBUG   [0m [32mCollecting something ...FishTank: <function FishTank at 0x00000228E5A44180>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank at 0x00000228E5A44180>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank._clear_screen at 0x000001E6E66C44A0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._clear_screen at 0x00000228E5A444A0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='BUG', comment='Screen clearing works sufficiently for a terminal app.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Kstar', origination_date=None, due=None, release_due=None, release='1.5.0', iteration=None, change_type='Added', closed_date='2024-06-20', closed_comment=None, tracker=None, priority=None, status='NOBUG', category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._clear_screen at 0x000001E6E66C44A0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank._handle_user_input at 0x000001E6E66C4C20>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._clear_screen at 0x00000228E5A444A0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._handle_user_input at 0x00000228E5A44C20>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='ALERT', comment='User input is critical for interactivity, needs immediate implementation.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/15/2025', release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._handle_user_input at 0x000001E6E66C4C20>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank._initialize_elements at 0x000001E6E66C4360>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._handle_user_input at 0x00000228E5A44C20>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._initialize_elements at 0x00000228E5A44360>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Consider different fish types with unique behaviors, beyond just character.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due=None, release_due=None, release=None, iteration='1', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._initialize_elements at 0x000001E6E66C4360>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank._spawn_new_fish_if_needed at 0x000001E6E66C4AE0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._initialize_elements at 0x00000228E5A44360>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank._spawn_new_fish_if_needed at 0x00000228E5A44AE0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Implement fish spawning logic to replenish tank population.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='10/01/2025', release_due=None, release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-15', priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._spawn_new_fish_if_needed at 0x000001E6E66C4AE0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank.render at 0x000001E6E66C47C0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank._spawn_new_fish_if_needed at 0x00000228E5A44AE0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank.render at 0x00000228E5A447C0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add background details and rocks at the bottom.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Bob', originator=None, origination_date=None, due='07/01/2025', release_due='1.5.0', release=None, iteration='1', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-10', priority=None, status='Planning', category='Flavor Text', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.render at 0x000001E6E66C47C0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.render at 0x00000228E5A447C0>[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add dynamic environment elements like bubbles, currents, and lighting effects.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due='09/01/2025', release_due='2.0.0', release=None, iteration='3', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Flavor Text', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mCollecting function/method <function FishTank.update at 0x000001E6E66C49A0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function FishTank.update at 0x00000228E5A449A0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Implement collision detection for fish and tank walls.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due=None, release_due='1.5.0', release=None, iteration='2', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-13', priority=None, status='Development', category='Fish Movement', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.update at 0x000001E6E66C49A0>[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function FishTank at 0x000001E6E66C4180>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank.update at 0x00000228E5A449A0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function FishTank at 0x00000228E5A44180>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : HACK[0m
-[37mDEBUG   [0m [32mCollecting something ...HACK: <function HACK at 0x000001E6E4CC1D00>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function HACK at 0x000001E6E4CC1D00>[0m
+[37mDEBUG   [0m [32mCollecting something ...HACK: <function HACK at 0x00000228E40A1D00>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function HACK at 0x00000228E40A1D00>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function HACK at 0x000001E6E4CC1D00>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function HACK at 0x00000228E40A1D00>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : PLANT_CHARS[0m
 [37mDEBUG   [0m [32mCollecting something ...PLANT_CHARS: ['Y', '|', '!', '/', '\\'][0m
 [37mDEBUG   [0m [32mFound a list/set/tuple ['Y', '|', '!', '/', '\\'][0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Plant[0m
-[37mDEBUG   [0m [32mCollecting something ...Plant: <function Plant at 0x000001E6E66ABA60>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Plant at 0x000001E6E66ABA60>[0m
+[37mDEBUG   [0m [32mCollecting something ...Plant: <function Plant at 0x00000228E5A2BA60>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Plant at 0x00000228E5A2BA60>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Enhance Plant class to support different types and interactions.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due='10/01/2025', release_due='2.0.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Plant Generator', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Plant.update at 0x000001E6E66ABC40>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Plant.update at 0x00000228E5A2BC40>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DOCUMENT', comment='Add detailed documentation for Plant.update and explain why NotImplementedError is raised.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Kstar', origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker=None, priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Plant.update at 0x000001E6E66ABC40>[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Plant at 0x000001E6E66ABA60>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Plant.update at 0x00000228E5A2BC40>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Plant at 0x00000228E5A2BA60>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : SCREEN_HEIGHT[0m
 [37mDEBUG   [0m [32mCollecting something ...SCREEN_HEIGHT: 24[0m
 [37mDEBUG   [0m [32mDon't know what to do with 24[0m
@@ -102,96 +102,96 @@ BugTrailConfig(app_name='pycodetags', app_author='matth', report_folder='C:\\Use
 [37mDEBUG   [0m [32mCollecting class <class 'pycodetags_issue_tracker.todo_tag_types.TODO'>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with None[0m
-[37mDEBUG   [0m [32mCollecting function/method <function DATA._extract_data_fields at 0x000001E6E46698A0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA._extract_data_fields at 0x00000228E3A498A0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function DATA._extract_data_fields at 0x000001E6E46698A0>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO._is_condition_met at 0x000001E6E4CC11C0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA._extract_data_fields at 0x00000228E3A498A0>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO._is_condition_met at 0x00000228E40A11C0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO._is_condition_met at 0x000001E6E4CC11C0>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO._perform_action at 0x000001E6E4CC1260>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO._is_condition_met at 0x00000228E40A11C0>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO._perform_action at 0x00000228E40A1260>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO._perform_action at 0x000001E6E4CC1260>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function DATA.as_data_comment at 0x000001E6E4669940>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO._perform_action at 0x00000228E40A1260>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA.as_data_comment at 0x00000228E3A49940>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function DATA.as_data_comment at 0x000001E6E4669940>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO.as_pep350_comment at 0x000001E6E4CC1580>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA.as_data_comment at 0x00000228E3A49940>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.as_pep350_comment at 0x00000228E40A1580>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO.as_pep350_comment at 0x000001E6E4CC1580>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.as_pep350_comment at 0x00000228E40A1580>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
 [37mDEBUG   [0m [32mDon't know what to do with DATA[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mDon't know what to do with <property object at 0x000001E6E4CB0540>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO.disable_behaviors at 0x000001E6E4CC0F40>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mDon't know what to do with <property object at 0x00000228E4090630>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.disable_behaviors at 0x00000228E40A0F40>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO.disable_behaviors at 0x000001E6E4CC0F40>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO.is_probably_done at 0x000001E6E4CC1080>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.disable_behaviors at 0x00000228E40A0F40>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.is_probably_done at 0x00000228E40A1080>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO.is_probably_done at 0x000001E6E4CC1080>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function DATA.terminal_link at 0x000001E6E4669B20>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.is_probably_done at 0x00000228E40A1080>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA.terminal_link at 0x00000228E3A49B20>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function DATA.terminal_link at 0x000001E6E4669B20>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Serializable.to_dict at 0x000001E6E4669080>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA.terminal_link at 0x00000228E3A49B20>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Serializable.to_dict at 0x00000228E3A49080>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Serializable.to_dict at 0x000001E6E4669080>[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mAlready visited 140726307951120[0m
-[37mDEBUG   [0m [32mCollecting function/method <function TODO.validate at 0x000001E6E4CC14E0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Serializable.to_dict at 0x00000228E3A49080>[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mAlready visited 140726302773776[0m
+[37mDEBUG   [0m [32mCollecting function/method <function TODO.validate at 0x00000228E40A14E0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function TODO.validate at 0x000001E6E4CC14E0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function DATA.validate_or_raise at 0x000001E6E4669800>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function TODO.validate at 0x00000228E40A14E0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function DATA.validate_or_raise at 0x00000228E3A49800>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function DATA.validate_or_raise at 0x000001E6E4669800>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function DATA.validate_or_raise at 0x00000228E3A49800>[0m
 [37mDEBUG   [0m [32mDon't know what to do with <class 'pycodetags_issue_tracker.todo_tag_types.TODO'>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : WAVE_CHARS[0m
 [37mDEBUG   [0m [32mCollecting something ...WAVE_CHARS: ['~', '-', '_', '^'][0m
 [37mDEBUG   [0m [32mFound a list/set/tuple ['~', '-', '_', '^'][0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : Wave[0m
-[37mDEBUG   [0m [32mCollecting something ...Wave: <function Wave at 0x000001E6E66ABCE0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Wave at 0x000001E6E66ABCE0>[0m
+[37mDEBUG   [0m [32mCollecting something ...Wave: <function Wave at 0x00000228E5A2BCE0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave at 0x00000228E5A2BCE0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Wave._generate_pattern at 0x000001E6E66ABEC0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave._generate_pattern at 0x00000228E5A2BEC0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Refine wave pattern generation for more organic look.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Bob', origination_date=None, due=None, release_due=None, release=None, iteration='2', change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Planning', category='Wave Generator', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Wave._generate_pattern at 0x000001E6E66ABEC0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave._generate_pattern at 0x00000228E5A2BEC0>[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Make wave generation more realistic and less static.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Kstar', originator=None, origination_date=None, due='08/15/2025', release_due='1.5.0', release=None, iteration=None, change_type=None, closed_date=None, closed_comment=None, tracker=None, priority=None, status='Development', category='Wave Generator', _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mCollecting function/method <function Wave.update at 0x000001E6E66C40E0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function Wave.update at 0x00000228E5A440E0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='FIXME', comment='Wave animation is choppy, needs smoother transitions.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Carl', originator=None, origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type='Added', closed_date=None, closed_comment=None, tracker='https://example.com/FSH-4', priority=None, status=None, category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Wave.update at 0x000001E6E66C40E0>[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function Wave at 0x000001E6E66ABCE0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave.update at 0x00000228E5A440E0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function Wave at 0x00000228E5A2BCE0>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : hero_screen[0m
-[37mDEBUG   [0m [32mCollecting something ...hero_screen: <function hero_screen at 0x000001E6E66C4D60>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function hero_screen at 0x000001E6E66C4D60>[0m
+[37mDEBUG   [0m [32mCollecting something ...hero_screen: <function hero_screen at 0x00000228E5A44D60>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function hero_screen at 0x00000228E5A44D60>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Hero screen display implemented and functional.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee=None, originator='Bob', origination_date=None, due=None, release_due=None, release=None, iteration=None, change_type=None, closed_date='2024-06-20', closed_comment=None, tracker=None, priority=None, status='Done', category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function hero_screen at 0x000001E6E66C4D60>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function hero_screen at 0x00000228E5A44D60>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : main[0m
-[37mDEBUG   [0m [32mCollecting something ...main: <function main at 0x000001E6E66C4EA0>[0m
-[37mDEBUG   [0m [32mCollecting function/method <function main at 0x000001E6E66C4EA0>[0m
+[37mDEBUG   [0m [32mCollecting something ...main: <function main at 0x00000228E5A44EA0>[0m
+[37mDEBUG   [0m [32mCollecting function/method <function main at 0x00000228E5A44EA0>[0m
 [37mDEBUG   [0m [32mCollecting from class attributes ------------[0m
 [37mDEBUG   [0m [32mDon't know what to do with TODO(code_tag='DATA', comment='Add proper game over screen and restart option for enhanced gameplay loop.', default_fields=None, data_fields=None, custom_fields=None, _file_path=None, _line_number=None, _original_text=None, _original_schema=None, _offsets=None, data_meta=None, assignee='Alice', originator=None, origination_date=None, due=None, release_due='2.0.0', release=None, iteration='3', change_type=None, closed_date=None, closed_comment=None, tracker='https://example.com/FSH-16', priority=None, status='Planning', category=None, _due_date_obj=None, todo_meta=...)[0m
-[37mDEBUG   [0m [32mDon't know what to do with <function main at 0x000001E6E66C4EA0>[0m
+[37mDEBUG   [0m [32mDon't know what to do with <function main at 0x00000228E5A44EA0>[0m
 [37mDEBUG   [0m [32mlooping : <module 'demo.__main__' from 'C:\\github\\pycodetags\\demo\\__main__.py'> : os[0m
 [37mDEBUG   [0m [32mCollecting something ...os: <module 'os' (frozen)>[0m
 [37mDEBUG   [0m [32mDon't know what to do with <module 'os' (frozen)>[0m

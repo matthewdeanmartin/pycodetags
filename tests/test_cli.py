@@ -1,4 +1,5 @@
 # tests/test_main.py
+import sys
 from pathlib import Path
 
 import pytest
@@ -34,6 +35,7 @@ def test_cli_report_json_format(tmp_path, capsys):
     assert '"code_tag": "TODO"' in captured.out
 
 
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
 def test_cli_report_html_format(tmp_path, capsys):
     make_test_source_file(tmp_path)
 

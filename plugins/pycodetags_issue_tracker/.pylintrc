@@ -179,6 +179,8 @@ disable=raw-checker-failed,
         missing-function-docstring,
         too-many-positional-arguments,
         cyclic-import, # can't figure out how to break this.
+        protected-access, # yeah, but what about friend
+
 
 
 # Enable the message, report, category or checker with the given id(s). You can

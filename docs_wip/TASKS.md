@@ -1,5 +1,12 @@
 # TODO
 
+## roadmap
+- Raise an TODOException, e.g. `raise TODOException("Work on this")`
+- Add a TODOSkipTest decorator
+- Create a python list of TODO() objects.
+- You can mix styles.
+
+
 ## REFACTOR TO DOMAIN NEUTRAL TAGS
 - Including a strongly domain specific "app" like an issue tracker will sink data tags as a 3rd party library
 - chat, issue tracker, code review, documentation must be plugins

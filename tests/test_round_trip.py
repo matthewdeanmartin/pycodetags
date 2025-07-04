@@ -1,4 +1,7 @@
 import pathlib
+import sys
+
+import pytest
 
 from pycodetags.converters import convert_pep350_tag_to_DATA
 from pycodetags.data_tag_types import DATA
@@ -65,6 +68,7 @@ def compare_data_tags(tag1: DataTag, tag2: DataTag) -> bool:
 # --- Round Trip Test: Source Code -> DataTag -> Source Code (Loosy-Goosy Equivalence) ---
 
 
+@pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
 def test_source_to_datatag_to_source_roundtrip_loose(tmp_path: pathlib.Path):
     """
     Tests the round trip from source code to DataTag and back to source,

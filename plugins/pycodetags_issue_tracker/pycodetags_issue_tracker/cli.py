@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import argparse
-from typing import cast
 from collections.abc import Sequence
+from typing import cast
 
 from pycodetags_issue_tracker import TODO, views
 
@@ -40,7 +42,11 @@ def common_switches(parser) -> None:
 
 
 def run_cli_command(
-    command_name: str, args: argparse.Namespace, found_data: Sequence[DATA | TODO], config: CodeTagsConfig
+    command_name: str,
+    args: argparse.Namespace,
+    found_data: Sequence[DATA | TODO],
+    # pylint: disable=unused-argument)
+    config: CodeTagsConfig,
 ) -> bool:
     format_name = args.format
     # args.output

@@ -149,47 +149,47 @@ class HealthOMeter:
         """Provides a descriptive scale for the total number of TODOs."""
         if total_todos_value == 0:
             return "Immaculate Codebase"
-        elif 1 <= total_todos_value <= 10:
+        if 1 <= total_todos_value <= 10:
             return "Well-Maintained"
-        elif 11 <= total_todos_value <= 50:
+        if 11 <= total_todos_value <= 50:
             return "Active Development"
-        elif 51 <= total_todos_value <= 100:
+        if 51 <= total_todos_value <= 100:
             return "Busy Beaver"
-        else:  # > 100
-            return "Technical Debt Accumulation"
+        # > 100
+        return "Technical Debt Accumulation"
 
     def get_sentiment_scale(self, sentiment_score_value: float) -> str:
         """Provides a descriptive scale for the sentiment score."""
         if 0.8 <= sentiment_score_value <= 1.0:
             return "Positive Outlook"
-        elif 0.5 <= sentiment_score_value < 0.8:
+        if 0.5 <= sentiment_score_value < 0.8:
             return "Mixed Feelings"
-        elif 0.2 <= sentiment_score_value < 0.5:
+        if 0.2 <= sentiment_score_value < 0.5:
             return "Caution Advised"
-        else:  # 0.0 <= score < 0.2
-            return "Coding Horror"
+        # 0.0 <= score < 0.2
+        return "Coding Horror"
 
     def get_quality_scale(self, quality_score_value: float) -> str:
         """Provides a descriptive scale for the code quality score."""
         if 0.95 <= quality_score_value <= 1.0:
             return "High Quality"
-        elif 0.8 <= quality_score_value < 0.95:
+        if 0.8 <= quality_score_value < 0.95:
             return "Good Quality"
-        elif 0.5 <= quality_score_value < 0.8:
+        if 0.5 <= quality_score_value < 0.8:
             return "Average Quality"
-        else:  # 0.0 <= score < 0.5
-            return "Buggy Waters"
+        # 0.0 <= score < 0.5
+        return "Buggy Waters"
 
     def get_bug_density_scale(self, bug_density_value: float) -> str:
         """Provides a descriptive scale for the bug density."""
         if 0.0 == bug_density_value:
             return "Bug-Free Zone"
-        elif 0.0 < bug_density_value <= 0.05:
+        if 0.0 < bug_density_value <= 0.05:
             return "Occasional Pests"
-        elif 0.05 < bug_density_value <= 0.15:
+        if 0.05 < bug_density_value <= 0.15:
             return "Frequent Critters"
-        else:  # > 0.15
-            return "Infestation"
+        # > 0.15
+        return "Infestation"
 
     def calculate_metrics(self) -> dict[str, Any]:
         """

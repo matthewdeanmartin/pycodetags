@@ -52,6 +52,11 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
         Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
         representing the comment block's position in the file (0-based).
     """
+    if parse is None:
+        # Hack for 3.7!
+        yield from find_comment_blocks_fallback(source)
+        return
+        # type: ignore[no-redef,unused-ignore]
     tree = parse(source)
     lines = source.splitlines()
 
@@ -126,7 +131,7 @@ def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:
     return "\n".join(block_lines)
 
 
-def find_comment_blocks_fallback(path: Path) -> Generator[tuple[int, int, int, int, str], None, None]:
+def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, int, int, str], None, None]:
     """Parse a Python file and yield comment block positions and content.
 
     Args:
@@ -136,15 +141,18 @@ def find_comment_blocks_fallback(path: Path) -> Generator[tuple[int, int, int, i
         Tuple[int, int, int, int, str]: A tuple of (start_line, start_char, end_line, end_char, comment)
         representing the block's location and the combined comment text. All indices are 0-based.
     """
-    if not path.is_file():
-        raise FileNotFoundError(f"File not found: {path}")
-    if path.suffix != ".py":
-        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
+    if isinstance(path, Path):
+        if not path.is_file():
+            raise FileNotFoundError(f"File not found: {path}")
+        if path.suffix != ".py":
+            raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
 
-    LOGGER.info("Reading Python file: %s", path)
+        LOGGER.info("Reading Python file: %s", path)
 
-    with path.open("r", encoding="utf-8") as f:
-        lines = f.readlines()
+        with path.open("r", encoding="utf-8") as f:
+            lines = f.readlines()
+    else:
+        lines = path.split("\n")
 
     in_block = False
     start_line = start_char = 0

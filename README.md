@@ -13,13 +13,11 @@ Lightweight and keeps your issue tracker in your code.
 
 Backwards compatible with both `# TODO:` comments and PEP-350 comments.
 
-## Note on Name
-
-Package name is `pycodetags`. The obvious package name is taken and anything with dash or underscore is ungoogleable. Sorry.
+Core library is Datatags, which are abstract and domain free. Plugs have domain-specific tags.
 
 ## Installation
 
-For code tags strictly in comments:
+For generic code tags strictly in comments (DATA tags):
 
 `pipx install pycodetags`
 
@@ -27,7 +25,11 @@ For code tag decorators, objects, exceptions, context managers with run-time beh
 
 `pip install pycodetags`
 
-Requires python 3.8+. 3.7 will probably work.
+To get a domain specific data tags (TODO tags), e.g. issue tracker or discussion, install with plugin
+
+`pip install pycodetag pycodetags-issue-tracker`
+
+Requires python 3.7+. 3.7 will probably work.
 
 The only dependencies are `pluggy` and `ast-comments` and backports of python standard libraries to support old versions
 of python. For pure-comment style code tags, pipx install and nothing is installed with your application code.
@@ -41,28 +43,24 @@ Ways to track a TODO item
 - PEP-350 code tags, e.g. `# TODO: implement game <due=2025-06-01>`
 - Folk code tags, e.g. `# TODO(matth): example.com/ticktet=123 implement game`
 - Add a function decorator, e.g. `@TODO("Work on this")`
-- Raise an TODOException, e.g. `raise TODOException("Work on this")`
-- Add a TODOSkipTest decorator
-- Create a python list of TODO() objects.
-- You can mix styles.
 
 While you work
-- Export reports or view the issue-tracker-like single page website
-- Exceptions will be raised or logs emitted depending on due dates and the current responsible user
+- View the issue-tracker-like single page website `pycodetas issues html`
+- Exceptions will be raised or logged when overdue
 
-At build time
+At build and release time
 
 - Fail build on overdue items (as opposed to failing build on the existence of any code tag, as pylint recommends)
-- Generate DONE.txt, TODO.md, TODO.html files
-
-At release time
-
 - Generate CHANGELOG.md using the keep-a-changelog format
+  - `pycodetags issues changelog`
+- Generate DONE.txt, TODO.md, TODO.html files
+  - `pycodetags issues todomd`
+  - `pycodetags issues donefile`
 
 ## Example
 
 ```python
-from pycodetags import TODO
+from pycodetags_issue_tracker import TODO
 
 
 # Folk schema
@@ -94,19 +92,26 @@ if __name__ == "__main__":
 To generate reports:
 
 ```text
-❯ code_tags --help
-usage: code_tags [-h] {report,plugin-info} ...
+❯ pycodetags
+usage: pycodetags [-h] [--config CONFIG] [--verbose] [--info] [--bug-trail] {data,plugin-info,issues} ...
 
-TODOs in source code as a first class construct (v0.1.0)
+TODOs in source code as a first class construct, follows PEP350 (v0.3.0)
 
 positional arguments:
-  {report,plugin-info}
+  {data,plugin-info,issues}
                         Available commands
-    report              Generate code tag reports
+    data                Generate code tag reports
     plugin-info         Display information about loaded plugins
- 
+    issues              Reports for TODOs and BUGs
+
 options:
   -h, --help            show this help message and exit
+  --config CONFIG       Path to config file, defaults to current folder pyproject.toml
+  --verbose             verbose level logging output
+  --info                info level logging output
+  --bug-trail           enable bug trail, local logging
+
+Install pycodetags-issue-tracker plugin for TODO tags.
 ```
 
 ## How it works
@@ -139,8 +144,8 @@ See docs for handling edge cases.
 ## Basic Workflow
 
 - Write code with TODOs, DONEs, and other code tags.
-- Run `pycodetags report --validate` to ensure data quality is high enough to generate reports.
-- Run `pycodetags report` to generate reports.
+- Run `pycodetags issues --validate` to ensure data quality is high enough to generate reports.
+- Run `pycodetags issues --format <format>` to generate reports.
 - Update tags as work is completed.
 
 ## Configuration
@@ -227,26 +232,8 @@ active_schemas = ["todo", "folk"]
 PEPs and Standard Library Prior Art
 
 - [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal
-- [NotImplementedException](https://docs.python.org/3/library/exceptions.html#NotImplementedError) is a blunt way to stop code at an undone point
-- `pass` does the same, but doesn't care if you haven't gotten around to it. Linters might make you get
-  rid of pass if you've added a docstring, making pass syntactically unnecessary.
-- print/logging/warning is noiser way to show undone tasks.
-- [DeprecationWarning](https://docs.python.org/3/library/exceptions.html#DeprecationWarning) Deprecation shows a future code removal task.
-
-Community Python Tools
-
-- [todo](https://pypi.org/project/todo/) Extract and print TODOs in code base
-- [geoffrey-todo](https://pypi.org/project/geoffrey-todo/) Same.
-- [flake8-todo](https://pypi.org/project/flake8-todo/) Yell at you if you leave TODO in the source. Pylint also does this.
-- pytest's skip test is a type of TODO
-- [xfail](https://pypi.org/project/xfail/) - Same, but as a plugin
-- [deprecation](https://pypi.org/project/deprecation/) Deprecation attribute
-
-See [PRIOR_ART.md](docs_wip/PRIOR_ART.md) for survey of the whole ecosystem.
 
 ## Documentation
 
-- [User Manual](docs_wip/USER_MANUAL.md)
-- [Data Model](docs_wip/DATA_MODEL.md)
-- [Design](docs_wip/DESIGN.md)
+- [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)
 - [FAQ](docs_wip/FAQ.md)

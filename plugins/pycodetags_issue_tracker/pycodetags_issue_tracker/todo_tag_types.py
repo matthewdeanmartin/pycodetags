@@ -14,7 +14,9 @@ from typing import Any, Callable, cast  # noqa
 
 from pycodetags_issue_tracker.issue_tracker_config import get_issue_tracker_config
 from pycodetags_issue_tracker.specific_schemas import PEP350Schema
+from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 
+from pycodetags.config import get_code_tags_config
 from pycodetags.data_tag_types import DATA
 
 try:
@@ -22,9 +24,6 @@ try:
 except ImportError:
     from typing_extensions import Literal  # type:ignore[assignment,unused-ignore] # noqa
 
-from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
-
-from pycodetags.config import get_code_tags_config
 
 logger = logging.getLogger(__name__)
 
