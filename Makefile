@@ -145,5 +145,5 @@ install_plugins:
 	# depends on issue tracker in own namespace
 	uv pip install -e plugins/pycodetags_issue_tracker_gh_sync
 	# pure data plugins
-	uv pip install -e plugins/pycodetags_javascript
+	uv pip install -e plugins/pycodetags_universal
 	uv pip install -e plugins/pycodetags_to_sqlite

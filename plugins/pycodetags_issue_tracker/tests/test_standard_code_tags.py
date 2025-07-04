@@ -1,12 +1,12 @@
 from pycodetags_issue_tracker.converters import convert_pep350_tag_to_TODO
-from pycodetags_issue_tracker.specific_schemas import PEP350Schema
+from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
 
 from pycodetags.data_tags import parse_codetags
 
 
 def test_single_line_fixme_tag():
     input_text = "# FIXME: Seems like this Loop should be finite. <MDE, CLE d:2015-1-1 p:2>"
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "FIXME",
@@ -29,7 +29,7 @@ def test_single_line_fixme_tag():
 
 def test_inline_bug_tag():
     input_text = "while True: # BUG: Crashes if run on Sundays. <MDE 2005-09-04 d:2015-6-6 p:2>"
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "BUG",
@@ -64,7 +64,7 @@ def test_multiline_todo_tag():
     #   custom_field: some_value
     # >
     """
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "TODO",
@@ -87,13 +87,13 @@ def test_multiline_todo_tag():
 
 def test_no_codetag_found():
     input_text = "x = y + 1 # This is just a regular comment"
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert not result
 
 
 def test_tag_with_mixed_fields():
     input_text = "# RFE: Add a new feature for exporting. <assignee:Micahe,CLE priority=1 2025-06-15>"
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "RFE",
@@ -118,7 +118,7 @@ def test_tag_with_mixed_fields():
 
 def test_tag_with_empty_field_block():
     input_text = "# NOTE: Remember to check performance. <>"
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "NOTE",
@@ -137,7 +137,7 @@ def test_consecutive_tags_in_block():
     # NOTE: 2 <>
     # RFE: 3 <>
     """
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     empties = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
     assert result == [
         {"code_tag": "TODO", "comment": "1", "fields": empties, "original_text": "N/A"},
@@ -150,7 +150,7 @@ def test_consecutive_tags_in_block():
 
 def test_tracker():
     input_text = """    # DONE: Basic screen buffer initialization completed. <Alice due=06/15/2024 release=1.0.0 category=Flavor Text status=Done tracker='https://example.com/FSH-2'>"""
-    result = parse_codetags(input_text, PEP350Schema, strict=False)
+    result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result[0]["fields"]["data_fields"]["tracker"] == "https://example.com/FSH-2"
     for tag in result:
         convert_pep350_tag_to_TODO(tag)
@@ -184,7 +184,7 @@ def test_many_example():
     for i, comment in enumerate(example_comments):
         print(f"\nExample {i + 1}:")
         print("Input:", comment.strip())
-        for result in parse_codetags(comment, PEP350Schema, strict=False):
+        for result in parse_codetags(comment, IssueTrackerSchema, strict=False):
             print("Output:", result)
 
 
@@ -194,7 +194,7 @@ def test_tracker_category():
 
     # Test for 'tracker' and 'category' from original query
     input_text_tracker = """    # DONE: Basic screen buffer initialization completed. <Alice due=06/15/2024 release=1.0.0 category='Flavor Text' status=Done tracker='https://example.com/FSH-2'>"""
-    test_results_tracker = parse_codetags(input_text_tracker, PEP350Schema, strict=False)
+    test_results_tracker = parse_codetags(input_text_tracker, IssueTrackerSchema, strict=False)
     print("\nInput for Tracker/Category Test:", input_text_tracker.strip())
     print("Test Output for Tracker/Category:", test_results_tracker)
     assert (
@@ -208,7 +208,7 @@ def test_tracker_category():
 def test_due_and_assignee():
     # Test for 'due' date parsing (d:2015-6-6)
     input_text_due = "while True: # BUG: Crashes if run on Sundays. <MDE 2005-09-04 d:2015-6-6 p:2>"
-    test_results_due = parse_codetags(input_text_due, PEP350Schema, strict=False)
+    test_results_due = parse_codetags(input_text_due, IssueTrackerSchema, strict=False)
     print("\nInput for Due Date Test:", input_text_due.strip())
     print("Test Output for Due Date:", test_results_due)
     assert test_results_due and test_results_due[0]["fields"]["data_fields"].get("due") == "2015-6-6"
@@ -219,7 +219,7 @@ def test_due_and_assignee():
 def test_assignee_and_date():
     # Test for assignee parsing (Micahe,CLE)
     input_text_assignee = "# RFE: Add a new feature for exporting. <assignee:Micahe,CLE priority=1 2025-06-15>"
-    test_results_assignee = parse_codetags(input_text_assignee, PEP350Schema, strict=False)
+    test_results_assignee = parse_codetags(input_text_assignee, IssueTrackerSchema, strict=False)
     print("\nInput for Assignee Test:", input_text_assignee.strip())
     print("Test Output for Assignee:", test_results_assignee)
     assert test_results_assignee and test_results_assignee[0]["fields"]["data_fields"].get("assignee") == [
@@ -238,7 +238,7 @@ def test_buggy_double():
         # TODO: Implement collision detection for fish and tank walls. <Alice iteration=2 release_due=1.5.0 category=Fish Movement status=Development tracker=https://example.com/FSH-13>
         # TODO: Add food pellets for fish to eat. <Carl category=Flavor Text status=Planning iteration=2 tracker=https://example.com/FSH-14>
 """
-    results = parse_codetags(content, PEP350Schema, strict=False)
+    results = parse_codetags(content, IssueTrackerSchema, strict=False)
     assert len(results) == 2
 
 
@@ -247,7 +247,7 @@ def test_buggy_double_round_trip():
         # TODO: Implement collision detection for fish and tank walls. <Alice iteration=2 release_due=1.5.0 category='Fish Movement' status=Development tracker=https://example.com/FSH-13>
         # TODO: Add food pellets for fish to eat. <Carl category='Flavor Text' status=Planning iteration=2 tracker=https://example.com/FSH-14>
 """
-    results = parse_codetags(content, PEP350Schema, strict=False)
+    results = parse_codetags(content, IssueTrackerSchema, strict=False)
     comment_again = [convert_pep350_tag_to_TODO(result) for result in results]
     final = [_.as_pep350_comment() for _ in comment_again]
     assert "Alice" in final[0]

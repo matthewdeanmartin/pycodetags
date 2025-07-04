@@ -1,7 +1,7 @@
 import textwrap
 
 import pytest
-from pycodetags_issue_tracker.specific_schemas import PEP350Schema
+from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
 from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
 
 from pycodetags.data_tags import parse_codetags, parse_fields, promote_fields
@@ -34,7 +34,7 @@ def test_parse_fields_basic():
         },
         "custom_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_with_aliases():
@@ -49,7 +49,7 @@ def test_parse_fields_with_aliases():
         },
         "custom_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_quoted_values():
@@ -62,7 +62,7 @@ def test_parse_fields_quoted_values():
         "default_fields": {},
         "custom_fields": {"custom": "some value with spaces"},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_mixed_separators_and_spacing():
@@ -77,7 +77,7 @@ def test_parse_fields_mixed_separators_and_spacing():
         "custom_fields": {"custom_field": "value"},
         "default_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_origination_date_and_assignee_initials():
@@ -93,15 +93,15 @@ def test_parse_fields_origination_date_and_assignee_initials():
         },
         "custom_fields": {},
     }
-    result = parse_fields(field_string, PEP350Schema, strict=False)
-    promote_fields({"fields": result}, PEP350Schema)
+    result = parse_fields(field_string, IssueTrackerSchema, strict=False)
+    promote_fields({"fields": result}, IssueTrackerSchema)
     assert result == expected
 
 
 def test_parse_fields_no_fields():
     field_string = ""
     expected = {"default_fields": {}, "custom_fields": {}, "data_fields": {}}
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_only_custom_fields():
@@ -111,7 +111,7 @@ def test_parse_fields_only_custom_fields():
         "data_fields": {},
         "custom_fields": {"custom1": "value1", "custom2": "value2"},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_unquoted_value_stops_at_whitespace():
@@ -129,7 +129,7 @@ def test_parse_fields_unquoted_value_stops_at_whitespace():
         },
         "custom_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_multiple_assignees_comma_separated():
@@ -139,7 +139,7 @@ def test_parse_fields_multiple_assignees_comma_separated():
         "custom_fields": {},
         "default_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 @pytest.mark.skip("Merging default and alias not implemented yet")
@@ -149,13 +149,13 @@ def test_parse_fields_multiple_assignees_mixed():
         "assignee": ["alice", "A.B.C", "D.E.F", "bob"],
         "custom_fields": {},
     }
-    assert parse_fields(field_string, PEP350Schema, False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, False) == expected
 
 
 # Tests for parse_codetags function
 def test_parse_codetags_single_tag():
     text_block = "TODO: Implement this feature <priority:high due:2025-01-01>"
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 1
     assert results[0]["code_tag"] == "TODO"
     assert results[0]["comment"] == "Implement this feature"
@@ -169,7 +169,7 @@ def test_parse_codetags_multiple_tags_in_same_block():
     # TODO: Add unit tests <priority:medium>
     # BUG: Critical issue <t:gh s:open>
     """
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 3
 
     assert results[0]["code_tag"] == "FIXME"
@@ -193,7 +193,7 @@ def test_parse_codetags_with_multiline_comment_and_tag_on_single_line():
     # It continues here.
     # TODO: Refactor this function to improve performance <priority:high>
     """
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 1
     assert results[0]["code_tag"] == "TODO"
     assert results[0]["comment"] == "Refactor this function to improve performance"
@@ -202,23 +202,23 @@ def test_parse_codetags_with_multiline_comment_and_tag_on_single_line():
 
 def test_parse_codetags_no_tags():
     text_block = "This is just a regular comment."
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 0
 
 
 def test_parse_codetags_malformed_tag():
     text_block = "TODO: Missing angle bracket"
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 0
 
     text_block = "TODO: comment <fields"
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 0
 
 
 def test_parse_codetags_empty_field_string():
     text_block = "REVIEW: Check this code <>"
-    results = parse_codetags(text_block, PEP350Schema, strict=False)
+    results = parse_codetags(text_block, IssueTrackerSchema, strict=False)
     assert len(results) == 1
     assert results[0]["code_tag"] == "REVIEW"
     assert results[0]["comment"] == "Check this code"
@@ -483,7 +483,7 @@ def test_parse_fields_originator_field():
             "originator": "john.doe",
         },
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 @pytest.mark.skip("Quotes behavior is undefined in spec.")
@@ -493,7 +493,7 @@ def test_parse_fields_quotes_with_escaped_chars():
         "default_fields": {},
         "custom_fields": {"custom": r'value with "quotes" and \'single quotes\''},
     }
-    assert parse_fields(field_string, PEP350Schema, strict=False) == expected
+    assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 # def test_parse_fields_single_quote_with_escaped_chars():

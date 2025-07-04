@@ -9,9 +9,9 @@ endif
 # tests are often slow and linting is fast, so run tests on linted code.
 test:
 	@echo "Running unit tests"
-	# $(VENV) pytest --doctest-modules pycodetags_javascript
+	# $(VENV) pytest --doctest-modules pycodetags_universal
 	# $(VENV) python -m unittest discover
-	$(VENV) PYTHONPATH=$PYTHONPATH:. coverage run --source=pycodetags_javascript -m pytest tests -vv
+	$(VENV) PYTHONPATH=$PYTHONPATH:. coverage run --source=pycodetags_universal -m pytest tests -vv
 	$(VENV) coverage html
 	$(VENV) coverage report --fail-under=0
 	# $(VENV) bash basic_test.sh
@@ -21,20 +21,20 @@ black:
 	@echo "Formatting code"
 	$(VENV) metametameta pep621
 	$(VENV) isort .
-	$(VENV) black pycodetags_javascript --exclude .venv
+	$(VENV) black pycodetags_universal --exclude .venv
 	$(VENV) black tests --exclude .venv
-	$(VENV) coderoller-flatten-repo pycodetags_javascript
+	$(VENV) coderoller-flatten-repo pycodetags_universal
 
 .PHONY: bandit
 bandit:
 	@echo "Security checks"
-	$(VENV)  bandit pycodetags_javascript -r
+	$(VENV)  bandit pycodetags_universal -r
 
 .PHONY: pylint
 pylint: black
 	@echo "Linting with pylint"
 	$(VENV) ruff check --fix
-	$(VENV) pylint pycodetags_javascript --fail-under 9.8
+	$(VENV) pylint pycodetags_universal --fail-under 9.8
 
 
 check: mypy test pylint bandit
@@ -49,15 +49,15 @@ publish: test
 
 .PHONY: mypy
 mypy:
-	$(VENV) mypy pycodetags_javascript --ignore-missing-imports --check-untyped-defs
+	$(VENV) mypy pycodetags_universal --ignore-missing-imports --check-untyped-defs
 
 
 check_docs:
-	$(VENV) interrogate pycodetags_javascript --verbose
+	$(VENV) interrogate pycodetags_universal --verbose
 	$(VENV) pydoctest --config .pydoctest.json | grep -v "__init__" | grep -v "__main__" | grep -v "Unable to parse"
 
 make_docs:
-	pdoc pycodetags_javascript --html -o docs --force
+	pdoc pycodetags_universal --html -o docs --force
 
 check_md:
 	$(VENV) mdformat README.md docs/*.md
@@ -65,9 +65,9 @@ check_md:
 	$(VENV) markdownlint README.md --config .markdownlintrc
 
 check_spelling:
-	$(VENV) pylint pycodetags_javascript --enable C0402 --rcfile=.pylintrc_spell
+	$(VENV) pylint pycodetags_universal --enable C0402 --rcfile=.pylintrc_spell
 	$(VENV) codespell README.md --ignore-words=private_dictionary.txt
-	$(VENV) codespell pycodetags_javascript --ignore-words=private_dictionary.txt
+	$(VENV) codespell pycodetags_universal --ignore-words=private_dictionary.txt
 
 check_changelog:
 	# pipx install keepachangelog-manager

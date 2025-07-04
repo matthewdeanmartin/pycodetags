@@ -23,20 +23,33 @@ nav:
   - "Installation": "installation.md"
   - "Usage":
       - "Usage": "usage.md"
-  - "Data Tags": "data_tags.md"
+  - "Data Tags":
+      - "Overview": "data_tags.md"
+      - "Universal Plugin" : "plugin_universal.md"
+      - "Sqlite Plugin" : "plugin_sqlite.md"
   # - "API": "api.md"
+  - "Plugins for Software Development":
+    - "Issue Tracker Plugin": "plugin_issue_tracker.md"
+    - "Discussion Plugin": "plugin_discussion.md"
+    - "Code Review Plugin": "plugin_code_review.md"
   - "Plugins":
-      - "Issue Tracker": "plugin_issue_tracker.md"
-      - "Discussion": "plugin_discussion.md"
-      - "Code Review": "plugin_code_review.md"
       - "Plugin Directory": "plugin_list.md"
       - "Making a plugin": "plugin_how_to.md"
+  - "API": "API.md"
   - "FAQ": "FAQ.md"
+  - "Glossary": "glossary.md"
   - "Prior Art": "PRIOR_ART.md"
-  - "Changes": "CHANGELOG.md"
-  - "Glossary": "Glossary.md"
+  - "Change Log": "CHANGELOG.md"
   - "Contributing": "CONTRIBUTING.md"
 
 validation:
   nav:
     omitted_files: warn
+  omitted_files: warn
+  absolute_links: warn  # Or 'relative_to_docs' - new in MkDocs 1.6
+  unrecognized_links: warn
+  anchors: warn  # New in MkDocs 1.6
+
+plugins:
+  - search
+  - mkdocstrings

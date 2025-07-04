@@ -1,4 +1,4 @@
-## Usage
+# Usage
 
 `pycodetags` can work with pre-existing comment based code tags, both the folk-schema style and the PEP-350 style.
 
@@ -13,6 +13,7 @@ Ways to track a TODO item
 - You can mix styles.
 
 While you work
+
 - Export reports or view the issue-tracker-like single page website
 - Exceptions will be raised or logs emitted depending on due dates and the current responsible user
 
@@ -76,9 +77,10 @@ options:
 ```
 
 ## How it works
+
 Comments with some extra syntax are treated as a data serialization format.
 
-` # DATA: text <default-string default-date default-type data1:value data2:value custom1:value custom2:value`>
+`# DATA: text <default-string default-date default-type data1:value data2:value custom1:value custom2:value`>
 
 Combined with a schema you get a code tag, or a discussion tag, e.g.
 
@@ -109,81 +111,3 @@ See docs for handling edge cases.
 - Run `pycodetags report` to generate reports.
 - Update tags as work is completed.
 
-## Configuration
-
-No workflow or schema is one-size-fits all, so you will almost certainly want to do some configuration.
-
-The expectation is that this config is used at development time, optionally on the build server and *not* when
-deployed to production or an end users machine. If you are using only comment code tags, it is not an issue. There
-is a runtime cost or risk only when using strongly typed code tags.
-
-```toml
-[tool.code_tags]
-# Range Validation, Range Sources
-# Empty list means use file
-valid_authors = []
-valid_authors_file = "AUTHORS.md"
-# Can be Gnits, single_column, humans.txt
-valid_authors_schema = "single_column"
-# Case-insensitive. Needs at least "done"
-valid_status = [
-    "planning",
-    "ready",
-    "done",
-    "development",
-    "inprogress",
-    "testing",
-    "closed",
-    "fixed",
-    "nobug",
-    "wontfix"
-]
-# Only displayed
-valid_categories = []
-# Only displayed
-valid_priorities = ["high", "medium", "low"]
-
-# Used to support change log generation and other features.
-closed_status = ["done", "closed", "fixed", "nobug", "wontfix"]
-# Empty list means no restrictions
-valid_releases = []
-# Use to look up valid releases (versions numbers)
-valid_releases_file = "CHANGELOG.md"
-valid_releases_file_schema = "CHANGELOG.md"
-# Used in sorting and views
-releases_schema = "semantic"
-# Subsection of release. Only displayed.
-valid_iterations = ["1", "2", "3", "4"]
-
-# Empty list means all are allowed
-valid_custom_field_names = []
-# Originator and origination date are important for issue identification
-# Without it, heuristics are more likely to fail to match issues to their counterpart in git history
-mandatory_fields = ["originator", "origination_date"]
-# Helpful for parsing tracker field, used to make ticket a clickable url
-tracker_domain = "example.com"
-# Can be url or ticket
-tracker_style = "url"
-
-# Active user from "os", "env", "git"
-user_identification_technique = "os"
-# .env variable if method is "env"
-user_env_var = "CODE_TAGS_USER"
-
-# Defines the action for a TODO condition: "stop", "warn", "nothing".
-enable_actions = true
-default_action = "warn"
-action_on_past_due = true
-action_only_on_responsible_user = true
-
-# Environment detection
-disable_on_ci = true
-
-# Use .env file
-use_dot_env = true
-
-# default CLI arguments
-modules = ["demo","code_tags"]
-src = ["demo", "code_tags", "tests", "plugins"]
-active_schemas = ["todo", "folk"]
-```

@@ -23,7 +23,7 @@ Feature road map
 - Decorators and Context Managers as "TODOs"
 - NotImplemented, Deprecated as TODOs
 
-## pycodetags_javascript
+## pycodetags_universal
 If a file type isn't python, the file path is fed to this plugin.
 
 Illustrates finding a code tag in a file type that isn't python.

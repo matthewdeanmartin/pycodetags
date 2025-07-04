@@ -1,4 +1,4 @@
-import pycodetags_javascript as the_module
+import pycodetags_universal as the_module
 
 
 def test_import():

@@ -15,5 +15,6 @@ Fields TBD.
 ## Views
 
 Roadmap:
+
 - HTML View of discussions and hyperlinks/preview of contextual code
 - Send messages by chat or email when they appear.

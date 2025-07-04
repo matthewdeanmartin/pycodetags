@@ -3,13 +3,13 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_chat" isTestSource="false" />
-      <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_javascript" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_jinja_templates" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_issue_tracker" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_issue_tracker_authors" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_issue_tracker_gh_sync" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_issue_tracker_remove" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_to_sqlite" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/plugins/pycodetags_universal" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/onhold" />
     </content>
     <orderEntry type="jdk" jdkName="uv (pycodetags)" jdkType="Python SDK" />

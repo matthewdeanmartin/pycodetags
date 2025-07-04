@@ -13,14 +13,13 @@ you will be creating static websites or other reports using parsed code tags.
 
 - Make a schema (optionally use existing schema)
 - Optionally create a strongly typed Tag class deriving from `DATA` (Optionally use the DATA() class directly)
-- Optionally implement identity and equality logic. 
+- Optionally implement identity and equality logic.
 - Optionally add run time behaviors to your strongly typed tag
 - Optionally create validations for your tags
 - Optionally create views that use a list of DATA objects
 - Wire up entrypoints in pyproject.toml
 - Test, test, test
 - Publish to pypi with a name prefixed with `pycodetags-` so I can find it and add it to the directory of plugins.
-
 
 ## Implement the Hook Spec
 
@@ -77,13 +76,15 @@ class CodeTagsSpec:
 
 ## Things the library provides
 
-You get 
+You get
+
 - CLI commands
 - Config file
 - Iteration across files
 - Tag parsing
 
 You provide
+
 - Pretty output reports
 - Business rules for validation and actions
 - A schema for data fields, default fields

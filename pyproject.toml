@@ -57,6 +57,9 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "mkdocstrings[python]",
+    "mkdocs; python_version >= '3.12'",
+    "mdformat",
     "detect-test-pollution",
     # plugin finder
     "packaging; python_version >= '3.8'",
@@ -109,8 +112,8 @@ members = [".",
     "plugins/pycodetags_issue_tracker",
     "plugins/pycodetags_issue_tracker_gh_sync",
     # data tags plugins
-    "plugins/pycodetags_javascript",
-    "plugins/pycodetags_javascript"
+    "plugins/pycodetags_universal",
+    "plugins/pycodetags_to_sqlite"
 ]
 
 [project.scripts]

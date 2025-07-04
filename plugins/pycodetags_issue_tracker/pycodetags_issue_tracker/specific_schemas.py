@@ -1,6 +1,6 @@
 from pycodetags.data_tags import DataTagSchema
 
-PEP350Schema: DataTagSchema = {
+IssueTrackerSchema: DataTagSchema = {
     "name": "TODO",
     "matching_tags": [
         "TODO",

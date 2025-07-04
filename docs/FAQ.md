@@ -57,12 +57,14 @@ The issue tracking library won't implement:
 - **Invalid python identifier**: ???, !!!. Maybe.
 
 Other plugins will implement
+
 - **Discussion**: ???, QUESTION. Support via plugin
 - **Documentation**: CAVEAT, NOTE, HELP, FAQ, GLOSS, SEE, CRED(IT), STAT(US). Support via plugin.
 - **Code Review**: RVD/REVIEWED. Support via plugin.
 
 ## Anything else from PEP350 that didn't make the cut?
-- **Idiosyncratic dates**: YYYY-[[MM]-DD]. Maybe via plugin.
+
+- **Idiosyncratic dates**: YYYY-\[[MM]-DD\]. Maybe via plugin.
 
 ## Should I remove my tags?
 
@@ -70,3 +72,7 @@ If you deploy your application to your own server no external team will import o
 
 If you are distributing a library, you might want to remove code tags on release to declutter and keep TODO objects out
 of the object graph.
+
+## Code tas or codetags?
+
+It is two words, so "code tags"
