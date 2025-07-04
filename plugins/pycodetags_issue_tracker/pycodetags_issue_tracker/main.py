@@ -1,5 +1,5 @@
 """
-Register plugin hooks
+Registry of plugin hooks. These are exported via "entrypoints".
 """
 
 import argparse
@@ -18,6 +18,7 @@ hookimpl = HookimplMarker("pycodetags")
 
 
 class IssueTrackerApp:
+    """Organizes pluggy hooks"""
     @hookimpl
     def register_app(
         self,
@@ -25,18 +26,21 @@ class IssueTrackerApp:
         # pylint: disable=unused-argument
         parser: argparse.ArgumentParser,
     ) -> bool:
+        """Allow plugin to support its own plugins"""
         set_plugin_manager(new_pm=pm)
         # TODO: register issue tracker specific commands, e.g. remove DONE
         return True
 
     @hookimpl
     def add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
+        """Register all commands the plugin supports into the argparser"""
         cli.handle_cli(subparsers)
 
     @hookimpl
     def run_cli_command(
         self, command_name: str, args: argparse.Namespace, found_data: Sequence[DATA], config: CodeTagsConfig
     ) -> bool:
+        """Run any CLI command that the plugin supports"""
         found_todos = [convert_data_to_TODO(_) for _ in found_data]
         return cli.run_cli_command(command_name, args, found_todos, config)
 
@@ -50,6 +54,7 @@ class IssueTrackerApp:
         # pylint: disable=unused-argument
         config: CodeTagsConfig,
     ) -> bool:
+        """Handle a data report"""
         # Returns a new way to view raw data.
         # This doesn't work for domain specific TODOs
 
@@ -62,6 +67,7 @@ class IssueTrackerApp:
 
     @hookimpl
     def print_report_style_name(self) -> list[str]:
+        """Name of format of data report that the plugin supports"""
         # Returns a new way to view raw data.
         # This doesn't work for domain specific TODOs
         return []

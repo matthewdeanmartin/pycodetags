@@ -21,6 +21,7 @@ TODO_KEYWORDS = [
     # Source Mapping
     "_file_path",
     "_line_number",
+    "_offsets",
     "custom_fields",
     # Idiosyncratic fields
     "iteration",

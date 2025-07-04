@@ -6,6 +6,7 @@ import pluggy
 
 
 def plugin_currently_loaded(pm: pluggy.PluginManager) -> None:
+    """List plugins in memory"""
     print("--- Loaded pycodetags Plugins ---")
     loaded_plugins = pm.get_plugins()  #
     if not loaded_plugins:

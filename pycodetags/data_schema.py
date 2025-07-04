@@ -1,3 +1,9 @@
+"""
+The domain-free schema.
+
+When used, all fields are parsed as custom fields.
+"""
+
 from pycodetags.data_tags import DataTagSchema
 
 PureDataSchema: DataTagSchema = {

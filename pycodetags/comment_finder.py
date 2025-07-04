@@ -1,3 +1,13 @@
+"""
+Finds comments using the AST parser.
+
+If we look for comments with regex, we risk finding comments inside of structure that are not comments.
+
+For older versions of python, the code falls back to string parsing instead of AST parsing.
+
+Once a comment block is found, it could still have multiple code tags in it.
+"""
+
 from __future__ import annotations
 
 import logging

@@ -66,8 +66,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     pm.register(InternalViews())
     # --- end pluggy setup ---
 
-    parser = argparse.ArgumentParser(description=f"{__about__.__description__} (v{__about__.__version__})",
-                                    epilog= "Install pycodetags-issue-tracker plugin for TODO tags. ")
+    parser = argparse.ArgumentParser(
+        description=f"{__about__.__description__} (v{__about__.__version__})",
+        epilog="Install pycodetags-issue-tracker plugin for TODO tags. ",
+    )
     common_switches(parser)
 
     # Basic arguments that apply to all commands (like verbose/info/bug-trail/config)

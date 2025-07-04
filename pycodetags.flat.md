@@ -400,6 +400,16 @@ def collect_all_data(
 ## File: comment_finder.py
 
 ```python
+"""
+Finds comments using the AST parser.
+
+If we look for comments with regex, we risk finding comments inside of structure that are not comments.
+
+For older versions of python, the code falls back to string parsing instead of AST parsing.
+
+Once a comment block is found, it could still have multiple code tags in it.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -640,6 +650,7 @@ IOSource = Union[str, IOInput]
 def string_to_data(
     value: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize to many code tags"""
     if schema is None:
         schema = PureDataSchema
     tags = []
@@ -652,6 +663,7 @@ def string_to_data(
 
 
 def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    """Support for multiple ways to specify a file"""
     if isinstance(source, str):
         return io.StringIO(source)
     elif isinstance(source, os.PathLike) or isinstance(source, str):
@@ -663,6 +675,7 @@ def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
 
 
 def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    """Support for multiple ways to specify a file"""
     if isinstance(dest, io.StringIO):
         return dest  # already writable string buffer
     elif isinstance(dest, os.PathLike) or isinstance(dest, str):
@@ -687,6 +700,7 @@ def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
 
 
 def dumps(obj: DATA) -> str:
+    """Serialize to string"""
     if not obj:
         return ""
     # TODO: check plugins to answer for _schema
@@ -694,6 +708,7 @@ def dumps(obj: DATA) -> str:
 
 
 def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
+    """Serialize to a file-like or path-like"""
     with _open_for_write(dest) as f:
         f.write(obj.as_data_comment())
 
@@ -701,6 +716,7 @@ def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
 def loads(
     s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
+    """Deserialize from a string to a single data tag"""
     items = string_to_data(s, file_path, schema, include_folk_tags)
     return next((_ for _ in items), None)
 
@@ -708,24 +724,29 @@ def loads(
 def load(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
+    """Deserialize from a file-like or path-like to a single data tag"""
+    # BUG: not all of these are context manager
     with _open_for_read(source) as f:
         items = string_to_data(f.read(), file_path, schema, include_folk_tags)
         return next((_ for _ in items), None)
 
 
 def dump_all(objs: Iterable[DATA], dest: IOInput) -> None:
+    """Deserialize many data tags to a file-like or path-like"""
     with _open_for_write(dest) as f:
         for obj in objs:
             f.write(obj.as_data_comment() + "\n")
 
 
 def dumps_all(objs: Iterable[DATA]) -> str:
+    """Serialize many data tags to a string"""
     return "\n".join(obj.as_data_comment() for obj in objs)
 
 
 def load_all(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize many data tags from a file-like or path-like"""
     with _open_for_read(source) as f:
         return string_to_data(f.read(), file_path, schema, include_folk_tags)
 
@@ -733,6 +754,7 @@ def load_all(
 def loads_all(
     s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize many data tags from a string"""
     return string_to_data(s, file_path, schema, include_folk_tags)
 
 ```
@@ -1058,6 +1080,12 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
 ## File: data_schema.py
 
 ```python
+"""
+The domain-free schema.
+
+When used, all fields are parsed as custom fields.
+"""
+
 from pycodetags.data_tags import DataTagSchema
 
 PureDataSchema: DataTagSchema = {
@@ -1094,7 +1122,7 @@ In scope:
     - Merging and promoting fields among default, data and custom.
 
 Out of scope:
-    - File system interation
+    - File system interaction
     - Any particular schema (PEP350 code tags, discussion tags, documentation tags, etc)
     - Domain specific concepts (users, initials, start dates, etc)
     - Docstring style comments and docstrings
@@ -1125,6 +1153,10 @@ logger = logging.getLogger(__name__)
 
 
 class DataTagSchema(TypedDict):
+    """
+    Data for interpreting a domain specific code tag.
+    """
+
     name: str
 
     matching_tags: list[str]
@@ -1141,6 +1173,8 @@ class DataTagSchema(TypedDict):
 
 
 class DataTagFields(TypedDict):
+    """Rules for interpreting the fields part of a code tag"""
+
     # When deserializating a field value could appear in default, data and custom field positions.
     default_fields: dict[str, list[Any]]
     """Field without label identified by data type, range or fallback, e.g. user and date"""
@@ -1605,6 +1639,7 @@ from dataclasses import dataclass, field, fields
 from functools import wraps
 from typing import Any, Callable, cast  # noqa
 
+from pycodetags import exceptions
 from pycodetags.exceptions import ValidationError
 
 try:
@@ -1806,6 +1841,23 @@ class DATA(Serializable):
             return f"{self._file_path}:"
         return ""
 
+    def to_flat_dict(self, include_comment_and_tag: bool = False, raise_on_doubles: bool = True) -> dict[str, Any]:
+        if self.data_fields:
+            data = self.data_fields.copy()
+        else:
+            data = {}
+        if self.custom_fields:
+            for key, value in self.custom_fields.items():
+                if raise_on_doubles and key in data:
+                    raise exceptions.PyCodeTagsError("Field in data_fields and custom fields")
+                data[key] = value
+        if include_comment_and_tag:
+            if self.comment:
+                data["comment"] = self.comment
+            if self.code_tag:
+                data["code_tag"] = self.code_tag
+        return data
+
 ```
 
 ## File: dotenv.py
@@ -1923,55 +1975,55 @@ class PyCodeTagsError(Exception):
 
 
 class ConfigError(PyCodeTagsError):
-    pass
+    """Exception raised during processing of config file."""
 
 
 class InvalidActionError(ConfigError):
-    pass
+    """Exception raised during code tag actions."""
 
 
 class SchemaError(PyCodeTagsError):
-    pass
+    """Exception raised on parsing, etc when situations do not conform to a schema"""
 
 
 class DataTagParseError(PyCodeTagsError):
-    pass
+    """Parse time exceptions"""
 
 
 class AggregationError(PyCodeTagsError):
-    pass
+    """Exception when combining many code tags into one stream"""
 
 
 class ModuleImportError(AggregationError):
-    pass
+    """Exceptions when attempting to import and walk the object graph"""
 
 
 class SourceNotFoundError(AggregationError):
-    pass
+    """File not found during code tag parsing."""
 
 
 class PluginError(PyCodeTagsError):
-    pass
+    """Exceptions raised during interaction with pluggy plugin system."""
 
 
 class PluginLoadError(PluginError):
-    pass
+    """Exceptions raised when first interacting with a plugin"""
 
 
 class PluginHookError(PluginError):
-    pass
+    """Exceptions raised during hook invocation"""
 
 
 class FileParsingError(PyCodeTagsError):
-    pass
+    """Exceptions raised while parsing code tags."""
 
 
 class CommentNotFoundError(FileParsingError):
-    pass
+    """No code tag data found in input source."""
 
 
 class ValidationError(PyCodeTagsError):
-    pass
+    """Schema or domain dependent problem with code tag data."""
 
 ```
 
@@ -2268,6 +2320,32 @@ def process_line(
 
 ```
 
+## File: glossary.md
+
+```markdown
+# Glossary
+
+Eventually this will be filled in using code tags.
+
+## Data Tag
+A code tag with just data.
+
+## Code Tag
+A domain specific data tag. Also the uppercase mnemonic
+
+## Mnemonic
+The uppercase word to signal a comment is a code tag, e.g. TODO
+
+## Custom Fields
+Any field that is not mentioned in schema
+
+## Default Fields
+Fields that do not need to be named with a key
+
+## Alias
+An abbreviation or alternate name for a field.
+```
+
 ## File: logging_config.py
 
 ```python
@@ -2369,6 +2447,7 @@ import pluggy
 
 
 def plugin_currently_loaded(pm: pluggy.PluginManager) -> None:
+    """List plugins in memory"""
     print("--- Loaded pycodetags Plugins ---")
     loaded_plugins = pm.get_plugins()  #
     if not loaded_plugins:
@@ -2397,6 +2476,10 @@ def plugin_currently_loaded(pm: pluggy.PluginManager) -> None:
 ## File: plugin_manager.py
 
 ```python
+"""
+The pluggy plugin manager that finds plugins and invokes them when needed.
+"""
+
 import logging
 
 import pluggy
@@ -2429,6 +2512,7 @@ if logger.isEnabledFor(logging.DEBUG):
 
 # At class level or module-level:
 def get_plugin_manager() -> pluggy.PluginManager:
+    """Interface to help with unit testing"""
     return PM
 
 ```
@@ -2888,7 +2972,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     pm.register(InternalViews())
     # --- end pluggy setup ---
 
-    parser = argparse.ArgumentParser(description=f"{__about__.__description__} (v{__about__.__version__})")
+    parser = argparse.ArgumentParser(
+        description=f"{__about__.__description__} (v{__about__.__version__})",
+        epilog="Install pycodetags-issue-tracker plugin for TODO tags. ",
+    )
     common_switches(parser)
 
     # Basic arguments that apply to all commands (like verbose/info/bug-trail/config)

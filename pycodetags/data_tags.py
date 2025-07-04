@@ -11,7 +11,7 @@ In scope:
     - Merging and promoting fields among default, data and custom.
 
 Out of scope:
-    - File system interation
+    - File system interaction
     - Any particular schema (PEP350 code tags, discussion tags, documentation tags, etc)
     - Domain specific concepts (users, initials, start dates, etc)
     - Docstring style comments and docstrings
@@ -42,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 
 class DataTagSchema(TypedDict):
+    """
+    Data for interpreting a domain specific code tag.
+    """
+
     name: str
 
     matching_tags: list[str]
@@ -58,6 +62,8 @@ class DataTagSchema(TypedDict):
 
 
 class DataTagFields(TypedDict):
+    """Rules for interpreting the fields part of a code tag"""
+
     # When deserializating a field value could appear in default, data and custom field positions.
     default_fields: dict[str, list[Any]]
     """Field without label identified by data type, range or fallback, e.g. user and date"""

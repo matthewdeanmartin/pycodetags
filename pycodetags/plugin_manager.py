@@ -1,3 +1,7 @@
+"""
+The pluggy plugin manager that finds plugins and invokes them when needed.
+"""
+
 import logging
 
 import pluggy
@@ -30,4 +34,5 @@ if logger.isEnabledFor(logging.DEBUG):
 
 # At class level or module-level:
 def get_plugin_manager() -> pluggy.PluginManager:
+    """Interface to help with unit testing"""
     return PM

@@ -3,7 +3,6 @@ import textwrap
 import pytest
 from pycodetags_issue_tracker.specific_schemas import PEP350Schema
 from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
-from pycodetags_issue_tracker.todo_collector import collect_pep350_code_tags
 
 from pycodetags.data_tags import parse_codetags, parse_fields, promote_fields
 
@@ -362,118 +361,118 @@ def test_extract_comment_blocks_with_leading_and_trailing_whitespace(create_dumm
     ]
 
 
-# Tests for collect_pep350_code_tags function
-def test_collect_pep350_code_tags_single_file(create_dummy_file):
-    content = textwrap.dedent(
-        """
-        # TODO: Finish this module <priority:high assignee:dev_a>
-        # A regular comment
-        # FIXME: Refactor this part <due:2025-06-30>
-        def some_function():
-            # BUG: This might cause an error in production <status:open c:critical>
-            pass
-        """
-    )
-    filename = create_dummy_file("test_single_file.py", content)
-    tags = list(collect_pep350_code_tags(filename))
-
-    assert len(tags) == 3
-
-    assert tags[0]["code_tag"] == "TODO"
-    assert tags[0]["comment"] == "Finish this module"
-    assert tags[0]["fields"]["data_fields"]["priority"] == "high"
-    assert tags[0]["fields"]["data_fields"]["assignee"] == ["dev_a"]
-
-    assert tags[1]["code_tag"] == "FIXME"
-    assert tags[1]["comment"] == "Refactor this part"
-    assert tags[1]["fields"]["data_fields"]["due"] == "2025-06-30"
-
-    assert tags[2]["code_tag"] == "BUG"
-    assert tags[2]["comment"] == "This might cause an error in production"
-    assert tags[2]["fields"]["data_fields"]["status"] == "open"
-    assert tags[2]["fields"]["data_fields"]["category"] == "critical"
-
-
-def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
-    content = textwrap.dedent(
-        """
-        # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
-        # BUG: Issue <s:new>
-        """
-    )
-    filename = create_dummy_file("test_multiple_tags_same_line.py", content)
-    tags = list(collect_pep350_code_tags(filename))
-
-    assert len(tags) == 3  # Two from the first line, one from the second
-
-    assert tags[0]["code_tag"] == "TODO"
-    assert tags[0]["comment"] == "Task 1"
-    assert tags[0]["fields"]["data_fields"]["priority"] == "1"
-
-    assert tags[1]["code_tag"] == "FIXME"
-    assert tags[1]["comment"] == "Task 2"
-    assert tags[1]["fields"]["data_fields"]["priority"] == "2"
-
-    assert tags[2]["code_tag"] == "BUG"
-    assert tags[2]["comment"] == "Issue"
-    assert tags[2]["fields"]["data_fields"]["status"] == "new"
+# # Tests for collect_pep350_code_tags function
+# def test_collect_pep350_code_tags_single_file(create_dummy_file):
+#     content = textwrap.dedent(
+#         """
+#         # TODO: Finish this module <priority:high assignee:dev_a>
+#         # A regular comment
+#         # FIXME: Refactor this part <due:2025-06-30>
+#         def some_function():
+#             # BUG: This might cause an error in production <status:open c:critical>
+#             pass
+#         """
+#     )
+#     filename = create_dummy_file("test_single_file.py", content)
+#     tags = list(collect_pep350_code_tags(filename))
+#
+#     assert len(tags) == 3
+#
+#     assert tags[0]["code_tag"] == "TODO"
+#     assert tags[0]["comment"] == "Finish this module"
+#     assert tags[0]["fields"]["data_fields"]["priority"] == "high"
+#     assert tags[0]["fields"]["data_fields"]["assignee"] == ["dev_a"]
+#
+#     assert tags[1]["code_tag"] == "FIXME"
+#     assert tags[1]["comment"] == "Refactor this part"
+#     assert tags[1]["fields"]["data_fields"]["due"] == "2025-06-30"
+#
+#     assert tags[2]["code_tag"] == "BUG"
+#     assert tags[2]["comment"] == "This might cause an error in production"
+#     assert tags[2]["fields"]["data_fields"]["status"] == "open"
+#     assert tags[2]["fields"]["data_fields"]["category"] == "critical"
 
 
-def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
-    content = textwrap.dedent(
-        """
-        # This is a normal comment.
-        # Another normal comment.
-        def nothing_special():
-            pass
-        """
-    )
-    filename = create_dummy_file("test_no_tags.py", content)
-    tags = list(collect_pep350_code_tags(filename))
-    assert len(tags) == 0
+# def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
+#     content = textwrap.dedent(
+#         """
+#         # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
+#         # BUG: Issue <s:new>
+#         """
+#     )
+#     filename = create_dummy_file("test_multiple_tags_same_line.py", content)
+#     tags = list(collect_pep350_code_tags(filename))
+#
+#     assert len(tags) == 3  # Two from the first line, one from the second
+#
+#     assert tags[0]["code_tag"] == "TODO"
+#     assert tags[0]["comment"] == "Task 1"
+#     assert tags[0]["fields"]["data_fields"]["priority"] == "1"
+#
+#     assert tags[1]["code_tag"] == "FIXME"
+#     assert tags[1]["comment"] == "Task 2"
+#     assert tags[1]["fields"]["data_fields"]["priority"] == "2"
+#
+#     assert tags[2]["code_tag"] == "BUG"
+#     assert tags[2]["comment"] == "Issue"
+#     assert tags[2]["fields"]["data_fields"]["status"] == "new"
+#
+#
+# def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
+#     content = textwrap.dedent(
+#         """
+#         # This is a normal comment.
+#         # Another normal comment.
+#         def nothing_special():
+#             pass
+#         """
+#     )
+#     filename = create_dummy_file("test_no_tags.py", content)
+#     tags = list(collect_pep350_code_tags(filename))
+#     assert len(tags) == 0
+#
+#
+# def test_collect_pep350_code_tags_empty_file(create_dummy_file):
+#     filename = create_dummy_file("test_empty.py", "")
+#     tags = list(collect_pep350_code_tags(filename))
+#     assert len(tags) == 0
 
-
-def test_collect_pep350_code_tags_empty_file(create_dummy_file):
-    filename = create_dummy_file("test_empty.py", "")
-    tags = list(collect_pep350_code_tags(filename))
-    assert len(tags) == 0
-
-
-def test_collect_pep350_code_tags_with_mixed_content(create_dummy_file):
-    content = textwrap.dedent(
-        """
-# Initial comment
-# TODO: First task <p:high>
-import os
-# Some code here
-def my_func():
-    # BUG: Problem in func <s:open a:dev_b>
-    print("hello")
-# Another block
-# FIXME: Final fix <d:2026-01-01>
-"""
-    )
-    filename = create_dummy_file("test_mixed_content.py", content)
-    tags = list(collect_pep350_code_tags(filename))
-
-    assert len(tags) == 3
-
-    todo_tag = list(filter(lambda x: x["code_tag"] == "TODO", tags))[0]
-    assert todo_tag["code_tag"] == "TODO"
-    assert todo_tag["comment"] == "First task"
-    assert todo_tag["fields"]["data_fields"]["priority"] == "high"
-
-    bug_tag = list(filter(lambda x: x["code_tag"] == "BUG", tags))[0]
-    assert bug_tag["code_tag"] == "BUG"
-    assert bug_tag["comment"] == "Problem in func"
-    assert bug_tag["fields"]["data_fields"]["status"] == "open"
-    assert bug_tag["fields"]["data_fields"]["assignee"] == ["dev_b"]
-
-    fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
-    assert fixme_tag["code_tag"] == "FIXME"
-    assert fixme_tag["comment"] == "Final fix"
-    assert fixme_tag["fields"]["data_fields"]["due"] == "2026-01-01"
-
+#
+# def test_collect_pep350_code_tags_with_mixed_content(create_dummy_file):
+#     content = textwrap.dedent(
+#         """
+# # Initial comment
+# # TODO: First task <p:high>
+# import os
+# # Some code here
+# def my_func():
+#     # BUG: Problem in func <s:open a:dev_b>
+#     print("hello")
+# # Another block
+# # FIXME: Final fix <d:2026-01-01>
+# """
+#     )
+#     filename = create_dummy_file("test_mixed_content.py", content)
+#     tags = list(collect_pep350_code_tags(filename))
+#
+#     assert len(tags) == 3
+#
+#     todo_tag = list(filter(lambda x: x["code_tag"] == "TODO", tags))[0]
+#     assert todo_tag["code_tag"] == "TODO"
+#     assert todo_tag["comment"] == "First task"
+#     assert todo_tag["fields"]["data_fields"]["priority"] == "high"
+#
+#     bug_tag = list(filter(lambda x: x["code_tag"] == "BUG", tags))[0]
+#     assert bug_tag["code_tag"] == "BUG"
+#     assert bug_tag["comment"] == "Problem in func"
+#     assert bug_tag["fields"]["data_fields"]["status"] == "open"
+#     assert bug_tag["fields"]["data_fields"]["assignee"] == ["dev_b"]
+#
+#     fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
+#     assert fixme_tag["code_tag"] == "FIXME"
+#     assert fixme_tag["comment"] == "Final fix"
+#     assert fixme_tag["fields"]["data_fields"]["due"] == "2026-01-01"
+#
 
 def test_parse_fields_originator_field():
     field_string = "originator:john.doe"

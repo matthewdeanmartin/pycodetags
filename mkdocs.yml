@@ -23,11 +23,18 @@ nav:
   - "Installation": "installation.md"
   - "Usage":
       - "Usage": "usage.md"
+  - "Data Tags": "data_tags.md"
   # - "API": "api.md"
   - "Plugins":
-    - "Plugin Directory": "plugin_list.md"
+      - "Issue Tracker": "plugin_issue_tracker.md"
+      - "Discussion": "plugin_discussion.md"
+      - "Code Review": "plugin_code_review.md"
+      - "Plugin Directory": "plugin_list.md"
+      - "Making a plugin": "plugin_how_to.md"
+  - "FAQ": "FAQ.md"
   - "Prior Art": "PRIOR_ART.md"
   - "Changes": "CHANGELOG.md"
+  - "Glossary": "Glossary.md"
   - "Contributing": "CONTRIBUTING.md"
 
 validation:

@@ -1,7 +1,11 @@
 # Contributing
 
+## Core Library
+
+The core library is a domain free data format library.
+
 ## General vs Idiosyncratic Features
-The library and application should only implement rather general features, not things idiosyncratic to one person
+The library and default plugins should only implement rather general features, not things idiosyncratic to one person
 or one team at one organization. 
 
 Most large features should be implemented via plugins.
@@ -13,8 +17,9 @@ To handle idiosyncrasies without plugins
 - Custom fields, which all three schemas support
 
 The following should be handled by plugins
-- Source control
-- File support
+- Source control interactions
+- Interaction with servers like jira
+- Input from files other than pyproject.toml or .py source
 
 Either can't be handled or should be handled by synonyms in config
 - Supporting standards other than PEP-350. I don't know of any other standards right now, but to support too many
@@ -36,9 +41,28 @@ Not Good
 - Logical inconsistencies in current design with current goals
 - Improving the "accept anything, generate strict"
 
-## How to make a plugin
 
-TBD!
+## One way to setup development environment
 
+To setup the virtual env.
+```bash
+pip install pipx
+pipx install uv
+uv sync
+```
 
+To activate the venv and run make
 
+```bash
+. ./.venv/Scripts/activate
+make check
+```
+
+Or use `just check`
+
+To verify all the plugins, one after another.
+
+```bash
+cd plugins
+./make.sh
+```

@@ -28,7 +28,7 @@ At release time
 ## Example
 
 ```python
-from pycodetags import TODO
+from pycodetags_issue_tracker import TODO
 
 
 # Folk schema

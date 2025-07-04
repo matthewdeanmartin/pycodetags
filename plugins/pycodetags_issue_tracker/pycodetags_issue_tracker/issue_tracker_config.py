@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pycodetags_issue_tracker.user import get_current_user
 from pycodetags_issue_tracker.users_from_authors import parse_authors_file_simple
 

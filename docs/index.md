@@ -12,7 +12,3 @@ and get issue tracker features, too.
 Lightweight and keeps your issue tracker in your code.
 
 Backwards compatible with both `# TODO:` comments and PEP-350 comments.
-
-## Note on Name
-
-Package name is `pycodetags`. The obvious package name is taken and anything with dash or underscore is ungoogleable. Sorry.

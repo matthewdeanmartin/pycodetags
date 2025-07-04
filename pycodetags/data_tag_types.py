@@ -10,6 +10,7 @@ from dataclasses import dataclass, field, fields
 from functools import wraps
 from typing import Any, Callable, cast  # noqa
 
+from pycodetags import exceptions
 from pycodetags.exceptions import ValidationError
 
 try:
@@ -210,3 +211,20 @@ class DATA(Serializable):
         if self._file_path:
             return f"{self._file_path}:"
         return ""
+
+    def to_flat_dict(self, include_comment_and_tag: bool = False, raise_on_doubles: bool = True) -> dict[str, Any]:
+        if self.data_fields:
+            data = self.data_fields.copy()
+        else:
+            data = {}
+        if self.custom_fields:
+            for key, value in self.custom_fields.items():
+                if raise_on_doubles and key in data:
+                    raise exceptions.PyCodeTagsError("Field in data_fields and custom fields")
+                data[key] = value
+        if include_comment_and_tag:
+            if self.comment:
+                data["comment"] = self.comment
+            if self.code_tag:
+                data["code_tag"] = self.code_tag
+        return data

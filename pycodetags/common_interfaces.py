@@ -25,6 +25,7 @@ IOSource = Union[str, IOInput]
 def string_to_data(
     value: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize to many code tags"""
     if schema is None:
         schema = PureDataSchema
     tags = []
@@ -37,6 +38,7 @@ def string_to_data(
 
 
 def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    """Support for multiple ways to specify a file"""
     if isinstance(source, str):
         return io.StringIO(source)
     elif isinstance(source, os.PathLike) or isinstance(source, str):
@@ -48,6 +50,7 @@ def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
 
 
 def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
+    """Support for multiple ways to specify a file"""
     if isinstance(dest, io.StringIO):
         return dest  # already writable string buffer
     elif isinstance(dest, os.PathLike) or isinstance(dest, str):
@@ -72,6 +75,7 @@ def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
 
 
 def dumps(obj: DATA) -> str:
+    """Serialize to string"""
     if not obj:
         return ""
     # TODO: check plugins to answer for _schema
@@ -79,6 +83,7 @@ def dumps(obj: DATA) -> str:
 
 
 def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
+    """Serialize to a file-like or path-like"""
     with _open_for_write(dest) as f:
         f.write(obj.as_data_comment())
 
@@ -86,6 +91,7 @@ def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
 def loads(
     s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
+    """Deserialize from a string to a single data tag"""
     items = string_to_data(s, file_path, schema, include_folk_tags)
     return next((_ for _ in items), None)
 
@@ -93,24 +99,29 @@ def loads(
 def load(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
+    """Deserialize from a file-like or path-like to a single data tag"""
+    # BUG: not all of these are context manager
     with _open_for_read(source) as f:
         items = string_to_data(f.read(), file_path, schema, include_folk_tags)
         return next((_ for _ in items), None)
 
 
 def dump_all(objs: Iterable[DATA], dest: IOInput) -> None:
+    """Deserialize many data tags to a file-like or path-like"""
     with _open_for_write(dest) as f:
         for obj in objs:
             f.write(obj.as_data_comment() + "\n")
 
 
 def dumps_all(objs: Iterable[DATA]) -> str:
+    """Serialize many data tags to a string"""
     return "\n".join(obj.as_data_comment() for obj in objs)
 
 
 def load_all(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize many data tags from a file-like or path-like"""
     with _open_for_read(source) as f:
         return string_to_data(f.read(), file_path, schema, include_folk_tags)
 
@@ -118,4 +129,5 @@ def load_all(
 def loads_all(
     s: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> Iterable[DATA]:
+    """Deserialize many data tags from a string"""
     return string_to_data(s, file_path, schema, include_folk_tags)
