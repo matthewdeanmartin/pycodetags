@@ -14,14 +14,14 @@
 #  -h, --help            show this help message and exit
 set -e
 export PYCODETAGS_NO_OPEN_BROWSER=1
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests
 echo "-------------------------------------"
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests --format text
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests --format text
 echo "-------------------------------------"
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests --format html
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests --format html
 echo "-------------------------------------"
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests --format json
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests --format json
 echo "-------------------------------------"
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests --format keep-a-changelog
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests --format keep-a-changelog
 echo "-------------------------------------"
-uv run pycodetags report --module demo.__main__ --module pycodetags --src demo --src tests --format todo.md
+uv run pycodetags data --module demo.__main__ --module pycodetags --src demo --src tests --format todo.md

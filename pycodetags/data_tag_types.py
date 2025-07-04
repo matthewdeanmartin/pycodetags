@@ -171,7 +171,7 @@ class DATA(Serializable):
 
         first_line = f"# {(self.code_tag or '').upper()}: {self.comment}"
         complete = f"{first_line} <{the_fields.strip()}>"
-        if len(complete) > 80:
+        if len(complete) > 120:
             first_line += "\n# "
             complete = f"{first_line}<{the_fields.strip()}>"
         return complete
@@ -201,3 +201,12 @@ class DATA(Serializable):
             if f.name != "data_meta" and f.name != "type":
                 field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
         return f"{self.__class__.__name__}({', '.join(field_strings)})"
+
+    def terminal_link(self) -> str:
+        """In JetBrains IDE Terminal, will hyperlink to file"""
+        if self._offsets:
+            start_line, start_char, _end_line, _end_char = self._offsets
+            return f"{self._file_path}:{start_line+1}:{start_char}"
+        if self._file_path:
+            return f"{self._file_path}:"
+        return ""

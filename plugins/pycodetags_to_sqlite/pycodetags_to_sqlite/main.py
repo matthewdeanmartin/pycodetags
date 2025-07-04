@@ -9,7 +9,7 @@ hookimpl = pluggy.HookimplMarker("pycodetags")
 
 
 @hookimpl
-def code_tags_print_report(
+def print_report(
     format_name: str,
     found_data: list[DATA],
     # pylint: disable=unused-argument
@@ -23,5 +23,5 @@ def code_tags_print_report(
 
 
 @hookimpl
-def code_tags_print_report_style_name() -> list[str]:
+def print_report_style_name() -> list[str]:
     return ["markdown_simple"]

@@ -17,7 +17,7 @@ def make_test_source_file(tmp_path: Path, content: str = "") -> Path:
 def test_cli_report_text_format(tmp_path, capsys):
     make_test_source_file(tmp_path)
 
-    exit_code = main(["report", "--src", str(tmp_path), "--format", "text"])
+    exit_code = main(["data", "--src", str(tmp_path), "--format", "text"])
 
     captured = capsys.readouterr()
     assert exit_code == 0
@@ -27,7 +27,7 @@ def test_cli_report_text_format(tmp_path, capsys):
 def test_cli_report_json_format(tmp_path, capsys):
     make_test_source_file(tmp_path)
 
-    exit_code = main(["report", "--src", str(tmp_path), "--format", "json"])
+    exit_code = main(["data", "--src", str(tmp_path), "--format", "json"])
 
     captured = capsys.readouterr()
     assert exit_code == 0
@@ -37,7 +37,7 @@ def test_cli_report_json_format(tmp_path, capsys):
 def test_cli_report_html_format(tmp_path, capsys):
     make_test_source_file(tmp_path)
 
-    exit_code = main(["report", "--src", str(tmp_path), "--format", "html"])
+    exit_code = main(["data", "--src", str(tmp_path), "--format", "html"])
 
     captured = capsys.readouterr()
     assert exit_code == 0

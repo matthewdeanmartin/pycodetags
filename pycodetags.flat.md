@@ -996,6 +996,7 @@ def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA: 
         "_line_number": folk_tag.get("line_number"),
         "_original_text": folk_tag.get("original_text"),
         "_original_schema": "folk",
+        "_offsets": folk_tag.get("offsets"),
     }
     return DATA(**kwargs)  # type: ignore[arg-type]
 
@@ -1036,10 +1037,11 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
         "data_fields": final_data,
         "custom_fields": final_custom,
         # Source Mapping
-        "_file_path": data_fields.get("_file_path"),
-        "_line_number": data_fields.get("_line_number"),
+        "_file_path": pep350_tag.get("file_path"),
+        "_line_number": pep350_tag.get("line_number"),
         "_original_text": pep350_tag.get("original_text"),
         "_original_schema": "pep350",
+        "_offsets": pep350_tag.get("offsets"),
     }
     return DATA(**kwargs)  # type: ignore[arg-type]
 
@@ -1171,7 +1173,11 @@ class DataTag(TypedDict, total=False):
     fields: DataTagFields
 
     # metadata
-    original_text: str
+    file_path: str | None
+    line_number: int | None
+    original_text: str | None
+    original_schema: str | None
+    offsets: tuple[int, int, int, int] | None
 
 
 def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
@@ -1543,6 +1549,14 @@ def iterate_comments(
         found_data_tags = []
         for schema in schemas:
             found_data_tags = parse_codetags(final_comment, schema, strict=False)
+
+            for found in found_data_tags:
+                found["file_path"] = str(source_file) if source_file else None
+                found["line_number"] = _start_line
+                found["original_text"] = final_comment
+                found["original_schema"] = "PEP350"
+                found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
+
             if found_data_tags:
                 logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
             things.extend(found_data_tags)
@@ -1744,7 +1758,7 @@ class DATA(Serializable):
 
         first_line = f"# {(self.code_tag or '').upper()}: {self.comment}"
         complete = f"{first_line} <{the_fields.strip()}>"
-        if len(complete) > 80:
+        if len(complete) > 120:
             first_line += "\n# "
             complete = f"{first_line}<{the_fields.strip()}>"
         return complete
@@ -1774,6 +1788,15 @@ class DATA(Serializable):
             if f.name != "data_meta" and f.name != "type":
                 field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
         return f"{self.__class__.__name__}({', '.join(field_strings)})"
+
+    def terminal_link(self) -> str:
+        """In JetBrains IDE Terminal, will hyperlink to file"""
+        if self._offsets:
+            start_line, start_char, _end_line, _end_char = self._offsets
+            return f"{self._file_path}:{start_line+1}:{start_char}"
+        if self._file_path:
+            return f"{self._file_path}:"
+        return ""
 
 ```
 
@@ -2433,9 +2456,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_print_report(
-        self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
-    ) -> bool:
+    def print_report(self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig) -> bool:
         """
         Allows plugins to define new output report formats.
 
@@ -2451,7 +2472,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_print_report_style_name(self) -> list[str]:
+    def print_report_style_name(self) -> list[str]:
         """
         Allows plugins announce report format names.
 
@@ -2461,7 +2482,7 @@ class CodeTagsSpec:
         return []
 
     @hookspec
-    def code_tags_add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
+    def add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
         """
         Allows plugins to add new subcommands to the pycodetags CLI.
 
@@ -2470,7 +2491,7 @@ class CodeTagsSpec:
         """
 
     @hookspec
-    def code_tags_run_cli_command(
+    def run_cli_command(
         self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
     ) -> bool:
         """
@@ -2488,7 +2509,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
+    def validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
         """
         Allows plugins to add custom validation logic to TODO items.
 
@@ -2563,6 +2584,7 @@ def print_validate(found: list[DATA]) -> None:
         validations = item.validate()
         if validations:
             print(item.as_data_comment())
+            print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
             print()
@@ -2736,7 +2758,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "1.0.0"
+__version__ = "0.3.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]
@@ -2820,7 +2842,7 @@ class InternalViews:
     """Register internal views as a plugin"""
 
     @pluggy.HookimplMarker("pycodetags")
-    def code_tags_print_report(self, format_name: str, found_data: list[DATA]) -> bool:
+    def print_report(self, format_name: str, found_data: list[DATA]) -> bool:
         """
         Internal method to handle printing of reports in various formats.
 
@@ -2859,13 +2881,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # --- end pluggy setup ---
 
     parser = argparse.ArgumentParser(description=f"{__about__.__description__} (v{__about__.__version__})")
+    common_switches(parser)
 
     # Basic arguments that apply to all commands (like verbose/info/bug-trail/config)
     base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
-    base_parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
-    base_parser.add_argument("--info", default=False, action="store_true", help="info level logging output")
-    base_parser.add_argument("--bug-trail", default=False, action="store_true", help="enable bug trail, local logging")
+    common_switches(base_parser)
     # validate switch
     base_parser.add_argument("--validate", action="store_true", help="Validate all the items found")
 
@@ -2873,7 +2893,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # 'report' command
-    report_parser = subparsers.add_parser("report", parents=[base_parser], help="Generate code tag reports")
+    report_parser = subparsers.add_parser("data", parents=[base_parser], help="Generate code tag reports")
     # report runs collectors, collected things can be validated
     report_parser.add_argument("--module", action="append", help="Python module to inspect (e.g., 'my_project.main')")
     report_parser.add_argument("--src", action="append", help="file or folder of source code")
@@ -2881,12 +2901,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     report_parser.add_argument("--output", help="destination file or folder")
 
     extra_supported_formats = []
-    for result in pm.hook.code_tags_print_report_style_name():
+    for result in pm.hook.print_report_style_name():
         extra_supported_formats.extend(result)
+
+    supported_formats = list(set(["text", "html", "json", "summary"] + extra_supported_formats))
 
     report_parser.add_argument(
         "--format",
-        choices=["text", "html", "json", "summary"] + extra_supported_formats,
+        choices=supported_formats,
         default="text",
         help="Output format for the report.",
     )
@@ -2897,15 +2919,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     )
 
     # Allow plugins to add their own subparsers
-    new_subparsers = pm.hook.code_tags_add_cli_subcommands(subparsers=subparsers)
+    new_subparsers = pm.hook.add_cli_subcommands(subparsers=subparsers)
     # Hack because we don't want plugins to have to wire up the basic stuff
     for new_subparser in new_subparsers:
-        new_subparser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
-        new_subparser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
-        new_subparser.add_argument("--info", default=False, action="store_true", help="info level logging output")
-        new_subparser.add_argument(
-            "--bug-trail", default=False, action="store_true", help="enable bug trail, local logging"
-        )
+        common_switches(new_subparser)
         # validate switch
         new_subparser.add_argument("--validate", action="store_true", help="Validate all the items found")
 
@@ -2939,9 +2956,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 1
 
     # Handle the 'report' command
-    if args.command == "report":
+    if args.command in ("report", "data"):
         modules = args.module or code_tags_config.modules_to_scan()
         src = args.src or code_tags_config.source_folders_to_scan()
+
         if not modules and not src:
             print(
                 "Need to specify one or more importable modules (--module) "
@@ -2965,11 +2983,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             if len(found) == 0:
                 raise CommentNotFoundError("No data to report.")
             # Call the hook.
-            results = pm.hook.code_tags_print_report(
+            results = pm.hook.print_report(
                 format_name=args.format, output_path=args.output, found_data=found, config=get_code_tags_config()
             )
-
-            # results = pm.hook.code_tags_print_report(format_name=args.format, found_data=found)
             if not any(results):
                 print(f"Error: Format '{args.format}' is not supported.", file=sys.stderr)
                 return 1
@@ -2980,8 +2996,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         # Pass control to plugins for other commands
         # Aggregate data if plugins might need it
         found_data_for_plugins: list[DATA] = []
-        modules = []
-        src = []
         if hasattr(args, "module") and args.module:
             modules = getattr(args, "module", [])
         else:
@@ -2990,7 +3004,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         if hasattr(args, "src") and args.src:
             src = getattr(args, "src", [])
         else:
-            modules = code_tags_config.source_folders_to_scan()
+            src = code_tags_config.source_folders_to_scan()
 
         try:
             all_found: list[DATA] = []
@@ -3004,13 +3018,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             logging.warning(f"Could not aggregate data for command {args.command}, proceeding without it.")
             found_data_for_plugins = []
 
-        handled_by_plugin = pm.hook.code_tags_run_cli_command(
+        handled_by_plugin = pm.hook.run_cli_command(
             command_name=args.command, args=args, found_data=found_data_for_plugins, config=get_code_tags_config()
         )
         if not any(handled_by_plugin):
             print(f"Error: Unknown command '{args.command}'.", file=sys.stderr)
             return 1
     return 0
+
+
+def common_switches(parser) -> None:
+    parser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
+    parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
+    parser.add_argument("--info", default=False, action="store_true", help="info level logging output")
+    parser.add_argument("--bug-trail", default=False, action="store_true", help="enable bug trail, local logging")
 
 
 if __name__ == "__main__":

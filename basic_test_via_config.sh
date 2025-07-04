@@ -22,10 +22,10 @@ if [[ -z "$CI" ]]; then
   pycodetags report
   for i in "${!formats[@]}"; do
     echo "----------${labels[$i]}---------------------------"
-    pycodetags report --format "${formats[$i]}"
+    pycodetags data --format "${formats[$i]}"
   done
 else
-  pycodetags report > pycodetags_report_default.txt
+  pycodetags data --format text> pycodetags_report_default.txt
   for i in "${!formats[@]}"; do
     echo "----------${labels[$i]}---------------------------" >> pycodetags_report_all.txt
     pycodetags report --format "${formats[$i]}" >> pycodetags_report_all.txt

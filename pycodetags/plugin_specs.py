@@ -26,9 +26,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_print_report(
-        self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
-    ) -> bool:
+    def print_report(self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig) -> bool:
         """
         Allows plugins to define new output report formats.
 
@@ -44,7 +42,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_print_report_style_name(self) -> list[str]:
+    def print_report_style_name(self) -> list[str]:
         """
         Allows plugins announce report format names.
 
@@ -54,7 +52,7 @@ class CodeTagsSpec:
         return []
 
     @hookspec
-    def code_tags_add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
+    def add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
         """
         Allows plugins to add new subcommands to the pycodetags CLI.
 
@@ -63,7 +61,7 @@ class CodeTagsSpec:
         """
 
     @hookspec
-    def code_tags_run_cli_command(
+    def run_cli_command(
         self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
     ) -> bool:
         """
@@ -81,7 +79,7 @@ class CodeTagsSpec:
         return False
 
     @hookspec
-    def code_tags_validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
+    def validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
         """
         Allows plugins to add custom validation logic to TODO items.
 

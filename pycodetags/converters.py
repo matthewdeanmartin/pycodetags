@@ -30,6 +30,7 @@ def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA: 
         "_line_number": folk_tag.get("line_number"),
         "_original_text": folk_tag.get("original_text"),
         "_original_schema": "folk",
+        "_offsets": folk_tag.get("offsets"),
     }
     return DATA(**kwargs)  # type: ignore[arg-type]
 
@@ -70,9 +71,10 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
         "data_fields": final_data,
         "custom_fields": final_custom,
         # Source Mapping
-        "_file_path": data_fields.get("_file_path"),
-        "_line_number": data_fields.get("_line_number"),
+        "_file_path": pep350_tag.get("file_path"),
+        "_line_number": pep350_tag.get("line_number"),
         "_original_text": pep350_tag.get("original_text"),
         "_original_schema": "pep350",
+        "_offsets": pep350_tag.get("offsets"),
     }
     return DATA(**kwargs)  # type: ignore[arg-type]

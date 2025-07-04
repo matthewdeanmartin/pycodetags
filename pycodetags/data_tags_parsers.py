@@ -59,6 +59,14 @@ def iterate_comments(
         found_data_tags = []
         for schema in schemas:
             found_data_tags = parse_codetags(final_comment, schema, strict=False)
+
+            for found in found_data_tags:
+                found["file_path"] = str(source_file) if source_file else None
+                found["line_number"] = _start_line
+                found["original_text"] = final_comment
+                found["original_schema"] = "PEP350"
+                found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
+
             if found_data_tags:
                 logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
             things.extend(found_data_tags)

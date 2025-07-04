@@ -16,11 +16,11 @@ set -euo pipefail
 export PYCODETAGS_NO_OPEN_BROWSER=1
 # Don't export reports to same folder where you search for code tags!
 echo "----------------default format (txt)---------------------"
-pycodetags report --module demo.__main__ --src demo>demo_reports/default.txt
+pycodetags data --module demo.__main__ --src demo>demo_reports/default.txt
 echo "------------------txt format-------------------"
-pycodetags report --module demo.__main__ --src demo --format text>demo_reports/todo.txt
+pycodetags data --module demo.__main__ --src demo --format text>demo_reports/todo.txt
 echo "-------------------html------------------"
-pycodetags report  --module demo.__main__ --src demo --format html
+pycodetags data  --module demo.__main__ --src demo --format html
 echo "-------------------JSON------------------"
-pycodetags report  --module demo.__main__ --src demo --format json>demo_reports/todo.json
+pycodetags data  --module demo.__main__ --src demo --format json>demo_reports/todo.json
 echo "---------------------No more formats----------------"

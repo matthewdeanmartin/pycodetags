@@ -9,6 +9,7 @@ import logging
 from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 from pycodetags_issue_tracker.todo_tag_types import TODO
 
+from pycodetags import DATA
 from pycodetags.data_tags import DataTag
 from pycodetags.folk_code_tags import FolkTag
 
@@ -30,6 +31,33 @@ def blank_to_null(value: str | None) -> str | None:
     if value is None or value.strip() == "":
         return None
     return value.strip()
+
+
+def convert_data_to_TODO(tag: DATA) -> TODO:
+    return TODO(
+        code_tag=tag.code_tag,
+        assignee=(tag.custom_fields or {}).get("assignee"),
+        originator=(tag.custom_fields or {}).get("originator"),
+        comment=tag.comment,
+        origination_date=(tag.custom_fields or {}).get("origination_date"),
+        due=(tag.custom_fields or {}).get("due"),
+        release_due=(tag.custom_fields or {}).get("release_due"),
+        release=(tag.custom_fields or {}).get("release"),
+        iteration=(tag.custom_fields or {}).get("iteration"),
+        change_type=(tag.custom_fields or {}).get("change_type"),
+        closed_date=(tag.custom_fields or {}).get("closed_date"),
+        closed_comment=(tag.custom_fields or {}).get("closed_comment"),
+        tracker=(tag.custom_fields or {}).get("tracker"),
+        _file_path=tag._file_path,
+        _line_number=tag._line_number,
+        _original_text=tag._original_text,
+        _original_schema=tag._original_schema,
+        _offsets=tag._offsets,
+        custom_fields=tag.custom_fields,
+        priority=(tag.custom_fields or {}).get("priority"),
+        status=(tag.custom_fields or {}).get("status"),
+        category=(tag.custom_fields or {}).get("category"),
+    )
 
 
 def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
@@ -97,6 +125,7 @@ def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
         "_line_number": data_fields.get("_line_number"),
         "_original_text": pep350_tag.get("original_text"),
         "_original_schema": "pep350",
+        "_offsets": pep350_tag.get("offsets"),
     }
 
     custom_fields = pep350_tag["fields"].get("custom_fields", {})

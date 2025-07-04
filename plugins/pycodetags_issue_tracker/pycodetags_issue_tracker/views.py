@@ -29,6 +29,7 @@ def print_validate(found: list[TODO]) -> None:
         validations = item.validate()
         if validations:
             print(item.as_pep350_comment())
+            print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
             print()

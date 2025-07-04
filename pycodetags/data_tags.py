@@ -98,7 +98,11 @@ class DataTag(TypedDict, total=False):
     fields: DataTagFields
 
     # metadata
-    original_text: str
+    file_path: str | None
+    line_number: int | None
+    original_text: str | None
+    original_schema: str | None
+    offsets: tuple[int, int, int, int] | None
 
 
 def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:

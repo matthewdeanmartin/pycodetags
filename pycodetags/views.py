@@ -25,6 +25,7 @@ def print_validate(found: list[DATA]) -> None:
         validations = item.validate()
         if validations:
             print(item.as_data_comment())
+            print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
             print()

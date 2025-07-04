@@ -15,7 +15,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "1.0.0"
+__version__ = "0.3.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME"]

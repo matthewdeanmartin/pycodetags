@@ -10,6 +10,8 @@ theme:
   features:
     - navigation.footer
 
+edit_uri: edit/main/docs/
+
 markdown_extensions:
   - attr_list
   - codehilite
@@ -22,7 +24,8 @@ nav:
   - "Usage":
       - "Usage": "usage.md"
   # - "API": "api.md"
-  - "Plugin Directory": "plugin_list.md"
+  - "Plugins":
+    - "Plugin Directory": "plugin_list.md"
   - "Prior Art": "PRIOR_ART.md"
   - "Changes": "CHANGELOG.md"
   - "Contributing": "CONTRIBUTING.md"

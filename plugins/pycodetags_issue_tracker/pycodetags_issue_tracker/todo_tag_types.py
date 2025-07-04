@@ -294,7 +294,7 @@ class TODO(DATA):
         # pylint: disable=import-outside-toplevel
         from pycodetags.plugin_manager import get_plugin_manager
 
-        for new_issues in get_plugin_manager().hook.code_tags_validate(todo_item=self, config=get_code_tags_config()):
+        for new_issues in get_plugin_manager().hook.validate(todo_item=self, config=get_code_tags_config()):
             plugin_issues += new_issues
             issues.extend(plugin_issues)
 
