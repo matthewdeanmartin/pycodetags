@@ -3,7 +3,17 @@
 ## TOP PRIORITIES
 - Need concept of default value for recognized fields. The copy paste and clutter cost is too high now.
 - Need offsets for locating Folk Tags in source code.
+- Folk tag need help
 - Need offsets for second, third tags within a comment block.
+- Dog fooding:
+  - Move all issues into python source (EASY)
+    - Need good support for standalone
+    - Big page of TODO comments?
+  - Add validate to build (make check)
+  - Generate issue_site and publish with gha
+  - Generate changelog
+- Identity feature (HARD)
+  - Enables git features (find originator, find origination date, find close date)
 
 
 ## roadmap
