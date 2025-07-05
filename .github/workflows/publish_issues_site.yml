@@ -1,9 +1,15 @@
-name: Build and Test
+name: Publish Issues Site
 
 on:
   # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   build:
