@@ -32,7 +32,7 @@ jobs:
         run: uv run make check
 
       - name: Run make_issues.sh
-        run: uv run ./make_issues.sh
+        run: chmod +x *.sh && uv run ./make_issues.sh
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
