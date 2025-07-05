@@ -13,11 +13,11 @@ from functools import wraps
 from typing import Any, Callable, cast  # noqa
 
 from pycodetags_issue_tracker.issue_tracker_config import get_issue_tracker_config
-from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
+from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
 from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 
 from pycodetags.config import get_code_tags_config
-from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags_classes import DATA
 
 try:
     from typing import Literal  # type:ignore[assignment,unused-ignore]
@@ -130,7 +130,8 @@ class TODO(DATA):
             return
 
         if self.due:
-            # TODO: find better way to upgrade string to strong type.<matth 2025-07-04>
+            # TODO: find better way to upgrade string to strong type (date/int).
+            #  <matth 2025-07-04 status:development category:parser priority:high release:1.0.0 iteration:1>
             try:
                 parsed_date = parse_due_date(self.due)
                 self._due_date_obj = parsed_date
@@ -228,15 +229,35 @@ class TODO(DATA):
             if not self.closed_date:
                 issues.append(f"Item is done, missing closed date, suggest {datetime.datetime.now()}")
 
-        # TODO: check for mandatory fields <matth 2025-07-04>
+        # TODO: check for mandatory fields <matth 2025-07-04 assignee:matth status:done category:validation
+        #  release:0.3.0 closed_date:2025-07-05 change_type:Added>
         mandatory_fields = config.mandatory_fields()
+        skip_if_closed = ["priority", "iteration"]
         if mandatory_fields:
             for mandatory_field in mandatory_fields:
+                if mandatory_field in skip_if_closed and self.is_probably_done():
+                    continue
                 if not getattr(self, mandatory_field):
-                    issues.append(f"{mandatory_field} is required")
+                    suggestions = []
+                    if mandatory_field == "status":
+                        suggestions = config.valid_status()
+                    elif mandatory_field== "category":
+                        suggestions = config.valid_categories()
+                    elif mandatory_field == "priority":
+                        suggestions = config.valid_priorities()
+                    elif mandatory_field == "iteration":
+                        suggestions = config.valid_iterations()
+
+                    if suggestions:
+                        issues.append(
+                            f"{mandatory_field} is required, suggest {suggestions}"
+                        )
+                    else:
+                        issues.append(f"{mandatory_field} is required")
 
         # Authors from config.
-        # TODO: Implement authors from files <matth 2025-07-04>
+        # TODO: Implement authors from files
+        #  <matth 2025-07-04 status:development category:validation priority:high release:2.0.0 iteration:1>
         authors_list = config.valid_authors()
         if authors_list:
             for person in (self.originator, self.assignee):
@@ -247,13 +268,15 @@ class TODO(DATA):
                 elif isinstance(person, str) and person.lower() not in authors_list:
                     issues.append(f"Person '{person}' is not on the valid authors list, {authors_list}")
 
-        # TODO: Implement release/version from files <matth 2025-07-04>
+        # TODO: Implement release/version from files
+        #  <matth 2025-07-04 status:development category:parser priority:medium release:2.0.0 iteration:1>
         release_list = config.valid_releases()
         if release_list:
             if self.release and self.release not in release_list:
                 issues.append(f"Release '{self.release}' is not on the valid release list {release_list}")
 
-        # TODO: Implement release/version from files <matth 2025-07-04>
+        # TODO: Implement release/version from files <matth 2025-07-04
+        #  priority:low category:validation status:development release:2.0.0 iteration:1>
 
         valid_change_list = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
         if self.is_probably_done():

@@ -9,14 +9,14 @@ import logging
 import logging.config
 import pathlib
 
-import pycodetags.data_schema as data_schema
+import pycodetags.data_tags_schema as data_schema
 import pycodetags.folk_code_tags as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
-from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments_from_file
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.plugin_manager import get_plugin_manager
 
@@ -58,7 +58,7 @@ def aggregate_all_kinds_multiple_input(
 
     for found_tag in collected:
         if "fields" in found_tag.keys():
-            item = convert_pep350_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
+            item = convert_data_tag_to_data_object(found_tag, schema)  # type: ignore[arg-type]
             collected_DATA.append(item)
         else:
             item = convert_folk_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
@@ -101,7 +101,8 @@ def aggregate_all_kinds(
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
     schemas: list[DataTagSchema] = [schema]
-    # TODO: get schemas from plugins.<matth 2025-07-04>
+    # TODO: get schemas from plugins.<matth 2025-07-04
+    #   category:plugin priority:medium status:development release:1.0.0 iteration:1>
 
     if source_path:
         src_found = 0

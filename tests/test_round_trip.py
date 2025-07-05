@@ -3,12 +3,13 @@ import sys
 
 import pytest
 
-from pycodetags.converters import convert_pep350_tag_to_DATA
-from pycodetags.data_tag_types import DATA
+from pycodetags.converters import convert_data_tag_to_data_object
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_methods import promote_fields
+from pycodetags.data_tags_parsers import iterate_comments_from_file, parse_codetags
 
 # Assuming pycodetags is installed or accessible in the Python path
-from pycodetags.data_tags import DataTag, DataTagFields, DataTagSchema, parse_codetags, promote_fields
-from pycodetags.data_tags_parsers import iterate_comments_from_file
+from pycodetags.data_tags_schema import DataTag, DataTagFields, DataTagSchema
 
 # Define a sample schema for testing
 TEST_SCHEMA: DataTagSchema = {
@@ -112,7 +113,7 @@ class MyClass:
     # 1. Parse source code into DataTag objects
     parsed_data_tags_raw = list(iterate_comments_from_file(str(file_path), [TEST_SCHEMA], include_folk_tags=False))
 
-    parsed_data_tags = list(convert_pep350_tag_to_DATA(_, TEST_SCHEMA) for _ in parsed_data_tags_raw)
+    parsed_data_tags = list(convert_data_tag_to_data_object(_, TEST_SCHEMA) for _ in parsed_data_tags_raw)
     # Ensure some tags were found
     assert len(parsed_data_tags) >= 2, "Expected at least two DataTags to be parsed"
 
@@ -220,7 +221,7 @@ def test_datatag_to_source_to_datatag_with_quoted_values():
         "original_text": "N/A",
     }
 
-    data_obj = convert_pep350_tag_to_DATA(original_data_tag, TEST_SCHEMA)
+    data_obj = convert_data_tag_to_data_object(original_data_tag, TEST_SCHEMA)
     generated_comment_string = data_obj.as_data_comment()
 
     re_parsed_data_tags = parse_codetags(generated_comment_string, TEST_SCHEMA, strict=False)

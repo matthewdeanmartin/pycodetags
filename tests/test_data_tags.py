@@ -1,6 +1,7 @@
 import pytest
 
-from pycodetags.data_tags import is_int, merge_two_dicts, parse_codetags, parse_fields, promote_fields
+from pycodetags.data_tags_methods import promote_fields
+from pycodetags.data_tags_parsers import is_int, merge_two_dicts, parse_codetags, parse_fields
 
 
 @pytest.mark.parametrize(

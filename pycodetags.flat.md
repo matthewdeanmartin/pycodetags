@@ -14,14 +14,14 @@ import logging
 import logging.config
 import pathlib
 
-import pycodetags.data_schema as data_schema
+import pycodetags.data_tags_schema as data_schema
 import pycodetags.folk_code_tags as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
-from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments_from_file
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.plugin_manager import get_plugin_manager
 
@@ -63,7 +63,7 @@ def aggregate_all_kinds_multiple_input(
 
     for found_tag in collected:
         if "fields" in found_tag.keys():
-            item = convert_pep350_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
+            item = convert_data_tag_to_data_object(found_tag, schema)  # type: ignore[arg-type]
             collected_DATA.append(item)
         else:
             item = convert_folk_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
@@ -106,7 +106,8 @@ def aggregate_all_kinds(
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
     schemas: list[DataTagSchema] = [schema]
-    # TODO: get schemas from plugins.<matth 2025-07-04>
+    # TODO: get schemas from plugins.<matth 2025-07-04
+    #   category:plugin priority:medium status:development release:1.0.0 iteration:1>
 
     if source_path:
         src_found = 0
@@ -477,7 +478,8 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
     lines = source.splitlines()
 
     # Filter out comment nodes
-    # BUG: fails to walk the whole tree. This is shallow. <matth 2025-07-04>
+    # BUG: fails to walk the whole tree. This is shallow. <matth 2025-07-04
+    #  category:parser priority:high status:development release:1.0.0 iteration:1>
     comments = [node for node in walk(tree) if isinstance(node, Comment)]
 
     def comment_pos(comment: Comment) -> tuple[int, int, int, int]:
@@ -640,12 +642,12 @@ from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import TextIO, Union, cast
 
-from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
-from pycodetags.data_schema import PureDataSchema
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
+from pycodetags.pure_data_schema import PureDataSchema
 
 IOInput = Union[str, os.PathLike, TextIO]
 IOSource = Union[str, IOInput]
@@ -660,7 +662,7 @@ def string_to_data(
     tags = []
     for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
         if "fields" in tag:
-            tags.append(convert_pep350_tag_to_DATA(cast(DataTag, tag), schema))
+            tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
         else:
             tags.append(convert_folk_tag_to_DATA(cast(FolkTag, tag), schema))
     return tags
@@ -722,7 +724,8 @@ def dumps(obj: DATA) -> str:
     """Serialize to string"""
     if not obj:
         return ""
-    # TODO: check plugins to answer for _schema <matth 2025-07-04>
+    # TODO: check plugins to answer for _schema <matth 2025-07-04
+    #  category:plugin priority:medium status:development release:1.0.0 iteration:1>
     return obj.as_data_comment()
 
 
@@ -744,7 +747,8 @@ def load(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
     """Deserialize from a file-like or path-like to a single data tag"""
-    # BUG: not all of these are context manager <matth 2025-07-05>
+    # BUG: not all of these are context manager <matth 2025-07-05
+    #  category:core priority:high status:development release:1.0.0 iteration:1>
     with _open_for_read(source) as f:
         items = string_to_data(f.read(), file_path, schema, include_folk_tags)
         return next((_ for _ in items), None)
@@ -1014,7 +1018,7 @@ if __name__ == "__main__":
 
 ```python
 """
-Converters for FolkTag and PEP350Tag to TODO
+Converters for FolkTag and DataTag typed dicts to DATA class
 """
 
 from __future__ import annotations
@@ -1022,8 +1026,9 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema, promote_fields
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_methods import promote_fields
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
 
 logger = logging.getLogger(__name__)
@@ -1042,32 +1047,42 @@ def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA: 
         "code_tag": folk_tag.get("code_tag"),
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
-        "_file_path": folk_tag.get("file_path"),
-        "_line_number": folk_tag.get("line_number"),
-        "_original_text": folk_tag.get("original_text"),
-        "_original_schema": "folk",
-        "_offsets": folk_tag.get("offsets"),
+        "file_path": folk_tag.get("file_path"),
+        "line_number": folk_tag.get("line_number"),
+        "original_text": folk_tag.get("original_text"),
+        "original_schema": "folk",
+        "offsets": folk_tag.get("offsets"),
     }
     return DATA(**kwargs)  # type: ignore[arg-type]
 
 
-def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DATA:
+def convert_data_tag_to_data_object(tag_value: DataTag, schema: DataTagSchema) -> DATA:
     """
-    Convert a PEP350Tag to a DATA object.
+    Convert a DataTag dict to a DATA object.
 
     Args:
-        pep350_tag (PEP350Tag): The PEP350Tag to convert.
+        tag_value (DataTag): The PEP350Tag to convert.
         schema (DataTagSchema): Schema for DataTag
     """
     # default fields should have already been promoted to data_fields by now.
-    kwargs = upgrade_to_specific_schema(pep350_tag, schema)
+    kwargs = upgrade_to_specific_schema(tag_value, schema)
 
     return DATA(**kwargs)  # type: ignore[arg-type]
 
 
-def upgrade_to_specific_schema(pep350_tag: DataTag, schema: DataTagSchema, flat: bool = True) -> dict[str, Any]:
-    data_fields = pep350_tag["fields"]["data_fields"]
-    custom_fields = pep350_tag["fields"]["custom_fields"]
+def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: bool = True) -> dict[str, Any]:
+    """Convert a DataTag to a specific schema.
+
+    Args:
+        tag_value (DataTag): The DataTag to convert.
+        schema (DataTagSchema): The schema to use for the conversion.
+        flat (bool): If True, return a flat dict, otherwise return a nested dict.
+
+    Returns:
+        dict[str, Any]: A dictionary representation of the DataTag with fields promoted according to the schema.
+    """
+    data_fields = tag_value["fields"]["data_fields"]
+    custom_fields = tag_value["fields"]["custom_fields"]
     final_data = {}
     final_custom = {}
     for found, value in data_fields.items():
@@ -1085,98 +1100,300 @@ def upgrade_to_specific_schema(pep350_tag: DataTag, schema: DataTagSchema, flat:
                 logger.warning("Found same field in both data and custom")
             final_custom[found] = value
     kwargs: DataTag | dict[str, Any] = {
-        "code_tag": pep350_tag["code_tag"],
-        "comment": pep350_tag["comment"],
+        "code_tag": tag_value["code_tag"],
+        "comment": tag_value["comment"],
         # Source Mapping
-        "_file_path": pep350_tag.get("file_path"),
-        "_line_number": pep350_tag.get("line_number"),
-        "_original_text": pep350_tag.get("original_text"),
-        "_original_schema": "pep350",
-        "_offsets": pep350_tag.get("offsets"),
+        "file_path": tag_value.get("file_path"),
+        "line_number": tag_value.get("line_number"),
+        "original_text": tag_value.get("original_text"),
+        "original_schema": "pep350",
+        "offsets": tag_value.get("offsets"),
     }
     if flat:
-        kwargs["default_fields"] = pep350_tag["fields"]["default_fields"]  # type:ignore[typeddict-unknown-key]
+        kwargs["default_fields"] = tag_value["fields"]["default_fields"]  # type:ignore[typeddict-unknown-key]
         kwargs["data_fields"] = final_data  # type:ignore[typeddict-unknown-key]
         kwargs["custom_fields"] = final_custom  # type:ignore[typeddict-unknown-key]
-        ud = pep350_tag["fields"]["unprocessed_defaults"]
+        ud = tag_value["fields"]["unprocessed_defaults"]
         kwargs["unprocessed_defaults"] = ud  # type:ignore[typeddict-unknown-key]
+        # kwargs["identity_fields"]=tag_value["fields"].get("identity_fields", {})  # type:ignore[typeddict-unknown-key]
     else:
         kwargs["fields"] = {
             "data_fields": final_data,
             "custom_fields": final_custom,
-            "default_fields": pep350_tag["fields"]["default_fields"],
-            "unprocessed_defaults": pep350_tag["fields"]["unprocessed_defaults"],
+            "default_fields": tag_value["fields"]["default_fields"],
+            "unprocessed_defaults": tag_value["fields"]["unprocessed_defaults"],
+            "identity_fields": tag_value["fields"].get("identity_fields", []),
         }
         promote_fields(kwargs, schema)  # type: ignore[arg-type]
     return kwargs  # type: ignore[return-value]
 
 ```
 
-## File: data_schema.py
+## File: data_tags_classes.py
 
 ```python
 """
-The domain-free schema.
-
-When used, all fields are parsed as custom fields.
-"""
-
-from pycodetags.data_tags import DataTagSchema
-
-PureDataSchema: DataTagSchema = {
-    "name": "DATA",
-    "matching_tags": ["DATA"],
-    "default_fields": {
-        # No defaults, no domain!
-    },
-    "data_fields": {
-        # No domain fields, pure data!
-    },
-    "data_field_aliases": {
-        # No alias, no domain!
-    },
-}
-
-```
-
-## File: data_tags.py
-
-```python
-"""
-Abstract data serialization format, of which PEP-350 is one schema.
-
-In scope:
-    - parsing a data tag as a data serialization format.
-    - defining a schema
-    - domain free concepts
-    - Parsing python to extract # comments, be it AST or regex or other strategy
-    - Round tripping to and from data tag format
-    - Equivalence checking by value
-    - Merging and promoting fields among default, data and custom.
-
-Out of scope:
-    - File system interaction
-    - Any particular schema (PEP350 code tags, discussion tags, documentation tags, etc)
-    - Domain specific concepts (users, initials, start dates, etc)
-    - Docstring style comments and docstrings
-
-Inputs:
-    - A block of valid python comment text
-    - A schema
-
-Outputs:
-    - A python data structure that represents a data structure
-
-Half-hearted goal:
-    - Minimize python concepts so this can be implemented in Javascript, etc.
+Strongly typed data tags, base for all code tags
 """
 
 from __future__ import annotations
 
 import datetime
 import logging
-import re
+from dataclasses import dataclass, field, fields
+from functools import wraps
+from typing import Any, Callable, cast  # noqa
+
+from pycodetags import exceptions
+from pycodetags.exceptions import ValidationError
+
+try:
+    from typing import Literal  # type: ignore[assignment,unused-ignore]
+except ImportError:
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
+
+logger = logging.getLogger(__name__)
+
+
+class Serializable:
+    """A base class for objects that can be serialized to a dictionary."""
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert the object to a dictionary representation.
+        """
+        d = self.__dict__.copy()
+        for key, value in list(d.items()):
+            if isinstance(value, datetime.datetime):
+                d[key] = value.isoformat()
+            if key.startswith("_"):
+                del d[key]
+            if key == "data_meta":
+                del d[key]
+        return d
+
+
+@dataclass(eq=False)
+class DATA(Serializable):
+    """
+    Represents a data record that can be serialized into python source code comments.
+    """
+
+    code_tag: str | None = "DATA"
+    """Capitalized tag name"""
+    comment: str | None = None
+    """Unstructured text"""
+
+    # Derived classes will have properties/fields for each data_field.
+    # assignee: str
+
+    # Custom as per domain specific schema
+    default_fields: dict[str, str] | None = None
+    data_fields: dict[str, str] | None = None
+    custom_fields: dict[str, str] | None = None
+    identity_fields: list[str] | None = None
+    unprocessed_defaults: list[str] | None = None
+
+    # Source mapping, original parsing info
+    # Do not deserialize these back into the comments!
+    file_path: str | None = None
+    line_number: int | None = None
+    original_text: str | None = None
+    original_schema: str | None = None
+    offsets: tuple[int, int, int, int] | None = None
+
+    data_meta: DATA | None = field(init=False, default=None)
+    """Necessary internal field for decorators"""
+
+    def __post_init__(self) -> None:
+        """
+        Validation and complex initialization
+        """
+        self.data_meta = self
+
+    def _perform_action(self) -> None:
+        """
+        Hook for performing an action when used as a decorator or context manager.
+        Override in subclasses.
+        """
+
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
+            self._perform_action()
+            return cast(Callable[..., Any], func(*args, **kwargs))
+
+        cast(Any, wrapper).data_meta = self
+        return wrapper
+
+    def __enter__(self) -> DATA:
+        # self._perform_action()
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_value: BaseException | None,
+        traceback: Any,
+    ) -> Literal[False]:
+        return False  # propagate exceptions
+
+    # overridable?
+    def validate(self) -> list[str]:
+        """Validates the Data item."""
+        return []
+
+    def validate_or_raise(self):
+        errors = self.validate()
+        if errors:
+            raise ValidationError(errors)
+
+    def _extract_data_fields(self) -> dict[str, str]:
+        d = {}
+        for f in fields(self):
+            # only data_fields, default_fields are strongly typed
+            if f.name in ("data_fields", "default_fields"):
+                continue
+            val = getattr(self, f.name)
+            # BUG: ignores if field is both data/default <matth 2025-07-04
+            #  category:core priority:high status:development release:1.0.0 iteration:1>
+            if val is not None:
+                if isinstance(val, datetime.datetime):
+                    d[f.name] = val.isoformat()
+                else:
+                    d[f.name] = str(val)
+            # else:
+            #     print()
+
+        return d
+
+    def as_data_comment(self) -> str:
+        """Print as if it was a PEP-350 comment."""
+        the_fields = ""
+        to_skip = []
+
+        metadata = [
+            "file_path",
+            "line_number",
+            "original_text",
+            "original_schema",
+            "offsets",
+        ]
+
+        if self.default_fields:
+            for key, value in self.default_fields.items():
+                to_skip.append(key)
+                if isinstance(value, list) and len(value) == 1:
+                    value = value[0]
+                elif isinstance(value, list):
+                    value = ",".join(value)
+                the_fields += f"{value} "
+
+        for field_set in (self.custom_fields, self.data_fields):
+            if field_set:
+                for key, value in field_set.items():
+
+                    if (
+                        value  # skip blanks
+                        and key != "custom_fields"
+                        and key not in to_skip  # already in default
+                        and not key.startswith("_")  # old metadata field
+                        and key not in metadata  # new metadata field
+                    ):
+                        if isinstance(value, list) and len(value) == 1:
+                            value = value[0]
+                        elif isinstance(value, list):
+                            value = ",".join(value)
+                        else:
+                            value = str(value)
+                        if " " in value and "'" in value and '"' in value:
+                            value = f'"""{value}"""'
+                        elif " " in value and '"' not in value:
+                            value = f'"{value}"'
+                        elif " " in value and "'" not in value:
+                            value = f"'{value}'"
+                        elif ":" in value or "=" in value:
+                            value = f'"{value}"'
+
+                        the_fields += f"{key}:{value} "
+
+        first_line = f"# {(self.code_tag or '').upper()}: {self.comment}"
+        complete = f"{first_line} <{the_fields.strip()}>"
+        if len(complete) > 120:
+            first_line += "\n# "
+            complete = f"{first_line}<{the_fields.strip()}>"
+        return complete
+
+    def __eq__(self, other):
+        # @dataclasses autogenerated __eq__ calls __repr__ so eval(repr(x)) == x causes infinite loop detection
+
+        # TODO: this needs to support subclasses. <matth 2025-07-04
+        #  category:core priority:high status:development release:1.0.0 iteration:1>
+
+        # if not isinstance(other, type(self)):
+        #     return NotImplemented
+
+        for f in fields(self):
+            self_val = getattr(self, f.name)
+            other_val = getattr(other, f.name)
+
+            # Skip self-references (simple identity check)
+            if self_val is self and other_val is other:
+                continue
+
+            if self_val != other_val:
+                return False
+
+        return True
+
+    def __repr__(self):
+        field_strings = []
+        for f in fields(self):
+            if f.name != "data_meta" and f.name != "type":
+                field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
+        return f"{self.__class__.__name__}({', '.join(field_strings)})"
+
+    def terminal_link(self) -> str:
+        """In JetBrains IDE Terminal, will hyperlink to file"""
+        if self.offsets:
+            start_line, start_char, _end_line, _end_char = self.offsets
+            return f"{self.file_path}:{start_line+1}:{start_char}"
+        if self.file_path:
+            return f"{self.file_path}:0"
+        return ""
+
+    def to_flat_dict(self, include_comment_and_tag: bool = False, raise_on_doubles: bool = True) -> dict[str, Any]:
+
+        # TODO: see if there is way to disambiguate to_flat_dict and to_dict (in the serializer) <matth 2025-07-05
+        #   category:documentation priority:low status:development release:1.0.0 iteration:1>
+        if self.data_fields:
+            data = self.data_fields.copy()
+        else:
+            data = {}
+        if self.custom_fields:
+            for key, value in self.custom_fields.items():
+                if raise_on_doubles and key in data:
+                    raise exceptions.PyCodeTagsError("Field in data_fields and custom fields")
+                data[key] = value
+        if include_comment_and_tag:
+            if self.comment:
+                data["comment"] = self.comment
+            if self.code_tag:
+                data["code_tag"] = self.code_tag
+        return data
+
+```
+
+## File: data_tags_methods.py
+
+```python
+from __future__ import annotations
+
+import datetime
+import logging
 from typing import Any
+
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 
 try:
     from typing import TypedDict
@@ -1184,78 +1401,6 @@ except ImportError:
     from typing_extensions import TypedDict  # noqa
 
 logger = logging.getLogger(__name__)
-
-
-class DataTagSchema(TypedDict):
-    """
-    Data for interpreting a domain specific code tag.
-    """
-
-    name: str
-
-    matching_tags: list[str]
-    """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
-
-    default_fields: dict[str, str]
-    """type:name, e.g. str:assignees"""
-
-    data_fields: dict[str, str]
-    """name:type, e.g. priority:str"""
-
-    data_field_aliases: dict[str, str]
-    """name:alias, e.g. priority:p"""
-
-
-class DataTagFields(TypedDict):
-    """Rules for interpreting the fields part of a code tag"""
-
-    unprocessed_defaults: list[str]
-
-    # When deserializating a field value could appear in default, data and custom field positions.
-    default_fields: dict[str, list[Any]]
-    """Field without label identified by data type, range or fallback, e.g. user and date"""
-
-    # TODO: support dict[str, int | date | str | list[int, date, str]] ? <matth 2025-07-04>
-    data_fields: dict[str, Any]
-    """Expected fields with labels, e.g. category, priority"""
-
-    custom_fields: dict[str, str]
-    """Key value pairs, e.g. SAFe program increment number"""
-
-
-# def get_data_field_value(schema: DataTagSchema, fields: DataTagFields, field_name: str, strict: bool) -> Any:
-#     values = []
-#     # default fields should already be resolved to a data_field by this point
-#     if field_name in schema["data_fields"]:
-#         if field_name in fields["data_fields"]:
-#             values.append(fields["data_fields"][field_name])
-#         if field_name in fields["custom_fields"]:
-#             values.append(fields["custom_fields"][field_name])
-#     if len(set(values)) == 1:
-#         return values[0]
-#     if strict:
-#         raise TypeError(f"Double field with different values {field_name} : {values}")
-#     logger.warning(f"Double field with different values {field_name} : {values}")
-#
-#     # TODO: do we want to support str | list[str]? <matth 2025-07-04>
-#     if values:
-#         return values[0]
-#     return ""
-
-
-class DataTag(TypedDict, total=False):
-    """An abstract data code tag."""
-
-    code_tag: str
-    comment: str
-    fields: DataTagFields
-
-    # metadata
-    file_path: str | None
-    line_number: int | None
-    original_text: str | None
-    original_schema: str | None
-    offsets: tuple[int, int, int, int] | None
 
 
 def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
@@ -1362,6 +1507,117 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
                     logger.warning(f"Failed to promote custom_field {full_alias}/{custom_value}, not consumed")
 
 
+def merge_two_dicts(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
+    z = x.copy()  # start with keys and values of x
+    z.update(y)  # modifies z with keys and values of y
+    return z
+
+```
+
+## File: data_tags_parsers.py
+
+```python
+"""
+Parse specific schemas of data tags
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from collections.abc import Generator
+from pathlib import Path
+
+from pycodetags import folk_code_tags
+from pycodetags.comment_finder import find_comment_blocks_from_string
+from pycodetags.data_tags_methods import merge_two_dicts, promote_fields
+from pycodetags.data_tags_schema import DataTag, DataTagFields, DataTagSchema
+from pycodetags.exceptions import SchemaError
+from pycodetags.folk_code_tags import FolkTag
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict  # noqa
+
+logger = logging.getLogger(__name__)
+
+
+def iterate_comments_from_file(
+    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
+    """
+    Collect PEP-350 style code tags from a given file.
+
+    Args:
+        file (str): The path to the file to process.
+        schemas (DataTaSchema): Schemas that will be detected in file
+        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
+
+    Yields:
+        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
+    """
+    logger.info(f"iterate_comments: processing {file}")
+    yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
+
+
+def iterate_comments(
+    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag | FolkTag]:
+    """
+    Collect PEP-350 style code tags from a given file.
+
+    Args:
+        source (str): The source text to process.
+        source_file (Path): Where did the source come from
+        schemas (DataTaSchema): Schemas that will be detected in file
+        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
+
+    Yields:
+        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
+    """
+    if not schemas and not include_folk_tags:
+        raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
+    things: list[DataTag | FolkTag] = []
+    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
+        # Can only be one comment block now!
+        logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
+        found_data_tags = []
+        for schema in schemas:
+            found_data_tags = parse_codetags(final_comment, schema, strict=False)
+
+            for found in found_data_tags:
+                found["file_path"] = str(source_file) if source_file else None
+                found["line_number"] = _start_line
+                found["original_text"] = final_comment
+                found["original_schema"] = "PEP350"
+                found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
+
+            if found_data_tags:
+                logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
+            things.extend(found_data_tags)
+
+        for schema in schemas:
+            if not found_data_tags and include_folk_tags and schema["matching_tags"]:
+                # BUG: fails if there are two in the same. Blank out consumed text, reconsume bock <matth 2025-07-04
+                #  category:parser priority:high status:development release:1.0.0 iteration:1>
+                found_folk_tags: list[FolkTag] = []
+                # TODO: support config of folk schema.<matth 2025-07-04 category:config priority:high status:development release:1.0.0 iteration:1>
+                folk_code_tags.process_text(
+                    final_comment,
+                    allow_multiline=True,
+                    default_field_meaning="assignee",
+                    found_tags=found_folk_tags,
+                    file_path=str(source_file) if source_file else "",
+                    valid_tags=schema["matching_tags"],
+                )
+                if found_folk_tags:
+                    logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
+                things.extend(found_folk_tags)
+
+    yield from things
+
+
 def is_int(s: str) -> bool:
     """Check if a string can be interpreted as an integer.
     Args:
@@ -1408,7 +1664,13 @@ def parse_fields(
         legit_names[key] = key
     field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], legit_names)
 
-    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}, "unprocessed_defaults": []}
+    fields: DataTagFields = {
+        "default_fields": {},
+        "data_fields": {},
+        "custom_fields": {},
+        "unprocessed_defaults": [],
+        "identity_fields": [],
+    }
 
     # Updated key_value_pattern:
     # - Handles quoted values (single or double) allowing any characters inside.
@@ -1532,14 +1794,7 @@ def parse_fields(
         if not matched_default:
             fields["unprocessed_defaults"].append(token)
 
-    # TODO: promote default fields to data_fields <matth 2025-07-04>
     return fields
-
-
-def merge_two_dicts(x: dict[str, Any], y: dict[str, Any]) -> dict[str, Any]:
-    z = x.copy()  # start with keys and values of x
-    z.update(y)  # modifies z with keys and values of y
-    return z
 
 
 def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool) -> list[DataTag]:
@@ -1582,7 +1837,8 @@ def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool
                 "code_tag": tag_parts["code_tag"],
                 "comment": tag_parts["comment"],
                 "fields": fields,
-                "original_text": "N/A",  # BUG: Regex doesn't allow for showing this! <matth 2025-07-04>
+                "original_text": "N/A",  # BUG: Regex doesn't allow for showing this! <matth 2025-07-04
+                # category:parser priority:high status:development release:1.0.0 iteration:1>
             }
         )
 
@@ -1593,340 +1849,105 @@ def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool
 
 ```
 
-## File: data_tags_parsers.py
+## File: data_tags_schema.py
 
 ```python
 """
-Parse specific schemas of data tags
+Abstract data serialization format, of which PEP-350 is one schema.
+
+In scope:
+    - parsing a data tag as a data serialization format.
+    - defining a schema
+    - domain free concepts
+    - Parsing python to extract # comments, be it AST or regex or other strategy
+    - Round tripping to and from data tag format
+    - Equivalence checking by value
+    - Merging and promoting fields among default, data and custom.
+
+Out of scope:
+    - File system interaction
+    - Any particular schema (PEP350 code tags, discussion tags, documentation tags, etc)
+    - Domain specific concepts (users, initials, start dates, etc)
+    - Docstring style comments and docstrings
+
+Inputs:
+    - A block of valid python comment text
+    - A schema
+
+Outputs:
+    - A python data structure that represents a data structure
+
+Half-hearted goal:
+    - Minimize python concepts so this can be implemented in Javascript, etc.
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Generator
-from pathlib import Path
-
-from pycodetags import folk_code_tags
-from pycodetags.comment_finder import find_comment_blocks_from_string
-from pycodetags.data_tags import DataTag, DataTagSchema, parse_codetags
-from pycodetags.exceptions import SchemaError
-from pycodetags.folk_code_tags import FolkTag
-
-logger = logging.getLogger(__name__)
-
-
-def iterate_comments_from_file(
-    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
-) -> Generator[DataTag | FolkTag]:
-    """
-    Collect PEP-350 style code tags from a given file.
-
-    Args:
-        file (str): The path to the file to process.
-        schemas (DataTaSchema): Schemas that will be detected in file
-        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
-
-    Yields:
-        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
-    """
-    logger.info(f"iterate_comments: processing {file}")
-    yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
-
-
-def iterate_comments(
-    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
-) -> Generator[DataTag | FolkTag]:
-    """
-    Collect PEP-350 style code tags from a given file.
-
-    Args:
-        source (str): The source text to process.
-        source_file (Path): Where did the source come from
-        schemas (DataTaSchema): Schemas that will be detected in file
-        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
-
-    Yields:
-        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
-    """
-    if not schemas and not include_folk_tags:
-        raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
-    things: list[DataTag | FolkTag] = []
-    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
-        # Can only be one comment block now!
-        logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
-        found_data_tags = []
-        for schema in schemas:
-            found_data_tags = parse_codetags(final_comment, schema, strict=False)
-
-            for found in found_data_tags:
-                found["file_path"] = str(source_file) if source_file else None
-                found["line_number"] = _start_line
-                found["original_text"] = final_comment
-                found["original_schema"] = "PEP350"
-                found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
-
-            if found_data_tags:
-                logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
-            things.extend(found_data_tags)
-
-        for schema in schemas:
-            if not found_data_tags and include_folk_tags and schema["matching_tags"]:
-                # BUG: fails if there are two in th same.
-                # TODO: blank out consumed text, reconsume bock <matth 2025-07-04>
-                found_folk_tags: list[FolkTag] = []
-                # TODO: support config of folk schema.<matth 2025-07-04>
-                folk_code_tags.process_text(
-                    final_comment,
-                    allow_multiline=True,
-                    default_field_meaning="assignee",
-                    found_tags=found_folk_tags,
-                    file_path=str(source_file) if source_file else "",
-                    valid_tags=schema["matching_tags"],
-                )
-                if found_folk_tags:
-                    logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
-                things.extend(found_folk_tags)
-
-    yield from things
-
-```
-
-## File: data_tag_types.py
-
-```python
-"""
-Strongly typed data tags, base for all code tags
-"""
-
-from __future__ import annotations
-
-import datetime
-import logging
-from dataclasses import dataclass, field, fields
-from functools import wraps
-from typing import Any, Callable, cast  # noqa
-
-from pycodetags import exceptions
-from pycodetags.exceptions import ValidationError
+from typing import Any
 
 try:
-    from typing import Literal  # type: ignore[assignment,unused-ignore]
+    from typing import TypedDict
 except ImportError:
-    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
+    from typing_extensions import TypedDict  # noqa
 
 logger = logging.getLogger(__name__)
 
 
-class Serializable:
-    """A base class for objects that can be serialized to a dictionary."""
+class DataTag(TypedDict, total=False):
+    """An abstract data code tag."""
 
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Convert the object to a dictionary representation.
-        """
-        d = self.__dict__.copy()
-        for key, value in list(d.items()):
-            if isinstance(value, datetime.datetime):
-                d[key] = value.isoformat()
-            if key.startswith("_"):
-                del d[key]
-            if key == "data_meta":
-                del d[key]
-        return d
+    code_tag: str
+    comment: str
+    fields: DataTagFields
+
+    # metadata
+    file_path: str | None
+    line_number: int | None
+    original_text: str | None
+    original_schema: str | None
+    offsets: tuple[int, int, int, int] | None
 
 
-@dataclass(eq=False)
-class DATA(Serializable):
+class DataTagSchema(TypedDict):
     """
-    Represents a data record that can be serialized into python source code comments.
+    Data for interpreting a domain specific code tag.
     """
 
-    code_tag: str | None = "DATA"
-    """Capitalized tag name"""
-    comment: str | None = None
-    """Unstructured text"""
+    name: str
 
-    # Derived classes will have properties/fields for each data_field.
-    # assignee: str
+    matching_tags: list[str]
+    """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
 
-    # Custom workflow
-    default_fields: dict[str, str] | None = None
-    data_fields: dict[str, str] | None = None
-    custom_fields: dict[str, str] | None = None
-    unprocessed_defaults: list[str] | None = None
+    default_fields: dict[str, str]
+    """type:name, e.g. str:assignees"""
 
-    # Source mapping, original parsing info
-    # Do not deserialize these back into the comments!
-    _file_path: str | None = None
-    _line_number: int | None = None
-    _original_text: str | None = None
-    _original_schema: str | None = None
-    _offsets: tuple[int, int, int, int] | None = None
+    data_fields: dict[str, str]
+    """name:type, e.g. priority:str"""
 
-    data_meta: DATA | None = field(init=False, default=None)
-    """Necessary internal field for decorators"""
+    data_field_aliases: dict[str, str]
+    """name:alias, e.g. priority:p"""
 
-    def __post_init__(self) -> None:
-        """
-        Validation and complex initialization
-        """
-        self.data_meta = self
 
-    def _perform_action(self) -> None:
-        """
-        Hook for performing an action when used as a decorator or context manager.
-        Override in subclasses.
-        """
+class DataTagFields(TypedDict):
+    """Rules for interpreting the fields part of a code tag"""
 
-    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Callable[..., Any]:
-            self._perform_action()
-            return cast(Callable[..., Any], func(*args, **kwargs))
+    unprocessed_defaults: list[str]
 
-        cast(Any, wrapper).data_meta = self
-        return wrapper
+    # When deserializating a field value could appear in default, data and custom field positions.
+    default_fields: dict[str, list[Any]]
+    """Field without label identified by data type, range or fallback, e.g. user and date"""
 
-    def __enter__(self) -> DATA:
-        # self._perform_action()
-        return self
+    # TODO: support dict[str, int | date | str | list[int, date, str]] ? <matth 2025-07-04
+    #  category:schema priority:high status:development release:1.0.0 iteration:1>
+    data_fields: dict[str, Any]
+    """Expected fields with labels, e.g. category, priority"""
 
-    def __exit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_value: BaseException | None,
-        traceback: Any,
-    ) -> Literal[False]:
-        return False  # propagate exceptions
+    custom_fields: dict[str, str]
+    """Key value pairs, e.g. SAFe program increment number"""
 
-    # overridable?
-    def validate(self) -> list[str]:
-        """Validates the Data item."""
-        return []
-
-    def validate_or_raise(self):
-        errors = self.validate()
-        if errors:
-            raise ValidationError(errors)
-
-    def _extract_data_fields(self) -> dict[str, str]:
-        d = {}
-        for f in fields(self):
-            # only data_fields, default_fields are strongly typed
-            if f.name in ("data_fields", "default_fields"):
-                continue
-            val = getattr(self, f.name)
-            # BUG: ignores if field is both data/default <matth 2025-07-04>
-            if val is not None:
-                if isinstance(val, datetime.datetime):
-                    d[f.name] = val.isoformat()
-                else:
-                    d[f.name] = str(val)
-            # else:
-            #     print()
-
-        return d
-
-    def as_data_comment(self) -> str:
-        """Print as if it was a PEP-350 comment."""
-        the_fields = ""
-        to_skip = []
-        if self.default_fields:
-            for key, value in self.default_fields.items():
-                to_skip.append(key)
-                if isinstance(value, list) and len(value) == 1:
-                    value = value[0]
-                elif isinstance(value, list):
-                    value = ",".join(value)
-                the_fields += f"{value} "
-
-        for field_set in (self.custom_fields, self.data_fields):
-            if field_set:
-                for key, value in field_set.items():
-
-                    if (
-                        value  # skip blanks
-                        and key != "custom_fields"
-                        and key not in to_skip  # already in default
-                        and not key.startswith("_")  # metadata field
-                    ):
-                        if isinstance(value, list) and len(value) == 1:
-                            value = value[0]
-                        elif isinstance(value, list):
-                            value = ",".join(value)
-                        else:
-                            value = str(value)
-                        if " " in value and "'" in value and '"' in value:
-                            value = f'"""{value}"""'
-                        elif " " in value and '"' not in value:
-                            value = f'"{value}"'
-                        elif " " in value and "'" not in value:
-                            value = f"'{value}'"
-                        elif ":" in value or "=" in value:
-                            value = f'"{value}"'
-
-                        the_fields += f"{key}:{value} "
-
-        first_line = f"# {(self.code_tag or '').upper()}: {self.comment}"
-        complete = f"{first_line} <{the_fields.strip()}>"
-        if len(complete) > 120:
-            first_line += "\n# "
-            complete = f"{first_line}<{the_fields.strip()}>"
-        return complete
-
-    def __eq__(self, other):
-        # @dataclasses autogenerated __eq__ calls __repr__ so eval(repr(x)) == x causes infinite loop detection
-
-        # TODO: this needs to support subclasses. <matth 2025-07-04>
-
-        # if not isinstance(other, type(self)):
-        #     return NotImplemented
-
-        for f in fields(self):
-            self_val = getattr(self, f.name)
-            other_val = getattr(other, f.name)
-
-            # Skip self-references (simple identity check)
-            if self_val is self and other_val is other:
-                continue
-
-            if self_val != other_val:
-                return False
-
-        return True
-
-    def __repr__(self):
-        field_strings = []
-        for f in fields(self):
-            if f.name != "data_meta" and f.name != "type":
-                field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
-        return f"{self.__class__.__name__}({', '.join(field_strings)})"
-
-    def terminal_link(self) -> str:
-        """In JetBrains IDE Terminal, will hyperlink to file"""
-        if self._offsets:
-            start_line, start_char, _end_line, _end_char = self._offsets
-            return f"{self._file_path}:{start_line+1}:{start_char}"
-        if self._file_path:
-            return f"{self._file_path}:0"
-        return ""
-
-    def to_flat_dict(self, include_comment_and_tag: bool = False, raise_on_doubles: bool = True) -> dict[str, Any]:
-        if self.data_fields:
-            data = self.data_fields.copy()
-        else:
-            data = {}
-        if self.custom_fields:
-            for key, value in self.custom_fields.items():
-                if raise_on_doubles and key in data:
-                    raise exceptions.PyCodeTagsError("Field in data_fields and custom fields")
-                data[key] = value
-        if include_comment_and_tag:
-            if self.comment:
-                data["comment"] = self.comment
-            if self.code_tag:
-                data["code_tag"] = self.code_tag
-        return data
+    identity_fields: list[str]
+    """Fields which combine to form an identity for the tag, e.g. originator, origination_date"""
 
 ```
 
@@ -2149,19 +2170,23 @@ class FolkTag(TypedDict, total=False):
     """Represents a folk tag found in source code."""
 
     # data
+    code_tag: str
+    comment: str
+    default_field: str | None
+    custom_fields: dict[str, str]
+
+    # data
     file_path: str
     line_number: int
     start_char: int
-    # data
-    code_tag: str
-    default_field: str | None
-    custom_fields: dict[str, str]
-    comment: str
+    offsets: tuple[int, int, int, int]
+    original_text: str
+
+    # domain specific
     tracker: str
     assignee: str
     originator: str
     person: str
-    original_text: str
 
 
 def folk_tag_to_comment(tag: FolkTag) -> str:
@@ -2383,7 +2408,8 @@ def process_line(
     if url:
         found_tag["tracker"] = url
 
-    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag <matth 2025-07-04>
+    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag <matth 2025-07-04
+    #  category:parser status:development priority:low release:1.0.0 iteration:1>
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)
     return consumed_lines
@@ -2576,8 +2602,8 @@ from collections.abc import Callable
 import pluggy
 
 from pycodetags.config import CodeTagsConfig
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
@@ -2694,6 +2720,33 @@ class CodeTagsSpec:
 
 ```
 
+## File: pure_data_schema.py
+
+```python
+"""
+The domain-free schema.
+
+When used, all fields are parsed as custom fields.
+"""
+
+from pycodetags.data_tags_schema import DataTagSchema
+
+PureDataSchema: DataTagSchema = {
+    "name": "DATA",
+    "matching_tags": ["DATA"],
+    "default_fields": {
+        # No defaults, no domain!
+    },
+    "data_fields": {
+        # No domain fields, pure data!
+    },
+    "data_field_aliases": {
+        # No alias, no domain!
+    },
+}
+
+```
+
 ## File: views.py
 
 ```python
@@ -2707,7 +2760,7 @@ import json
 import logging
 from typing import Any
 
-from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.view_tools import group_and_sort
 
 logger = logging.getLogger(__name__)
@@ -2727,8 +2780,8 @@ def print_validate(found: list[DATA]) -> None:
             print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
-                print(f"Original Schema {item._original_schema}")
-                print(f"Original Text {item._original_schema}")
+                print(f"Original Schema {item.original_schema}")
+                print(f"Original Text {item.original_schema}")
 
             print()
 
@@ -2746,7 +2799,8 @@ def print_html(found: list[DATA]) -> None:
 
     for tag in tags:
         for todo in found:
-            # TODO: find more efficient way to filter.<matth 2025-07-04>
+            # TODO: find more efficient way to filter.<matth 2025-07-04 priority:low category:views
+            #  status:development release:1.0.0 iteration:1>
             if todo.code_tag == tag:
                 print(f"<h1>{tag}</h1>")
                 print("<ul>")
@@ -2799,7 +2853,7 @@ def print_data_md(found: list[DATA]) -> None:
 
     """
     # pylint:disable=protected-access
-    grouped = group_and_sort(found, lambda _: "" if not _._file_path else _._file_path, sort_items=False)
+    grouped = group_and_sort(found, lambda _: "" if not _.file_path else _.file_path, sort_items=False)
     for file, items in grouped.items():
         print(file)
         print("```python")
@@ -2945,10 +2999,10 @@ __all__ = [
 ]
 
 from pycodetags.common_interfaces import dump, dump_all, dumps, dumps_all, load, load_all, loads, loads_all
-from pycodetags.data_schema import PureDataSchema
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTagSchema
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTagSchema
 from pycodetags.plugin_specs import CodeTagsSpec
+from pycodetags.pure_data_schema import PureDataSchema
 
 ```
 
@@ -2970,9 +3024,11 @@ from collections.abc import Sequence
 import pluggy
 
 import pycodetags.__about__ as __about__
-from pycodetags import DATA, DataTagSchema, data_schema
+import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTagSchema
 from pycodetags.dotenv import load_dotenv
 from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
@@ -3115,7 +3171,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.exit(1)
 
         try:
-            found = aggregate_all_kinds_multiple_input(modules, src, data_schema.PureDataSchema)
+            found = aggregate_all_kinds_multiple_input(modules, src, pure_data_schema.PureDataSchema)
 
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)

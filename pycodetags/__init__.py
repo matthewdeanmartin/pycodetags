@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 from pycodetags.common_interfaces import dump, dump_all, dumps, dumps_all, load, load_all, loads, loads_all
-from pycodetags.data_schema import PureDataSchema
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTagSchema
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTagSchema
 from pycodetags.plugin_specs import CodeTagsSpec
+from pycodetags.pure_data_schema import PureDataSchema

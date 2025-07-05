@@ -42,35 +42,3 @@ def test_param_string_empty_and_nonempty():
     # params_str should contain all parameters
     for name in ("a", "b", "c"):
         assert re.search(rf"{name}:", params)
-
-
-#
-# def test_generate_code_tags_file_writes_aliases(tmp_path, monkeypatch):
-#     # Use DummyTODO to control the output
-#     output = tmp_path / "out_aliases.py"
-#     # Suppress print to avoid clutter
-#     monkeypatch.setattr("builtins.print", lambda *args, **kwargs: None)
-#     # Run generator
-#     generate_code_tags_file(cls=DummyTODO, output_filename=str(output))
-#     content = output.read_text(encoding="utf-8")
-#
-#     # Should contain import from pycodetags.main_types TODO
-#     assert "from pycodetags.main_types import TODO" in content
-#
-#     # Should include at least one alias function with correct signature
-#     # e.g., REQUIREMENT(a: int, b: str = 'hello', c: list[int] | None = None) -> TODO
-#     pattern = r"def REQUIREMENT\(.+\) -> TODO:"
-#     assert re.search(pattern, content)
-#
-#     # Test that calling the alias function works—execute the file dynamically
-#     namespace: dict[str, Any] = {}
-#     exec(content, namespace)
-#     REQUIREMENT = namespace["REQUIREMENT"]
-#     # Call with only required arg
-#     todo_obj = REQUIREMENT(a=42)
-#     assert hasattr(todo_obj, "code_tag") and todo_obj.code_tag == "REQUIREMENT"
-#     assert todo_obj.a == 42
-#
-#     # Call with all args
-#     todo2 = REQUIREMENT(a=1, b="x", c=[1,2,3])
-#     assert todo2.b == "x" and todo2.c == [1,2,3]

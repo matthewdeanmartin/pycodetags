@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass, field
 
-from pycodetags.data_tag_types import DATA, Serializable  # adjust import path
+from pycodetags.data_tags_classes import DATA, Serializable  # adjust import path
 
 
 class Dummy(Serializable):

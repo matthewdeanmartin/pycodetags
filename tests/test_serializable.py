@@ -1,6 +1,6 @@
 import datetime
 
-from pycodetags.data_tag_types import Serializable
+from pycodetags.data_tags_classes import Serializable
 
 
 class Sample(Serializable):

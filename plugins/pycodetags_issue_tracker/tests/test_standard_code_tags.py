@@ -1,5 +1,5 @@
 from pycodetags_issue_tracker.converters import convert_pep350_tag_to_TODO
-from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
+from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
 
 from pycodetags.data_tags import parse_codetags
 

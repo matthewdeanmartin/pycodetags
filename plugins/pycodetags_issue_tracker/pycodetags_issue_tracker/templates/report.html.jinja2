@@ -7,12 +7,46 @@
         body {
             font-family: Arial, sans-serif;
             margin: 2rem auto;
-            max-width: 900px;
+            max-width: 1100px;
             background-color: #fdfdfd;
             color: #333;
         }
 
-        h1 {
+        header, footer {
+            background-color: #007acc;
+            color: #fff;
+            padding: 1rem;
+            text-align: center;
+            border-radius: 6px;
+        }
+
+        header h1 {
+            margin: 0;
+        }
+
+        footer {
+            font-size: 0.9rem;
+            margin-top: 3rem;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .filter {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter label {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+
+        h2 {
             border-bottom: 2px solid #007acc;
             color: #007acc;
         }
@@ -37,136 +71,218 @@
             margin-top: 0.5rem;
         }
 
-        .filter {
-            margin-bottom: 1.5rem;
-        }
-
-        .filter label {
-            font-weight: bold;
-            margin-right: 0.5rem;
-        }
-
-        .section {
-            margin-bottom: 3rem;
-        }
-
         .hidden {
             display: none;
         }
 
-        code {
+        code, pre {
             background: #f4f4f4;
-            padding: 2px 4px;
+            padding: 4px;
             border-radius: 4px;
             font-family: monospace;
         }
 
         pre {
-            background: #f4f4f4;
             padding: 10px;
-            border-radius: 4px;
             overflow-x: auto;
         }
     </style>
 </head>
 <body>
 
+<header>
     <h1>TODO Report</h1>
+    <p>Generated on {{ now }}</p>
+</header>
 
-    <div class="filter">
-        <label for="userFilter">Filter by Assignee:</label>
-        <select id="userFilter" onchange="filterByUser()">
-            <option value="">-- All --</option>
-            {% set users = todos | map(attribute="assignee") | select | unique | list %}
-            {% for user in users %}
-            <option value="{{ user }}">{{ user }}</option>
+<!-- Metrics Summary -->
+<div class="metrics-summary" style="display: flex; flex-wrap: wrap; gap: 1rem; margin: 2rem 0;">
+    {% set metric_tooltips = {
+            "total_todos": "Total number of active TODOs.",
+            "sentiment": "Sentiment score based on positive/negative tags like CLEVER, HACK, BUG, etc.",
+            "quality": "Quality score decreases as BUG tags increase.",
+            "bug_density": "BUGs as a percentage of total TODOs.",
+            "total_todos_scale": "Descriptive label for how many TODOs are present.",
+            "sentiment_scale": "Descriptive label for sentiment score.",
+            "quality_scale": "Descriptive label for quality score.",
+            "bug_density_scale": "Descriptive label for bug density.",
+            "total_dones": "Count of TODOs marked as 'done'."
+        } %}
+
+    {% set labels = {
+            "total_todos": "Total TODOs",
+            "sentiment": "Sentiment",
+            "quality": "Quality",
+            "bug_density": "Bug Density",
+            "total_dones": "Completed"
+        } %}
+
+    {% for key, label in labels.items() %}
+        <div class="metric" title="{{ metric_tooltips[key] }}"
+             style="padding: 1rem; background: #eef6ff; border: 1px solid #cce0f5; border-radius: 6px; flex: 1 1 200px;">
+            <strong>{{ label }}</strong><br>
+            Score: {{ "%.2f"|format(metrics[key]) }}<br>
+            Scale: {{ metrics[key + '_scale'] }}
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Filter Row -->
+<div class="filters">
+    {% set field_filters = {
+            'Code Tag': 'code_tag',
+            'Category': 'category',
+            'Priority': 'priority',
+            'Release': 'release',
+            'Iteration': 'iteration',
+            'Originator': 'originator',
+            'Assignee': 'assignee',
+            'Status': 'status'
+        } %}
+
+    {% for label, field in field_filters.items() %}
+        <div class="filter">
+            <label for="{{ field }}Filter">{{ label }}</label>
+            <select id="{{ field }}Filter" onchange="filterTodos()">
+                <option value="">-- All --</option>
+                {% set values = todos | map(attribute=field) | select | unique | list %}
+                {% for val in values %}
+                    <option value="{{ val }}">{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    {% endfor %}
+
+    <div class="filter" style="align-self: flex-end;">
+        <button onclick="clearFilters()"
+                style="padding: 0.5rem 1rem; background: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Clear Filters
+        </button>
+    </div>
+</div>
+
+<div class="section">
+    <h2>TODOs</h2>
+    {% if todos %}
+        <ul>
+            {% for t in todos %}
+                <li class="todo-item"
+                    data-priority="{{ t.priority or '' }}"
+                    data-category="{{ t.category or '' }}"
+                    data-assignee="{{ t.assignee or '' }}"
+                    data-originator="{{ t.originator or '' }}"
+                    data-release="{{ t.release or '' }}"
+                    data-code_tag="{{ t.code_tag or '' }}"
+                    data-iteration="{{ t.iteration or '' }}"
+                    data-status="{{ t.status or '' }}">
+                    <strong>{{ t.code_tag }} : {{ t.comment.split('\n')[0] }}</strong>
+                    <div class="meta">
+                        {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
+                        {% if t.originator %}Originator: {{ t.originator }}<br>{% endif %}
+                        {% if t.created_on %}Created on: {{ t.created_on }}<br>{% endif %}
+                        {% if t.due_date %}Due date: {{ t.due_date }}<br>{% endif %}
+                        {% if t.release %}Release: {{ t.release }}<br>{% endif %}
+                        {% if t.file_name %}File: {{ t.file_name }}<br>{% endif %}
+                        {% if t.line_number %}Line: {{ t.line_number }}<br>{% endif %}
+                        {% for key, val in (t.custom_fields or {}).items() %}
+                            {% if val %}{{ key|capitalize }}: {{ val }}<br>{% endif %}
+                        {% endfor %}
+                    </div>
+                    {% if t.comment.split('\n')[1:] %}
+                        <pre>{{ t.comment.split('\n')[1:] | join('\n') }}</pre>
+                    {% endif %}
+                </li>
             {% endfor %}
-        </select>
-    </div>
+        </ul>
+    {% else %}
+        <p>No TODO items.</p>
+    {% endif %}
+</div>
 
-    <div class="section">
-        <h2>TODOs</h2>
-        {% if todos %}
-            <ul>
-                {% for t in todos %}
-                    <li class="todo-item" data-user="{{ t.assignee or '' }}">
-                        <strong>{{ t.comment.split('\n')[0] }}</strong>
-                        <div class="meta">
-                            {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
-                            {% if t.originator %}Originator: {{ t.originator }}<br>{% endif %}
-                            {% if t.created_on %}Created on: {{ t.created_on }}<br>{% endif %}
-                            {% if t.due_date %}Due date: {{ t.due_date }}<br>{% endif %}
-                            {% if t.release %}Release: {{ t.release }}<br>{% endif %}
-                            {% if t.file_name %}File: {{ t.file_name }}<br>{% endif %}
-                            {% if t.line_number %}Line: {{ t.line_number }}<br>{% endif %}
-                            {% for key, val in (t.custom_fields or {}).items() %}
-                                {% if val %}{{ key|capitalize }}: {{ val }}<br>{% endif %}
-                            {% endfor %}
-                        </div>
-                        {% if t.comment.split('\n')[1:] %}
-                            <pre>{{ t.comment.split('\n')[1:] | join('\n') }}</pre>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No TODO items.</p>
-        {% endif %}
-    </div>
+<!-- DONE Section -->
+<div class="section">
+    <h2>Dones</h2>
+    {% if dones %}
+        <ul>
+            {% for t in dones %}
+                <li>
+                    <strong>{{ t.comment }}</strong>
+                    <div class="meta">
+                        {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
+                        {% if t.closed_date %}Closed: {{ t.closed_date }}<br>{% endif %}
+                        {% if t.release %}Release: {{ t.release }}<br>{% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No completed items.</p>
+    {% endif %}
+</div>
 
-    <!-- Dones -->
-    <div class="section">
-        <h2>Dones</h2>
-        {% if dones %}
-            <ul>
-                {% for t in dones %}
-                    <li>
-                        <strong>{{ t.comment }}</strong>
-                        <div class="meta">
-                            {% if t.assignee %}Assignee: {{ t.assignee }}<br>{% endif %}
-                            {% if t.closed_date %}Closed: {{ t.closed_date }}<br>{% endif %}
-                            {% if t.release %}Release: {{ t.release }}<br>{% endif %}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No completed items.</p>
-        {% endif %}
-    </div>
+<footer>
+    <p>TODO Report &copy; {{ now.year }} |
+        Generated by <a href="https://github.com/matthewdeanmartin/pycodetags">Pycodetags Issue Tracker</a></p>
+</footer>
 
-    <!-- Exceptions -->
-    <div class="section">
-        <h2>TODO Exceptions</h2>
-        {% if exceptions %}
-            <ul>
-                {% for ex in exceptions %}
-                    <li>
-                        <strong>{{ ex.message }}</strong>
-                        <div class="meta">
-                            {% if ex.assignee %}Assignee: {{ ex.assignee }}<br>{% endif %}
-                            {% if ex.due_date %}Due: {{ ex.due_date }}<br>{% endif %}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No exceptions.</p>
-        {% endif %}
-    </div>
+<!-- Filtering Script -->
+<script>
+    function filterTodos() {
+        const filters = {
+            priority: document.getElementById('priorityFilter').value,
+            category: document.getElementById('categoryFilter').value,
+            assignee: document.getElementById('assigneeFilter').value,
+            originator: document.getElementById('originatorFilter').value,
+            release: document.getElementById('releaseFilter').value,
+            code_tag: document.getElementById('code_tagFilter').value,
+            iteration: document.getElementById('iterationFilter').value,
+            status: document.getElementById('statusFilter').value
+        };
 
+        const items = document.querySelectorAll('.todo-item');
+
+        items.forEach(item => {
+            let visible = true;
+            for (const [key, val] of Object.entries(filters)) {
+                if (val && item.dataset[key] !== val) {
+                    visible = false;
+                    break;
+                }
+            }
+            item.classList.toggle('hidden', !visible);
+        });
+    }
+</script>
     <script>
-        function filterByUser() {
-            const selected = document.getElementById('userFilter').value;
+        function clearFilters() {
+            const selects = document.querySelectorAll('.filters select');
+            selects.forEach(select => select.value = '');
+            filterTodos();
+        }
+
+        function filterTodos() {
+            const filters = {
+                priority: document.getElementById('priorityFilter').value,
+                category: document.getElementById('categoryFilter').value,
+                assignee: document.getElementById('assigneeFilter').value,
+                originator: document.getElementById('originatorFilter').value,
+                release: document.getElementById('releaseFilter').value,
+                code_tag: document.getElementById('code_tagFilter').value,
+                iteration: document.getElementById('iterationFilter').value,
+                status: document.getElementById('statusFilter').value
+            };
+
             const items = document.querySelectorAll('.todo-item');
 
             items.forEach(item => {
-                const user = item.dataset.user;
-                if (!selected || user === selected) {
-                    item.classList.remove('hidden');
-                } else {
-                    item.classList.add('hidden');
+                let visible = true;
+                for (const [key, val] of Object.entries(filters)) {
+                    if (val && item.dataset[key] !== val) {
+                        visible = false;
+                        break;
+                    }
                 }
+                item.classList.toggle('hidden', !visible);
             });
         }
     </script>

@@ -1,6 +1,6 @@
 import pycodetags.__about__
 import pycodetags.logging_config
-from pycodetags.data_schema import PureDataSchema
+from pycodetags.pure_data_schema import PureDataSchema
 
 
 def test_imports():

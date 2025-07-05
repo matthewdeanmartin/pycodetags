@@ -8,7 +8,7 @@ import pytest
 
 from pycodetags import PureDataSchema
 from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
-from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.exceptions import FileParsingError
 
 

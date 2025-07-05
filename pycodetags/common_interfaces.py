@@ -11,12 +11,12 @@ from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import TextIO, Union, cast
 
-from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
-from pycodetags.data_schema import PureDataSchema
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
+from pycodetags.pure_data_schema import PureDataSchema
 
 IOInput = Union[str, os.PathLike, TextIO]
 IOSource = Union[str, IOInput]
@@ -31,7 +31,7 @@ def string_to_data(
     tags = []
     for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
         if "fields" in tag:
-            tags.append(convert_pep350_tag_to_DATA(cast(DataTag, tag), schema))
+            tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
         else:
             tags.append(convert_folk_tag_to_DATA(cast(FolkTag, tag), schema))
     return tags
@@ -93,7 +93,8 @@ def dumps(obj: DATA) -> str:
     """Serialize to string"""
     if not obj:
         return ""
-    # TODO: check plugins to answer for _schema <matth 2025-07-04>
+    # TODO: check plugins to answer for _schema <matth 2025-07-04
+    #  category:plugin priority:medium status:development release:1.0.0 iteration:1>
     return obj.as_data_comment()
 
 
@@ -115,7 +116,8 @@ def load(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
     """Deserialize from a file-like or path-like to a single data tag"""
-    # BUG: not all of these are context manager <matth 2025-07-05>
+    # BUG: not all of these are context manager <matth 2025-07-05
+    #  category:core priority:high status:development release:1.0.0 iteration:1>
     with _open_for_read(source) as f:
         items = string_to_data(f.read(), file_path, schema, include_folk_tags)
         return next((_ for _ in items), None)

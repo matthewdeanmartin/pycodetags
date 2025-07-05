@@ -294,14 +294,43 @@ valid_status = [
     "wontfix"
 ]
 # Only displayed
-valid_categories = []
+valid_categories = [
+    "cli",               # __main__.py, CLI integration
+    "views",             # views.py, rendering output
+    "parser",            # data_tags_parsers.py, AST, comment parsing
+    "folk_parser",       # folk_code_tags.py, fallback parsing
+    "config",            # config.py, dotenv.py
+    "plugin",            # plugin_manager.py, plugin_specs.py
+    "logging",           # logging_config.py
+    "schema",            # data_tags_schema.py
+    "core",              # data_tags_classes.py, converters.py
+    "serialization",     # common_interfaces.py
+    "collection",        # aggregate.py, collect.py
+    "utils",             # comment_finder.py, view_tools.py
+    "testing",           # if you add test tags
+    "documentation",      # if documenting tags
+    "validation",        # if validating tags
+]
 # Only displayed
-valid_priorities = ["high", "medium", "low"]
+valid_priorities = [
+    "high",
+    "medium",
+    "low",
+    "urgent",         # optional: higher than high
+    "trivial"         # optional: lower than low
+]
 
 # Used to support change log generation and other features.
 closed_status = ["done", "closed", "fixed", "nobug", "wontfix"]
 # Empty list means no restrictions
-valid_releases = []
+valid_releases = [
+    "0.3.0",  # current
+    "0.4.0",
+    "0.5.0",
+    "1.0.0",
+    "2.0.0",
+    "3.0.0"
+]
 # Use to look up valid releases (versions numbers)
 valid_releases_file = "CHANGELOG.md"
 valid_releases_file_schema = "CHANGELOG.md"
@@ -314,7 +343,7 @@ valid_iterations = ["1", "2", "3", "4"]
 valid_custom_field_names = []
 # Originator and origination date are important for issue identification
 # Without it, heuristics are more likely to fail to match issues to their counterpart in git history
-mandatory_fields = ["originator", "origination_date"]
+mandatory_fields = ["originator", "origination_date", "status", "category", "priority", "release", "iteration"]
 # Helpful for parsing tracker field, used to make ticket a clickable url
 tracker_domain = "example.com"
 # Can be url or ticket

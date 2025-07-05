@@ -47,19 +47,23 @@ class FolkTag(TypedDict, total=False):
     """Represents a folk tag found in source code."""
 
     # data
+    code_tag: str
+    comment: str
+    default_field: str | None
+    custom_fields: dict[str, str]
+
+    # data
     file_path: str
     line_number: int
     start_char: int
-    # data
-    code_tag: str
-    default_field: str | None
-    custom_fields: dict[str, str]
-    comment: str
+    offsets: tuple[int, int, int, int]
+    original_text: str
+
+    # domain specific
     tracker: str
     assignee: str
     originator: str
     person: str
-    original_text: str
 
 
 def folk_tag_to_comment(tag: FolkTag) -> str:
@@ -281,7 +285,8 @@ def process_line(
     if url:
         found_tag["tracker"] = url
 
-    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag <matth 2025-07-04>
+    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag <matth 2025-07-04
+    #  category:parser status:development priority:low release:1.0.0 iteration:1>
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)
     return consumed_lines

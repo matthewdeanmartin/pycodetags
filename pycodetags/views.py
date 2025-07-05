@@ -8,7 +8,7 @@ import json
 import logging
 from typing import Any
 
-from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.view_tools import group_and_sort
 
 logger = logging.getLogger(__name__)
@@ -28,8 +28,8 @@ def print_validate(found: list[DATA]) -> None:
             print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
-                print(f"Original Schema {item._original_schema}")
-                print(f"Original Text {item._original_schema}")
+                print(f"Original Schema {item.original_schema}")
+                print(f"Original Text {item.original_schema}")
 
             print()
 
@@ -47,7 +47,8 @@ def print_html(found: list[DATA]) -> None:
 
     for tag in tags:
         for todo in found:
-            # TODO: find more efficient way to filter.<matth 2025-07-04>
+            # TODO: find more efficient way to filter.<matth 2025-07-04 priority:low category:views
+            #  status:development release:1.0.0 iteration:1>
             if todo.code_tag == tag:
                 print(f"<h1>{tag}</h1>")
                 print("<ul>")
@@ -100,7 +101,7 @@ def print_data_md(found: list[DATA]) -> None:
 
     """
     # pylint:disable=protected-access
-    grouped = group_and_sort(found, lambda _: "" if not _._file_path else _._file_path, sort_items=False)
+    grouped = group_and_sort(found, lambda _: "" if not _.file_path else _.file_path, sort_items=False)
     for file, items in grouped.items():
         print(file)
         print("```python")

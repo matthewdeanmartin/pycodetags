@@ -1,17 +1,20 @@
 # Chat in your source code
 
+Fields match Mastodon's schema, more or less.
 
 
-- Support new tags:
-  - CHAT/DISCUSSION
-  - Threaded comments
-  - QUESTION/ANSWER
-- Support new report, same output formats
-  - Website
-  - HTML
-  - Plain text
-- Commands
-  - chat -- validate
-  - chat report --html
+## Support new tags:
+- CHAT/DISCUSSION
+- POST/COMMENT
+- QUESTION/ANSWER
 
-Needs to hook into collector event
+## Formats
+- Website
+- HTML
+- Plain text
+
+## Sync with Mastodon
+Periodically, if you have the API keys for each person on the team, you can post new comments.
+
+## RSS
+And generate RSS.

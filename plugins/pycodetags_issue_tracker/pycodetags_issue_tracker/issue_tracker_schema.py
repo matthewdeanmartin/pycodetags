@@ -1,4 +1,4 @@
-from pycodetags.data_tags import DataTagSchema
+from pycodetags.data_tags_schema import DataTagSchema
 
 IssueTrackerSchema: DataTagSchema = {
     "name": "TODO",
@@ -30,10 +30,12 @@ IssueTrackerSchema: DataTagSchema = {
         "status": "str",
         "category": "str",
         "iteration": "str",  # or str | int?
-        "release": "str",  # or str | int?
+        "release": "str",  # or str | int | version?
         "assignee": "str",  # or str | list[str]?
-        "originator": "str",
-        "origination_date":"date"
+        "originator": "str", # who created the issue
+        "origination_date":"date", # when the issue was created
+        "closed_date":"date",  # when the issue was closed
+        "change_type": "str",  # e.g. 'Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'
     },
     "data_field_aliases": {
         "p": "priority",

@@ -1,27 +1,68 @@
-# code_tags_markdown_view.py
+"""
+Registry of plugin hooks. These are exported via "entrypoints".
+"""
+
+import argparse
+from collections.abc import Callable, Sequence
+
 import pluggy
+from pluggy import HookimplMarker
 
-from pycodetags import DATA
+from pycodetags import DATA, DataTagSchema
 from pycodetags.config import CodeTagsConfig
+from pycodetags.data_tags_schema import DataTag
 
-# Use the same marker name as defined in the host's hookspecs
-hookimpl = pluggy.HookimplMarker("pycodetags")
-
-
-@hookimpl
-def print_report(
-    format_name: str,
-    found_data: list[DATA],
-    # pylint: disable=unused-argument
-    output_path: str,
-    # pylint: disable=unused-argument
-    config: CodeTagsConfig,
-) -> bool:
-    return False
-    # raise NotImplementedError()
-    # return False  # This plugin does not handle the requested format
+hookimpl = HookimplMarker("pycodetags")
 
 
-@hookimpl
-def print_report_style_name() -> list[str]:
-    return ["markdown_simple"]
+class SqliteExportApp:
+    """Organizes pluggy hooks"""
+    @hookimpl
+    def register_app(
+        self,
+        pm: pluggy.PluginManager,
+        # pylint: disable=unused-argument
+        parser: argparse.ArgumentParser,
+    ) -> bool:
+        """Allow plugin to support its own plugins"""
+        return True
+
+    @hookimpl
+    def add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
+        """Register all commands the plugin supports into the argparser"""
+
+        # cli.handle_cli(subparsers)
+
+    @hookimpl
+    def run_cli_command(
+        self, command_name: str, args: argparse.Namespace, found_data:
+            Callable[[DataTagSchema], Sequence[DataTag]], config: CodeTagsConfig
+    ) -> bool:
+        """Run any CLI command that the plugin supports"""
+        # callback_data = found_data(PureDataSchema)
+        # [convert_pep350_tag_to_DATA(_, PureDataSchema) for _ in callback_data]
+        return False
+        # return cli.run_cli_command(command_name, args, found_todos, config)
+
+    @hookimpl
+    def print_report(
+        self,
+        format_name: str,
+        found_data: list[DATA],
+        # pylint: disable=unused-argument
+        output_path: str,
+        # pylint: disable=unused-argument
+        config: CodeTagsConfig,
+    ) -> bool:
+        """Handle a data report"""
+        return False
+
+    @hookimpl
+    def print_report_style_name(self) -> list[str]:
+        """Name of format of data report that the plugin supports"""
+        # Returns a new way to view raw data.
+        # This doesn't work for domain specific TODOs
+        return []
+
+
+sqlite_app_plugin = SqliteExportApp()

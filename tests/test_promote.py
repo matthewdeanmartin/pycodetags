@@ -2,7 +2,8 @@
 
 import pytest
 
-from pycodetags.data_tags import DataTag, promote_fields
+from pycodetags.data_tags_methods import promote_fields
+from pycodetags.data_tags_schema import DataTag
 
 
 @pytest.fixture

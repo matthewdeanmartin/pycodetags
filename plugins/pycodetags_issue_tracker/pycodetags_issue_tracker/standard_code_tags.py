@@ -38,7 +38,8 @@ logger = logging.getLogger(__name__)
 class Fields(TypedDict, total=False):
     """Fields extracted from PEP-350 style code tags."""
 
-    # HACK: maybe make these always a list? <matth 2025-07-04>
+    # HACK: catdog problem maybe make these always a list? <matth 2025-07-04
+    #  category:core priority:high status:development release:1.0.0 iteration:1>
     assignee: str  # make this go away and always promote to assignee, isomorphic with custom_tags?
     assignees: list[str]
 
@@ -47,9 +48,9 @@ class Fields(TypedDict, total=False):
     origination_date: str
 
     # Metadata, shouldn't be set by user.
-    _file_path: str  # mutable across time, identity for same revision
-    _line_number: str  # mutable across time, identity for same revision
-    _file_revision: str  # With file_path, line_number, forms identity
+    file_path: str  # mutable across time, identity for same revision
+    line_number: str  # mutable across time, identity for same revision
+    file_revision: str  # With file_path, line_number, forms identity
 
     # When all of these mutable fields, or almost all of these are they same, the object probably points
     # to the same real world entity.
@@ -62,6 +63,7 @@ class Fields(TypedDict, total=False):
     category: str  # mutable
     iteration: str  # mutable
     release: str  # mutable
+    change_type: str # mutable
 
     # creates need for alias merging, when both priority and p exist
     p: str

@@ -2,7 +2,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
+from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
 from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
 
 from pycodetags.common_interfaces import string_to_data_tag_typed_dicts

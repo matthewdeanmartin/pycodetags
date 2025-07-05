@@ -4,7 +4,10 @@ This module provides functionality to render collected TODOs into an HTML report
 
 from __future__ import annotations
 
+import datetime
+
 from pycodetags_issue_tracker import TODO
+from pycodetags_issue_tracker.health_o_meter import HealthOMeter
 
 try:
     import importlib_resources as pkg_resources
@@ -40,11 +43,18 @@ def print_html(found: list[TODO], output: Path = Path("todo_site")) -> None:
     if total_to_render == 0:
         raise TypeError("No data to render.")
 
+    logger.info(f"Rendering {total_to_render} TODOs and Dones into HTML report.")
+
+    health_o_meter = HealthOMeter(found)
+    metrics = health_o_meter.calculate_metrics()
+
     rendered = template.render(
+        now=datetime.datetime.now().date(),
         dones=list(_ for _ in found if _.is_probably_done()),
         todos=list(_ for _ in found if not _.is_probably_done()),
         exceptions=[],
         undefined=jinja2.StrictUndefined,
+        metrics=metrics,
     )
 
     # Ensure output directory exists

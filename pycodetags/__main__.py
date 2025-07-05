@@ -13,9 +13,11 @@ from collections.abc import Sequence
 import pluggy
 
 import pycodetags.__about__ as __about__
-from pycodetags import DATA, DataTagSchema, data_schema
+import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTagSchema
 from pycodetags.dotenv import load_dotenv
 from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
@@ -158,7 +160,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.exit(1)
 
         try:
-            found = aggregate_all_kinds_multiple_input(modules, src, data_schema.PureDataSchema)
+            found = aggregate_all_kinds_multiple_input(modules, src, pure_data_schema.PureDataSchema)
 
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)

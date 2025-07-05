@@ -9,8 +9,8 @@ import pluggy
 from pluggy import HookimplMarker
 from pycodetags_issue_tracker import cli
 from pycodetags_issue_tracker.converters import convert_data_to_TODO
+from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
 from pycodetags_issue_tracker.plugin_manager import set_plugin_manager
-from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
 
 from pycodetags import DATA, DataTagSchema
 from pycodetags.config import CodeTagsConfig
@@ -29,7 +29,8 @@ class IssueTrackerApp:
     ) -> bool:
         """Allow plugin to support its own plugins"""
         set_plugin_manager(new_pm=pm)
-        # TODO: register issue tracker specific commands, e.g. remove DONE <matth 2025-07-04>
+        # TODO: register issue tracker specific commands, e.g. remove DONE
+        #  <matth 2025-07-04 priority:low category:plugin status:development release:1.0.0 iteration:1>
         return True
 
     @hookimpl

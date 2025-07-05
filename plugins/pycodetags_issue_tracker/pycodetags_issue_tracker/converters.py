@@ -12,7 +12,7 @@ from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 from pycodetags_issue_tracker.todo_tag_types import TODO
 
 from pycodetags import DATA
-from pycodetags.data_tags import DataTag
+from pycodetags.data_tags_schema import DataTag
 from pycodetags.folk_code_tags import FolkTag
 
 logger = logging.getLogger(__name__)
@@ -68,11 +68,11 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
         closed_date=get_from_custom_or_data("closed_date",tag),
         closed_comment=get_from_custom_or_data("closed_comment",tag),
         tracker=get_from_custom_or_data("tracker",tag),
-        _file_path=tag._file_path,
-        _line_number=tag._line_number,
-        _original_text=tag._original_text,
-        _original_schema=tag._original_schema,
-        _offsets=tag._offsets,
+        file_path=tag.file_path,
+        line_number=tag.line_number,
+        original_text=tag.original_text,
+        original_schema=tag.original_schema,
+        offsets=tag.offsets,
         priority=get_from_custom_or_data("priority",tag),
         status=get_from_custom_or_data("status",tag),
         category=get_from_custom_or_data("category",tag),
@@ -88,8 +88,8 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
     """
     kwargs = {
         "code_tag": folk_tag.get("code_tag"),
-        "_file_path": folk_tag.get("file_path"),
-        "_line_number": folk_tag.get("line_number"),
+        "file_path": folk_tag.get("file_path"),
+        "line_number": folk_tag.get("line_number"),
         # folk_tag.get("default_field"),
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
@@ -140,11 +140,11 @@ def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
         "status": data_fields.get("status"),
         "category": data_fields.get("category"),
         # Source Mapping
-        "_file_path": data_fields.get("_file_path"),
-        "_line_number": data_fields.get("_line_number"),
-        "_original_text": pep350_tag.get("original_text"),
-        "_original_schema": "pep350",
-        "_offsets": pep350_tag.get("offsets"),
+        "file_path": data_fields.get("file_path"),
+        "line_number": data_fields.get("line_number"),
+        "original_text": pep350_tag.get("original_text"),
+        "original_schema": "pep350",
+        "offsets": pep350_tag.get("offsets"),
     }
 
     custom_fields = pep350_tag["fields"].get("custom_fields", {})

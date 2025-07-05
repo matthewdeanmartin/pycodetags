@@ -9,7 +9,7 @@ dependencies = [
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy
 # The key "pycodetags_to_sqlite" is the name of the plugin (can be anything unique)
 # The value "pycodetags_to_sqlite" is the module where pluggy should look for @hookimpls
-pycodetags_to_sqlite = "pycodetags_to_sqlite.main"
+pycodetags_to_sqlite = "pycodetags_to_sqlite.main:sqlite_app_plugin"
 
 [build-system]
 requires = ["hatchling"]

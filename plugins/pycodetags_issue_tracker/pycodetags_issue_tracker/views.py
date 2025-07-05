@@ -32,8 +32,8 @@ def print_validate(found: list[TODO]) -> None:
             print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
-            print(f"Original Schema {item._original_schema}")
-            print(f"Original Text {item._original_text}")
+            print(f"Original Schema {item.original_schema}")
+            print(f"Original Text {item.original_text}")
                 # print(item)
             print()
 
@@ -75,7 +75,8 @@ def print_changelog(found: list[TODO]) -> None:
         if done and not done.release:
             done.release = "N/A"
 
-    # BUG: This probably isn't he right way to sort a version <matth 2024-07-04>
+    # BUG: This probably isn't he right way to sort a version <matth 2024-07-04 category:views status:development
+    # priority:low release:1.0.0 iteration:1>
     dones_meta.sort(
         key=lambda d: ((d.release if d.release else "N/A", d.closed_date if d.closed_date else "") if d else ("", "")),
         reverse=True,
@@ -147,7 +148,8 @@ def print_todo_md(found: list[TODO]) -> None:
     if not custom_status:
         custom_status = ["TODO", "DONE"]
 
-    # HACK: This works poorly when statuses are missing or if they don't sync up with the code tag.<matth 2025-07-04>
+    # HACK: This works poorly when statuses are missing or if they don't sync up with the code tag.<matth 2025-07-04
+    # category:views priority:low status:development release:1.0.0 iteration:1>
 
     for status in custom_status:
         print(f"### {status.capitalize()}")

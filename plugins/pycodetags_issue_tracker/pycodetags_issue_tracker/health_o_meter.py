@@ -50,8 +50,8 @@ class HealthOMeter:
         """
         todos_per_file: dict[str, int] = defaultdict(int)
         for todo in self.todos:
-            if todo._file_path:
-                todos_per_file[todo._file_path] += 1
+            if todo.file_path:
+                todos_per_file[todo.file_path] += 1
         return dict(todos_per_file)
 
     def calculate_total_dones(self) -> int:
@@ -191,6 +191,15 @@ class HealthOMeter:
         # > 0.15
         return "Infestation"
 
+    def get_total_dones_scale(self, value: int) -> str:
+        if value == 0:
+            return "No Progress"
+        if value <= 5:
+            return "Initial Cleanup"
+        if value <= 20:
+            return "Steady Progress"
+        return "High Velocity"
+
     def calculate_metrics(self) -> dict[str, Any]:
         """
         Calculates and returns a dictionary of all health metrics, including their
@@ -203,18 +212,20 @@ class HealthOMeter:
         sentiment_score = self.calculate_sentiment_score()
         quality_score = self.calculate_quality_score()
         bug_density = self.calculate_bug_density()
+        total_dones = self.calculate_total_dones()
 
         metrics = {
             "todos_per_file": self.calculate_todos_per_file(),
-            "total_dones": self.calculate_total_dones(),
+            "total_dones": total_dones,
             "total_todos": total_todos,
-            "sentiment_score": sentiment_score,
-            "quality_score": quality_score,
+            "sentiment": sentiment_score,
+            "quality": quality_score,
             "bug_density": bug_density,
             "total_todos_scale": self.get_total_todos_scale(total_todos),
             "sentiment_scale": self.get_sentiment_scale(sentiment_score),
             "quality_scale": self.get_quality_scale(quality_score),
             "bug_density_scale": self.get_bug_density_scale(bug_density),
+            "total_dones_scale": self.get_total_dones_scale(total_dones),
         }
 
         # Add scale descriptions to the metrics

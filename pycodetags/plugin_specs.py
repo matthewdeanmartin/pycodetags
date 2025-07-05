@@ -11,8 +11,8 @@ from collections.abc import Callable
 import pluggy
 
 from pycodetags.config import CodeTagsConfig
-from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")

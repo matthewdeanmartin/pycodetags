@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 
 import pytest
 
-from pycodetags.data_tag_types import DATA
+from pycodetags.data_tags_classes import DATA
 from pycodetags.views import print_data_md, print_html, print_json, print_text, print_validate
 
 
@@ -19,8 +19,8 @@ def sample_data():
             data_fields={"priority": "high"},
             default_fields={"originator": "JD"},
             custom_fields={"team": "alpha"},
-            _file_path="project/module.py",
-            _line_number=10,
+            file_path="project/module.py",
+            line_number=10,
         ),
         DATA(
             code_tag="DONE",
@@ -28,8 +28,8 @@ def sample_data():
             data_fields={"priority": "low"},
             default_fields={"originator": "AL"},
             custom_fields={},
-            _file_path="project/module.py",
-            _line_number=20,
+            file_path="project/module.py",
+            line_number=20,
         ),
     ]
 
