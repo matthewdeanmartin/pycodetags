@@ -147,3 +147,14 @@ install_plugins:
 	# pure data plugins
 	uv pip install -e plugins/pycodetags_universal
 	uv pip install -e plugins/pycodetags_to_sqlite
+
+.PHONY: issues
+issues:install_plugins
+	@echo "Checking issues"
+	# $(VENV)	pycodetags data --src pycodetags --src plugins --format json>issues_site/data.json
+	@echo "Current issues:"
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format text
+	@echo "For best results, fix these issues:"
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format validate
+	@echo "Generating HTML report"
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format html>issues_site/index.html
