@@ -5,9 +5,10 @@ Converters for FolkTag and PEP350Tag to TODO
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.data_tags import DataTag, DataTagSchema, promote_fields
 from pycodetags.folk_code_tags import FolkTag
 
 logger = logging.getLogger(__name__)
@@ -44,9 +45,14 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
         schema (DataTagSchema): Schema for DataTag
     """
     # default fields should have already been promoted to data_fields by now.
+    kwargs = upgrade_to_specific_schema(pep350_tag, schema)
+
+    return DATA(**kwargs)  # type: ignore[arg-type]
+
+
+def upgrade_to_specific_schema(pep350_tag: DataTag, schema: DataTagSchema, flat: bool = True) -> dict[str, Any]:
     data_fields = pep350_tag["fields"]["data_fields"]
     custom_fields = pep350_tag["fields"]["custom_fields"]
-
     final_data = {}
     final_custom = {}
     for found, value in data_fields.items():
@@ -54,7 +60,6 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
             final_data[found] = value
         else:
             final_custom[found] = value
-
     for found, value in custom_fields.items():
         if found in schema["data_fields"]:
             if found in final_data:
@@ -64,12 +69,9 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
             if found in final_custom:
                 logger.warning("Found same field in both data and custom")
             final_custom[found] = value
-
-    kwargs = {
+    kwargs: DataTag | dict[str, Any] = {
         "code_tag": pep350_tag["code_tag"],
         "comment": pep350_tag["comment"],
-        "data_fields": final_data,
-        "custom_fields": final_custom,
         # Source Mapping
         "_file_path": pep350_tag.get("file_path"),
         "_line_number": pep350_tag.get("line_number"),
@@ -77,4 +79,18 @@ def convert_pep350_tag_to_DATA(pep350_tag: DataTag, schema: DataTagSchema) -> DA
         "_original_schema": "pep350",
         "_offsets": pep350_tag.get("offsets"),
     }
-    return DATA(**kwargs)  # type: ignore[arg-type]
+    if flat:
+        kwargs["default_fields"] = pep350_tag["fields"]["default_fields"]  # type:ignore[typeddict-unknown-key]
+        kwargs["data_fields"] = final_data  # type:ignore[typeddict-unknown-key]
+        kwargs["custom_fields"] = final_custom  # type:ignore[typeddict-unknown-key]
+        ud = pep350_tag["fields"]["unprocessed_defaults"]
+        kwargs["unprocessed_defaults"] = ud  # type:ignore[typeddict-unknown-key]
+    else:
+        kwargs["fields"] = {
+            "data_fields": final_data,
+            "custom_fields": final_custom,
+            "default_fields": pep350_tag["fields"]["default_fields"],
+            "unprocessed_defaults": pep350_tag["fields"]["unprocessed_defaults"],
+        }
+        promote_fields(kwargs, schema)  # type: ignore[arg-type]
+    return kwargs  # type: ignore[return-value]

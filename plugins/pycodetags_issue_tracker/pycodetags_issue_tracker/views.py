@@ -32,36 +32,12 @@ def print_validate(found: list[TODO]) -> None:
             print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
+            print(f"Original Schema {item._original_schema}")
+            print(f"Original Text {item._original_text}")
+                # print(item)
             print()
 
 
-def print_html(found: list[TODO]) -> None:
-    """
-    Prints TODOs and Dones in a structured HTML format.
-
-    Args:
-        found (list[DATA]): The collected TODOs and Dones.
-    """
-    todos = found
-
-    tags = set()
-    for todo in todos:
-        tags.add(todo.code_tag)
-
-    for tag in tags:
-        for todo in todos:
-            # TODO: find more efficient way to filter.
-            if todo.code_tag == tag:
-                print(f"<h1>{tag}</h1>")
-                print("<ul>")
-                if not todo.is_probably_done():
-                    print(
-                        f"<li><strong>{todo.comment}</strong><br>Author: {todo.assignee}<br>Close: {todo.closed_date}</li>"
-                    )
-                else:
-                    print(f"<li><strong>{todo.comment}</strong><br>Assignee: {todo.assignee}<br>Due: {todo.due}</li>")
-                print("</ul>")
-    print("</ul>")
 
 
 def print_text(found: list[TODO]) -> None:
@@ -99,7 +75,7 @@ def print_changelog(found: list[TODO]) -> None:
         if done and not done.release:
             done.release = "N/A"
 
-    # BUG: This probably isn't he right way to sort a version
+    # BUG: This probably isn't he right way to sort a version <matth 2024-07-04>
     dones_meta.sort(
         key=lambda d: ((d.release if d.release else "N/A", d.closed_date if d.closed_date else "") if d else ("", "")),
         reverse=True,
@@ -171,7 +147,7 @@ def print_todo_md(found: list[TODO]) -> None:
     if not custom_status:
         custom_status = ["TODO", "DONE"]
 
-    # HACK: This works poorly when statuses are missing or if they don't sync up with the code tag.
+    # HACK: This works poorly when statuses are missing or if they don't sync up with the code tag.<matth 2025-07-04>
 
     for status in custom_status:
         print(f"### {status.capitalize()}")

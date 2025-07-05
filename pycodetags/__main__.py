@@ -13,7 +13,7 @@ from collections.abc import Sequence
 import pluggy
 
 import pycodetags.__about__ as __about__
-from pycodetags import DATA
+from pycodetags import DATA, DataTagSchema, data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.dotenv import load_dotenv
@@ -158,7 +158,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.exit(1)
 
         try:
-            found = aggregate_all_kinds_multiple_input(modules, src)
+            found = aggregate_all_kinds_multiple_input(modules, src, data_schema.PureDataSchema)
 
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
@@ -184,7 +184,6 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         # Pass control to plugins for other commands
         # Aggregate data if plugins might need it
-        found_data_for_plugins: list[DATA] = []
         if hasattr(args, "module") and args.module:
             modules = getattr(args, "module", [])
         else:
@@ -195,25 +194,34 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             src = code_tags_config.source_folders_to_scan()
 
-        try:
-            all_found: list[DATA] = []
-            for source in src:
-                found_tags = aggregate_all_kinds_multiple_input([""], [source])
-                all_found.extend(found_tags)
-            more_found = aggregate_all_kinds_multiple_input(modules, [])
-            all_found.extend(more_found)
-            found_data_for_plugins = all_found
-        except ImportError:
-            logging.warning(f"Could not aggregate data for command {args.command}, proceeding without it.")
-            found_data_for_plugins = []
+        def found_data_for_plugins_callback(schema: DataTagSchema) -> list[DATA]:
+            return source_and_modules_searcher(args.command, modules, src, schema)
 
         handled_by_plugin = pm.hook.run_cli_command(
-            command_name=args.command, args=args, found_data=found_data_for_plugins, config=get_code_tags_config()
+            command_name=args.command,
+            args=args,
+            found_data=found_data_for_plugins_callback,
+            config=get_code_tags_config(),
         )
         if not any(handled_by_plugin):
             print(f"Error: Unknown command '{args.command}'.", file=sys.stderr)
             return 1
     return 0
+
+
+def source_and_modules_searcher(command: str, modules: list[str], src: list[str], schema: DataTagSchema) -> list[DATA]:
+    try:
+        all_found: list[DATA] = []
+        for source in src:
+            found_tags = aggregate_all_kinds_multiple_input([""], [source], schema)
+            all_found.extend(found_tags)
+        more_found = aggregate_all_kinds_multiple_input(modules, [], schema)
+        all_found.extend(more_found)
+        found_data_for_plugins = all_found
+    except ImportError:
+        logging.warning(f"Could not aggregate data for command {command}, proceeding without it.")
+        found_data_for_plugins = []
+    return found_data_for_plugins
 
 
 def common_switches(parser) -> None:

@@ -37,6 +37,21 @@ def string_to_data(
     return tags
 
 
+def string_to_data_tag_typed_dicts(
+    value: str, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> Iterable[DataTag | FolkTag]:
+    """Deserialize to many code tags"""
+    if schema is None:
+        schema = PureDataSchema
+    tags: list[DataTag | FolkTag] = []
+    for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
+        if "fields" in tag:
+            tags.append(cast(DataTag, tag))
+        else:
+            tags.append(cast(FolkTag, tag))
+    return tags
+
+
 def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
     """Support for multiple ways to specify a file"""
     if isinstance(source, str):
@@ -78,7 +93,7 @@ def dumps(obj: DATA) -> str:
     """Serialize to string"""
     if not obj:
         return ""
-    # TODO: check plugins to answer for _schema
+    # TODO: check plugins to answer for _schema <matth 2025-07-04>
     return obj.as_data_comment()
 
 
@@ -100,7 +115,7 @@ def load(
     source: IOInput, file_path: Path | None = None, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> DATA | None:
     """Deserialize from a file-like or path-like to a single data tag"""
-    # BUG: not all of these are context manager
+    # BUG: not all of these are context manager <matth 2025-07-05>
     with _open_for_read(source) as f:
         items = string_to_data(f.read(), file_path, schema, include_folk_tags)
         return next((_ for _ in items), None)

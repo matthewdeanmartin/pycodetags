@@ -71,21 +71,22 @@ def iterate_comments(
                 logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
             things.extend(found_data_tags)
 
-        if not found_data_tags and include_folk_tags:
-            # BUG: fails if there are two in th same.
-            # TODO: blank out consumed text, reconsume bock
-            found_folk_tags: list[FolkTag] = []
-            # TODO: support config of folk schema.
-            folk_code_tags.process_text(
-                final_comment,
-                allow_multiline=True,
-                default_field_meaning="assignee",
-                found_tags=found_folk_tags,
-                file_path=str(source_file) if source_file else "",
-                valid_tags=[],
-            )
-            if found_folk_tags:
-                logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
-            things.extend(found_folk_tags)
+        for schema in schemas:
+            if not found_data_tags and include_folk_tags and schema["matching_tags"]:
+                # BUG: fails if there are two in th same.
+                # TODO: blank out consumed text, reconsume bock <matth 2025-07-04>
+                found_folk_tags: list[FolkTag] = []
+                # TODO: support config of folk schema.<matth 2025-07-04>
+                folk_code_tags.process_text(
+                    final_comment,
+                    allow_multiline=True,
+                    default_field_meaning="assignee",
+                    found_tags=found_folk_tags,
+                    file_path=str(source_file) if source_file else "",
+                    valid_tags=schema["matching_tags"],
+                )
+                if found_folk_tags:
+                    logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
+                things.extend(found_folk_tags)
 
     yield from things

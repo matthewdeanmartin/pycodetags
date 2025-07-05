@@ -6,12 +6,13 @@ from __future__ import annotations
 
 # pylint: disable=unused-argument
 import argparse
+from collections.abc import Callable
 
 import pluggy
 
 from pycodetags.config import CodeTagsConfig
 from pycodetags.data_tag_types import DATA
-from pycodetags.data_tags import DataTag
+from pycodetags.data_tags import DataTag, DataTagSchema
 from pycodetags.folk_code_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
@@ -62,7 +63,11 @@ class CodeTagsSpec:
 
     @hookspec
     def run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
+        self,
+        command_name: str,
+        args: argparse.Namespace,
+        found_data: Callable[[DataTagSchema], list[DATA]],
+        config: CodeTagsConfig,
     ) -> bool:
         """
         Allows plugins to handle the execution of their registered CLI commands.

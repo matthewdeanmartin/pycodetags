@@ -78,7 +78,7 @@ class IssueTrackerSpec:
         return False
 
     @hookspec
-    def validate_domain(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
+    def validate(self, item: DataTag, config: CodeTagsConfig) -> list[str]:
         """
         Allows plugins to add custom validation logic to TODO items.
 

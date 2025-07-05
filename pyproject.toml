@@ -35,7 +35,7 @@ classifiers = [
 ]
 repository = "https://github.com/matthewdeanmartin/pycodetags"
 homepage = "https://github.com/matthewdeanmartin/pycodetags"
-documentation = "https://github.com/matthewdeanmartin/pycodetags"
+documentation = "https://pycodetags.readthedocs.io/en/latest/"
 
 
 [tool.hatch.build.targets.wheel]

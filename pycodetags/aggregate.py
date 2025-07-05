@@ -8,14 +8,12 @@ import importlib
 import logging
 import logging.config
 import pathlib
-import sys
 
 import pycodetags.data_schema as data_schema
 import pycodetags.folk_code_tags as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
 from pycodetags.converters import convert_folk_tag_to_DATA, convert_pep350_tag_to_DATA
-from pycodetags.data_schema import PureDataSchema
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag, DataTagSchema
 from pycodetags.data_tags_parsers import iterate_comments_from_file
@@ -25,32 +23,45 @@ from pycodetags.plugin_manager import get_plugin_manager
 logger = logging.getLogger(__name__)
 
 
-def aggregate_all_kinds_multiple_input(module_names: list[str], source_paths: list[str]) -> list[DATA]:
-    """Refactor to support lists of modules and lists of source paths"""
+def aggregate_all_kinds_multiple_input(
+    module_names: list[str], source_paths: list[str], schema: DataTagSchema
+) -> list[DATA]:
+    """Refactor to support lists of modules and lists of source paths
+
+    Args:
+        module_names (list[str]): List of module names to search in.
+        source_paths (list[str]): List of source paths to search in.
+        schema (DataTagSchema): The schema to use for the data tags.
+
+    Returns:
+        list[DATA]: A list of DATA objects containing collected TODOs and DATA.
+    """
     if not module_names:
         module_names = []
     if not source_paths:
         source_paths = []
+    if schema is None:
+        schema = data_schema.PureDataSchema
     logger.info(f"aggregate_all_kinds_multiple_input: module_names={module_names}, source_paths={source_paths}")
     collected_DATA: list[DATA] = []
     collected: list[DataTag | folk_code_tags.FolkTag] = []
     found_in_modules: list[DATA] = []
     for module_name in module_names:
-        found_tags, found_in_modules = aggregate_all_kinds(module_name, "")
+        found_tags, found_in_modules = aggregate_all_kinds(module_name, "", schema)
         collected.extend(found_tags)
         logger.debug(f"Found {len(found_in_modules)} by looking at imported module: {module_name}")
 
     for source_path in source_paths:
-        found_tags, found_in_modules = aggregate_all_kinds("", source_path)
+        found_tags, found_in_modules = aggregate_all_kinds("", source_path, schema)
         collected.extend(found_tags)
         logger.debug(f"Found {len(found_tags)} by looking at src folder {source_path}")
 
     for found_tag in collected:
         if "fields" in found_tag.keys():
-            item = convert_pep350_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            item = convert_pep350_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
             collected_DATA.append(item)
         else:
-            item = convert_folk_tag_to_DATA(found_tag, data_schema.PureDataSchema)  # type: ignore[arg-type]
+            item = convert_folk_tag_to_DATA(found_tag, schema)  # type: ignore[arg-type]
             collected_DATA.append(item)
     collected_DATA.extend(found_in_modules)
 
@@ -58,7 +69,7 @@ def aggregate_all_kinds_multiple_input(module_names: list[str], source_paths: li
 
 
 def aggregate_all_kinds(
-    module_name: str, source_path: str
+    module_name: str, source_path: str, schema: DataTagSchema
 ) -> tuple[list[DataTag | folk_code_tags.FolkTag], list[DATA]]:
     """
     Aggregate all TODOs and DONEs from a module and source files.
@@ -66,6 +77,7 @@ def aggregate_all_kinds(
     Args:
         module_name (str): The name of the module to search in.
         source_path (str): The path to the source files.
+        schema (DataTagSchema): The schema to use for the data tags.
 
     Returns:
         list[DATA]: A dictionary containing collected TODOs, DONEs, and exceptions.
@@ -84,12 +96,12 @@ def aggregate_all_kinds(
             module = importlib.import_module(module_name)
             found_in_modules = collect_all_data(module, include_submodules=False)
         except ImportError as ie:
-            print(f"Error: Could not import module(s) '{module_name}'", file=sys.stderr)
+            logger.error(f"Error: Could not import module(s) '{module_name}'")
             raise ModuleImportError(f"Error: Could not import module(s) '{module_name}'") from ie
 
     found_tags: list[DataTag | folk_code_tags.FolkTag] = []
-    schemas: list[DataTagSchema] = [PureDataSchema]
-    # TODO: get schemas from plugins.
+    schemas: list[DataTagSchema] = [schema]
+    # TODO: get schemas from plugins.<matth 2025-07-04>
 
     if source_path:
         src_found = 0
@@ -118,13 +130,5 @@ def aggregate_all_kinds(
                     src_found += 1
         if src_found == 0:
             raise FileParsingError(f"Can't find any files in source folder {source_path}")
-
-    # found_TODOS: list[DATA] = []
-    # TODO: hand off to plugin to convert to specific type
-    # for found_tag in found_tags:
-    #     if "fields" in found_tag.keys():
-    #         found_TODOS.append(convert_pep350_tag_to_TODO(found_tag))  # type: ignore[arg-type]
-    #     else:
-    #         found_TODOS.append(convert_folk_tag_to_TODO(found_tag))  # type: ignore[arg-type]
 
     return found_tags, found_in_modules

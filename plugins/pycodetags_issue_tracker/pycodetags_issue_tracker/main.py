@@ -3,15 +3,16 @@ Registry of plugin hooks. These are exported via "entrypoints".
 """
 
 import argparse
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 
 import pluggy
 from pluggy import HookimplMarker
 from pycodetags_issue_tracker import cli
 from pycodetags_issue_tracker.converters import convert_data_to_TODO
 from pycodetags_issue_tracker.plugin_manager import set_plugin_manager
+from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
 
-from pycodetags import DATA
+from pycodetags import DATA, DataTagSchema
 from pycodetags.config import CodeTagsConfig
 
 hookimpl = HookimplMarker("pycodetags")
@@ -28,7 +29,7 @@ class IssueTrackerApp:
     ) -> bool:
         """Allow plugin to support its own plugins"""
         set_plugin_manager(new_pm=pm)
-        # TODO: register issue tracker specific commands, e.g. remove DONE
+        # TODO: register issue tracker specific commands, e.g. remove DONE <matth 2025-07-04>
         return True
 
     @hookimpl
@@ -38,10 +39,12 @@ class IssueTrackerApp:
 
     @hookimpl
     def run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data: Sequence[DATA], config: CodeTagsConfig
+        self, command_name: str, args: argparse.Namespace, found_data:
+            Callable[[DataTagSchema], Sequence[DATA]], config: CodeTagsConfig
     ) -> bool:
         """Run any CLI command that the plugin supports"""
-        found_todos = [convert_data_to_TODO(_) for _ in found_data]
+        callback_data = found_data(IssueTrackerSchema)
+        found_todos = [convert_data_to_TODO(_) for _ in callback_data]
         return cli.run_cli_command(command_name, args, found_todos, config)
 
     @hookimpl

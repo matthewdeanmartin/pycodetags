@@ -94,3 +94,22 @@ def test_tag_not_in_list_is_ignored():
     path = write_temp_file("# NOTE: this is just a note\n")
     results = find_source_tags(path, valid_tags=["TODO", "FIXME"])
     assert len(results) == 0
+
+
+def test_tag_not_a_tag_1():
+    path = write_temp_file('# PM.set_blocked("malicious_plugin")\n')
+    results = find_source_tags(path, valid_tags=["TODO"])
+    assert len(results) == 0
+
+
+# I guess it does look like a folk tag and the mnemonic is actually correct.
+# def test_tag_not_a_tag_2():
+#     path = write_temp_file('#     REQUIREMENT = namespace["REQUIREMENT"]\n')
+#     results = find_source_tags(path, valid_tags=["REQUIREMENT"])
+#     assert len(results) == 0
+
+
+def test_tag_not_a_tag_3():
+    path = write_temp_file('    "# DOTALL allows . to match newlines, VERBOSE allows comments in regex\n')
+    results = find_source_tags(path, valid_tags=[])
+    assert len(results) == 0

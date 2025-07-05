@@ -4,7 +4,7 @@ import argparse
 from collections.abc import Sequence
 from typing import cast
 
-from pycodetags_issue_tracker import TODO, views
+from pycodetags_issue_tracker import TODO, views, views_templated
 
 from pycodetags import DATA
 from pycodetags.config import CodeTagsConfig
@@ -55,7 +55,7 @@ def run_cli_command(
             views.print_validate(cast(list[TODO], found_data))
             return True
         if format_name == "html":
-            views.print_html(cast(list[TODO], found_data))
+            views_templated.print_html(cast(list[TODO], found_data))
             return True
         if format_name == "todomd":
             views.print_todo_md(cast(list[TODO], found_data))

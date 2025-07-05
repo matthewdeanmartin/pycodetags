@@ -71,7 +71,7 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
     lines = source.splitlines()
 
     # Filter out comment nodes
-    # BUG, fails to walk the whole tree. This is shallow.
+    # BUG: fails to walk the whole tree. This is shallow. <matth 2025-07-04>
     comments = [node for node in walk(tree) if isinstance(node, Comment)]
 
     def comment_pos(comment: Comment) -> tuple[int, int, int, int]:

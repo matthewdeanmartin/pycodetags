@@ -19,7 +19,10 @@ IssueTrackerSchema: DataTagSchema = {
         "PORT",
         "DOCUMENT",
     ],
-    "default_fields": {"str": "assignee", "date": "origination_date"},
+    "default_fields": {
+        "str": "originator",
+        "date": "origination_date"
+    },
     "data_fields": {
         "priority": "str",  # or str | int?
         "due": "date",
@@ -30,6 +33,7 @@ IssueTrackerSchema: DataTagSchema = {
         "release": "str",  # or str | int?
         "assignee": "str",  # or str | list[str]?
         "originator": "str",
+        "origination_date":"date"
     },
     "data_field_aliases": {
         "p": "priority",

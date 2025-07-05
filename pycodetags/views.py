@@ -28,6 +28,9 @@ def print_validate(found: list[DATA]) -> None:
             print(item.terminal_link())
             for validation in validations:
                 print(f"  {validation}")
+                print(f"Original Schema {item._original_schema}")
+                print(f"Original Text {item._original_schema}")
+
             print()
 
 
@@ -44,7 +47,7 @@ def print_html(found: list[DATA]) -> None:
 
     for tag in tags:
         for todo in found:
-            # TODO: find more efficient way to filter.
+            # TODO: find more efficient way to filter.<matth 2025-07-04>
             if todo.code_tag == tag:
                 print(f"<h1>{tag}</h1>")
                 print("<ul>")

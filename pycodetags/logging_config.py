@@ -72,7 +72,6 @@ def generate_config(level: str = "DEBUG", enable_bug_trail: bool = False) -> dic
             return config
 
         section = bug_trail_core.read_config(config_path="pyproject.toml")
-        print(section)
         # handler = bug_trail_core.BugTrailHandler(section.database_path, minimum_level=logging.DEBUG)
         config["handlers"]["bugtrail"] = {
             "class": "bug_trail_core.BugTrailHandler",

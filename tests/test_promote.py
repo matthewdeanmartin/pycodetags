@@ -84,6 +84,7 @@ def test_merge_custom_and_data_field_with_alias_and_conflict(simple_schema):
         "code_tag": "TODO",
         "comment": "Merge alias conflict",
         "fields": {
+            "unprocessed_defaults": [],
             "default_fields": {},
             "data_fields": {"priority": "medium"},
             "custom_fields": {"p": "high"},  # alias to priority

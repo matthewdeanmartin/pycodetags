@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class Fields(TypedDict, total=False):
     """Fields extracted from PEP-350 style code tags."""
 
-    # HACK: maybe make these always a list?
+    # HACK: maybe make these always a list? <matth 2025-07-04>
     assignee: str  # make this go away and always promote to assignee, isomorphic with custom_tags?
     assignees: list[str]
 

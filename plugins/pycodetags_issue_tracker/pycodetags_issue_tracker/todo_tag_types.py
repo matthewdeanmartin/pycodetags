@@ -130,7 +130,7 @@ class TODO(DATA):
             return
 
         if self.due:
-            # TODO: find better way to upgrade string to strong type.
+            # TODO: find better way to upgrade string to strong type.<matth 2025-07-04>
             try:
                 parsed_date = parse_due_date(self.due)
                 self._due_date_obj = parsed_date
@@ -228,7 +228,7 @@ class TODO(DATA):
             if not self.closed_date:
                 issues.append(f"Item is done, missing closed date, suggest {datetime.datetime.now()}")
 
-        # TODO: check for mandatory fields
+        # TODO: check for mandatory fields <matth 2025-07-04>
         mandatory_fields = config.mandatory_fields()
         if mandatory_fields:
             for mandatory_field in mandatory_fields:
@@ -236,24 +236,24 @@ class TODO(DATA):
                     issues.append(f"{mandatory_field} is required")
 
         # Authors from config.
-        # TODO: Implement authors from files
+        # TODO: Implement authors from files <matth 2025-07-04>
         authors_list = config.valid_authors()
         if authors_list:
             for person in (self.originator, self.assignee):
                 if isinstance(person, list):
                     for subperson in person:
                         if subperson.lower() not in authors_list:
-                            issues.append(f"Person '{subperson}' is not on the valid authors list")
+                            issues.append(f"Person '{subperson}' is not on the valid authors list, {authors_list}")
                 elif isinstance(person, str) and person.lower() not in authors_list:
-                    issues.append(f"Person '{person}' is not on the valid authors list")
+                    issues.append(f"Person '{person}' is not on the valid authors list, {authors_list}")
 
-        # TODO: Implement release/version from files
+        # TODO: Implement release/version from files <matth 2025-07-04>
         release_list = config.valid_releases()
         if release_list:
             if self.release and self.release not in release_list:
                 issues.append(f"Release '{self.release}' is not on the valid release list {release_list}")
 
-        # TODO: Implement release/version from files
+        # TODO: Implement release/version from files <matth 2025-07-04>
 
         valid_change_list = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
         if self.is_probably_done():
@@ -293,7 +293,7 @@ class TODO(DATA):
         # pylint: disable=import-outside-toplevel
         from pycodetags.plugin_manager import get_plugin_manager
 
-        for new_issues in get_plugin_manager().hook.validate(todo_item=self, config=get_code_tags_config()):
+        for new_issues in get_plugin_manager().hook.validate(item=self, config=get_code_tags_config()):
             plugin_issues += new_issues
             issues.extend(plugin_issues)
 

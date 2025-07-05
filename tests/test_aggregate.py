@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from pycodetags import PureDataSchema
 from pycodetags.aggregate import aggregate_all_kinds, aggregate_all_kinds_multiple_input
 from pycodetags.data_tag_types import DATA
 from pycodetags.exceptions import FileParsingError
@@ -28,7 +29,7 @@ def test_aggregate_from_source_file(tmp_path):
     )
     create_python_file(tmp_path, content)
 
-    found_tags, found_data = aggregate_all_kinds(module_name="", source_path=str(tmp_path))
+    found_tags, found_data = aggregate_all_kinds(module_name="", source_path=str(tmp_path), schema=PureDataSchema)
 
     assert len(found_tags) >= 1
     assert all(tag["code_tag"] == "TODO" for tag in found_tags)
@@ -46,7 +47,7 @@ def test_aggregate_all_kinds_multiple_input(tmp_path):
     )
     create_python_file(tmp_path, content)
 
-    results = aggregate_all_kinds_multiple_input(module_names=[], source_paths=[str(tmp_path)])
+    results = aggregate_all_kinds_multiple_input(module_names=[], source_paths=[str(tmp_path)], schema=PureDataSchema)
     assert isinstance(results, list)
     assert any(isinstance(item, DATA) for item in results)
     assert any(item.code_tag == "TODO" for item in results)
@@ -70,7 +71,7 @@ def test_aggregate_from_module(tmp_path):
 
     sys.path.insert(0, str(tmp_path))
     try:
-        _found_tags, found_data = aggregate_all_kinds(module_name="testmod", source_path="")
+        _found_tags, found_data = aggregate_all_kinds(module_name="testmod", source_path="", schema=PureDataSchema)
         assert isinstance(found_data, list)
         assert any(isinstance(item, DATA) for item in found_data)
     finally:
@@ -78,7 +79,7 @@ def test_aggregate_from_module(tmp_path):
 
 
 def test_aggregate_with_empty_inputs(tmp_path):
-    results = aggregate_all_kinds_multiple_input([], [])
+    results = aggregate_all_kinds_multiple_input([], [], PureDataSchema)
     assert isinstance(results, list)
     assert len(results) == 0
 
@@ -87,4 +88,4 @@ def test_aggregate_raises_on_invalid_path(tmp_path):
     bad_path = tmp_path / "nonexistent"
 
     with pytest.raises(FileParsingError, match="Can't find any files in source folder"):
-        aggregate_all_kinds(module_name="", source_path=str(bad_path))
+        aggregate_all_kinds(module_name="", source_path=str(bad_path), schema=PureDataSchema)

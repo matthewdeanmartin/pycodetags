@@ -5,6 +5,8 @@ Converters for FolkTag and PEP350Tag to TODO
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
+from typing import Any
 
 from pycodetags_issue_tracker.todo_object_schema import TODO_KEYWORDS
 from pycodetags_issue_tracker.todo_tag_types import TODO
@@ -32,31 +34,48 @@ def blank_to_null(value: str | None) -> str | None:
         return None
     return value.strip()
 
+def convert_datas_to_TODOs(tags: Iterable[DATA])->Iterable[TODO]:
+    """Syntactic sugar to convert many tags"""
+    return [convert_data_to_TODO(_) for _ in tags]
+
+def get_from_custom_or_data(name:str, tag:DATA)->Any:
+    value = (tag.data_fields or {}).get(name)
+    if value:
+        return value
+    value = (tag.data_fields or {}).get(name)
+    if value:
+        return value
+    return None
+
 
 def convert_data_to_TODO(tag: DATA) -> TODO:
     return TODO(
         code_tag=tag.code_tag,
-        assignee=(tag.custom_fields or {}).get("assignee"),
-        originator=(tag.custom_fields or {}).get("originator"),
         comment=tag.comment,
-        origination_date=(tag.custom_fields or {}).get("origination_date"),
-        due=(tag.custom_fields or {}).get("due"),
-        release_due=(tag.custom_fields or {}).get("release_due"),
-        release=(tag.custom_fields or {}).get("release"),
-        iteration=(tag.custom_fields or {}).get("iteration"),
-        change_type=(tag.custom_fields or {}).get("change_type"),
-        closed_date=(tag.custom_fields or {}).get("closed_date"),
-        closed_comment=(tag.custom_fields or {}).get("closed_comment"),
-        tracker=(tag.custom_fields or {}).get("tracker"),
+        default_fields=tag.default_fields or [],
+        data_fields=tag.data_fields or {},
+        custom_fields=tag.custom_fields or {},
+        unprocessed_defaults=tag.unprocessed_defaults or [],
+
+        assignee=get_from_custom_or_data("assignee",tag),
+        originator=get_from_custom_or_data("originator",tag),
+        origination_date=get_from_custom_or_data("origination_date",tag),
+        due=get_from_custom_or_data("due",tag),
+        release_due=get_from_custom_or_data("release_due",tag),
+        release=get_from_custom_or_data("release",tag),
+        iteration=get_from_custom_or_data("iteration",tag),
+        change_type=get_from_custom_or_data("change_type",tag),
+        closed_date=get_from_custom_or_data("closed_date",tag),
+        closed_comment=get_from_custom_or_data("closed_comment",tag),
+        tracker=get_from_custom_or_data("tracker",tag),
         _file_path=tag._file_path,
         _line_number=tag._line_number,
         _original_text=tag._original_text,
         _original_schema=tag._original_schema,
         _offsets=tag._offsets,
-        custom_fields=tag.custom_fields,
-        priority=(tag.custom_fields or {}).get("priority"),
-        status=(tag.custom_fields or {}).get("status"),
-        category=(tag.custom_fields or {}).get("category"),
+        priority=get_from_custom_or_data("priority",tag),
+        status=get_from_custom_or_data("status",tag),
+        category=get_from_custom_or_data("category",tag),
     )
 
 

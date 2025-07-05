@@ -1,9 +1,12 @@
 import textwrap
+from pathlib import Path
 
 import pytest
 from pycodetags_issue_tracker.specific_schemas import IssueTrackerSchema
 from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
 
+from pycodetags.common_interfaces import string_to_data_tag_typed_dicts
+from pycodetags.converters import upgrade_to_specific_schema
 from pycodetags.data_tags import parse_codetags, parse_fields, promote_fields
 
 
@@ -243,61 +246,6 @@ def test_extract_comment_blocks_basic(create_dummy_file):
     assert blocks[1] == ["# Another comment"]
 
 
-# def test_extract_comment_blocks_with_docstrings_and_code():
-#     content = textwrap.dedent(
-#         """
-#         def my_function():
-#             '''This is a docstring.'''
-#             # This is a regular comment
-#             pass
-#
-#         # This is another comment block
-#         # It has two lines
-#         var = 1
-#         """
-#     )
-#     # Mocking open for file content
-#     with patch("builtins.open", mock_open(read_data=content.encode("utf-8"))):
-#         # Mocking tokenize.tokenize to return predefined tokens for the content
-#         # This is more robust as tokenize.tokenize expects a readline callable
-#         # and can be tricky to mock directly with a string.
-#         # For simplicity and testability, we'll simulate the output of tokenize.tokenize
-#         # based on the content. In a real scenario, you'd feed the content to tokenize.
-#         # For this test, we'll manually create the relevant tokens.
-#         mock_tokens = [
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (1, 0), (1, 1), ""),
-#             tokenize.TokenInfo(tokenize.NAME, "def", (2, 0), (2, 3), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.NAME, "my_function", (2, 4), (2, 15), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.OP, "(", (2, 15), (2, 16), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.OP, ")", (2, 16), (2, 17), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.OP, ":", (2, 17), (2, 18), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (2, 18), (2, 19), "def my_function():"),
-#             tokenize.TokenInfo(tokenize.INDENT, "    ", (3, 0), (3, 4), "    '''This is a docstring.'''"),
-#             tokenize.TokenInfo(tokenize.STRING, "'''This is a docstring.'''", (3, 4), (3, 30), "    '''This is a docstring.'''"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (3, 30), (3, 31), "    '''This is a docstring.'''"),
-#             tokenize.TokenInfo(tokenize.COMMENT, "# This is a regular comment", (4, 4), (4, 31), "    # This is a regular comment"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (4, 31), (4, 32), "    # This is a regular comment"),
-#             tokenize.TokenInfo(tokenize.NAME, "pass", (5, 4), (5, 8), "    pass"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (5, 8), (5, 9), "    pass"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (6, 0), (6, 1), "\n"),
-#             tokenize.TokenInfo(tokenize.COMMENT, "# This is another comment block", (7, 0), (7, 31), "# This is another comment block"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (7, 31), (7, 32), "# This is another comment block"),
-#             tokenize.TokenInfo(tokenize.COMMENT, "# It has two lines", (8, 0), (8, 19), "# It has two lines"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (8, 19), (8, 20), "# It has two lines"),
-#             tokenize.TokenInfo(tokenize.NAME, "var", (9, 0), (9, 3), "var = 1"),
-#             tokenize.TokenInfo(tokenize.OP, "=", (9, 4), (9, 5), "var = 1"),
-#             tokenize.TokenInfo(tokenize.NUMBER, "1", (9, 6), (9, 7), "var = 1"),
-#             tokenize.TokenInfo(tokenize.NEWLINE, "\n", (9, 7), (9, 8), "var = 1"),
-#             tokenize.TokenInfo(tokenize.ENDMARKER, "", (10, 0), (10, 0), ""),
-#         ]
-#
-#         with patch("tokenize.tokenize", return_value=mock_tokens):
-#             blocks = extract_comment_blocks("dummy.py")
-#             assert len(blocks) == 2
-#             assert blocks[0] == ["# This is a regular comment"]
-#             assert blocks[1] == ["# This is another comment block", "# It has two lines"]
-
-
 def test_extract_comment_blocks_no_comments(create_dummy_file):
     content = textwrap.dedent(
         """
@@ -361,118 +309,133 @@ def test_extract_comment_blocks_with_leading_and_trailing_whitespace(create_dumm
     ]
 
 
-# # Tests for collect_pep350_code_tags function
-# def test_collect_pep350_code_tags_single_file(create_dummy_file):
-#     content = textwrap.dedent(
-#         """
-#         # TODO: Finish this module <priority:high assignee:dev_a>
-#         # A regular comment
-#         # FIXME: Refactor this part <due:2025-06-30>
-#         def some_function():
-#             # BUG: This might cause an error in production <status:open c:critical>
-#             pass
-#         """
-#     )
-#     filename = create_dummy_file("test_single_file.py", content)
-#     tags = list(collect_pep350_code_tags(filename))
-#
-#     assert len(tags) == 3
-#
-#     assert tags[0]["code_tag"] == "TODO"
-#     assert tags[0]["comment"] == "Finish this module"
-#     assert tags[0]["fields"]["data_fields"]["priority"] == "high"
-#     assert tags[0]["fields"]["data_fields"]["assignee"] == ["dev_a"]
-#
-#     assert tags[1]["code_tag"] == "FIXME"
-#     assert tags[1]["comment"] == "Refactor this part"
-#     assert tags[1]["fields"]["data_fields"]["due"] == "2025-06-30"
-#
-#     assert tags[2]["code_tag"] == "BUG"
-#     assert tags[2]["comment"] == "This might cause an error in production"
-#     assert tags[2]["fields"]["data_fields"]["status"] == "open"
-#     assert tags[2]["fields"]["data_fields"]["category"] == "critical"
+# Tests for collect_pep350_code_tags function
+def test_collect_pep350_code_tags_single_file(create_dummy_file):
+    content = textwrap.dedent(
+        """
+        # TODO: Finish this module <priority:high assignee:dev_a>
+        # A regular comment
+        # FIXME: Refactor this part <due:2025-06-30>
+        def some_function():
+            # BUG: This might cause an error in production <status:open c:critical>
+            pass
+        """
+    )
+    filename = create_dummy_file("test_single_file.py", content)
+    tags = list(
+        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
+        for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
+    )
+
+    assert len(tags) == 3
+
+    assert tags[0]["code_tag"] == "TODO"
+    assert tags[0]["comment"] == "Finish this module"
+    assert tags[0]["fields"]["data_fields"]["priority"] == "high"
+    assert tags[0]["fields"]["data_fields"]["assignee"] == ["dev_a"]
+
+    assert tags[1]["code_tag"] == "FIXME"
+    assert tags[1]["comment"] == "Refactor this part"
+    assert tags[1]["fields"]["data_fields"]["due"] == "2025-06-30"
+
+    assert tags[2]["code_tag"] == "BUG"
+    assert tags[2]["comment"] == "This might cause an error in production"
+    assert tags[2]["fields"]["data_fields"]["status"] == "open"
+    assert tags[2]["fields"]["data_fields"]["category"] == "critical"
 
 
-# def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
-#     content = textwrap.dedent(
-#         """
-#         # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
-#         # BUG: Issue <s:new>
-#         """
-#     )
-#     filename = create_dummy_file("test_multiple_tags_same_line.py", content)
-#     tags = list(collect_pep350_code_tags(filename))
-#
-#     assert len(tags) == 3  # Two from the first line, one from the second
-#
-#     assert tags[0]["code_tag"] == "TODO"
-#     assert tags[0]["comment"] == "Task 1"
-#     assert tags[0]["fields"]["data_fields"]["priority"] == "1"
-#
-#     assert tags[1]["code_tag"] == "FIXME"
-#     assert tags[1]["comment"] == "Task 2"
-#     assert tags[1]["fields"]["data_fields"]["priority"] == "2"
-#
-#     assert tags[2]["code_tag"] == "BUG"
-#     assert tags[2]["comment"] == "Issue"
-#     assert tags[2]["fields"]["data_fields"]["status"] == "new"
-#
-#
-# def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
-#     content = textwrap.dedent(
-#         """
-#         # This is a normal comment.
-#         # Another normal comment.
-#         def nothing_special():
-#             pass
-#         """
-#     )
-#     filename = create_dummy_file("test_no_tags.py", content)
-#     tags = list(collect_pep350_code_tags(filename))
-#     assert len(tags) == 0
-#
-#
-# def test_collect_pep350_code_tags_empty_file(create_dummy_file):
-#     filename = create_dummy_file("test_empty.py", "")
-#     tags = list(collect_pep350_code_tags(filename))
-#     assert len(tags) == 0
+def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
+    content = textwrap.dedent(
+        """
+        # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
+        # BUG: Issue <s:new>
+        """
+    )
+    filename = create_dummy_file("test_multiple_tags_same_line.py", content)
+    tags = list(
+        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
+        for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
+    )
 
-#
-# def test_collect_pep350_code_tags_with_mixed_content(create_dummy_file):
-#     content = textwrap.dedent(
-#         """
-# # Initial comment
-# # TODO: First task <p:high>
-# import os
-# # Some code here
-# def my_func():
-#     # BUG: Problem in func <s:open a:dev_b>
-#     print("hello")
-# # Another block
-# # FIXME: Final fix <d:2026-01-01>
-# """
-#     )
-#     filename = create_dummy_file("test_mixed_content.py", content)
-#     tags = list(collect_pep350_code_tags(filename))
-#
-#     assert len(tags) == 3
-#
-#     todo_tag = list(filter(lambda x: x["code_tag"] == "TODO", tags))[0]
-#     assert todo_tag["code_tag"] == "TODO"
-#     assert todo_tag["comment"] == "First task"
-#     assert todo_tag["fields"]["data_fields"]["priority"] == "high"
-#
-#     bug_tag = list(filter(lambda x: x["code_tag"] == "BUG", tags))[0]
-#     assert bug_tag["code_tag"] == "BUG"
-#     assert bug_tag["comment"] == "Problem in func"
-#     assert bug_tag["fields"]["data_fields"]["status"] == "open"
-#     assert bug_tag["fields"]["data_fields"]["assignee"] == ["dev_b"]
-#
-#     fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
-#     assert fixme_tag["code_tag"] == "FIXME"
-#     assert fixme_tag["comment"] == "Final fix"
-#     assert fixme_tag["fields"]["data_fields"]["due"] == "2026-01-01"
-#
+    assert len(tags) == 3  # Two from the first line, one from the second
+
+    assert tags[0]["code_tag"] == "TODO"
+    assert tags[0]["comment"] == "Task 1"
+    assert tags[0]["fields"]["data_fields"]["priority"] == "1"
+
+    assert tags[1]["code_tag"] == "FIXME"
+    assert tags[1]["comment"] == "Task 2"
+    assert tags[1]["fields"]["data_fields"]["priority"] == "2"
+
+    assert tags[2]["code_tag"] == "BUG"
+    assert tags[2]["comment"] == "Issue"
+    assert tags[2]["fields"]["data_fields"]["status"] == "new"
+
+
+def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
+    content = textwrap.dedent(
+        """
+        # This is a normal comment.
+        # Another normal comment.
+        def nothing_special():
+            pass
+        """
+    )
+    filename = create_dummy_file("test_no_tags.py", content)
+    tags = list(
+        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
+        for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
+    )
+    assert len(tags) == 0
+
+
+def test_collect_pep350_code_tags_empty_file(create_dummy_file):
+    filename = create_dummy_file("test_empty.py", "")
+    tags = list(
+        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
+        for _ in string_to_data_tag_typed_dicts("", Path(filename), schema=IssueTrackerSchema)
+    )
+    assert len(tags) == 0
+
+
+def test_collect_pep350_code_tags_with_mixed_content(create_dummy_file):
+    content = textwrap.dedent(
+        """
+# Initial comment
+# TODO: First task <p:high>
+import os
+# Some code here
+def my_func():
+    # BUG: Problem in func <s:open a:dev_b>
+    print("hello")
+# Another block
+# FIXME: Final fix <d:2026-01-01>
+"""
+    )
+    filename = create_dummy_file("test_mixed_content.py", content)
+    tags = list(
+        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
+        for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
+    )
+
+    assert len(tags) == 3
+
+    todo_tag = list(filter(lambda x: x["code_tag"] == "TODO", tags))[0]
+    assert todo_tag["code_tag"] == "TODO"
+    assert todo_tag["comment"] == "First task"
+    assert todo_tag["fields"]["data_fields"]["priority"] == "high"
+
+    bug_tag = list(filter(lambda x: x["code_tag"] == "BUG", tags))[0]
+    assert bug_tag["code_tag"] == "BUG"
+    assert bug_tag["comment"] == "Problem in func"
+    assert bug_tag["fields"]["data_fields"]["status"] == "open"
+    assert bug_tag["fields"]["data_fields"]["assignee"] == ["dev_b"]
+
+    fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
+    assert fixme_tag["code_tag"] == "FIXME"
+    assert fixme_tag["comment"] == "Final fix"
+    assert fixme_tag["fields"]["data_fields"]["due"] == "2026-01-01"
+
 
 def test_parse_fields_originator_field():
     field_string = "originator:john.doe"
@@ -494,7 +457,6 @@ def test_parse_fields_quotes_with_escaped_chars():
         "custom_fields": {"custom": r'value with "quotes" and \'single quotes\''},
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
-
 
 # def test_parse_fields_single_quote_with_escaped_chars():
 #     field_string = r"custom:'value with \'quotes\' and \"double quotes\"' "

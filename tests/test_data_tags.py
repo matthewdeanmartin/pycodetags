@@ -85,6 +85,7 @@ def test_promote_fields_merges_and_removes_custom():
         "code_tag": "TAG",
         "comment": "test",
         "fields": {
+            "unprocessed_defaults": [],
             "default_fields": {"assignee": ["JD"], "origination_date": "2025-06-15"},
             "data_fields": {"priority": "high"},
             "custom_fields": {"p": "low"},

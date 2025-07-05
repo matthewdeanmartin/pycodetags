@@ -29,6 +29,7 @@ Half-hearted goal:
 
 from __future__ import annotations
 
+import datetime
 import logging
 import re
 from typing import Any
@@ -64,11 +65,13 @@ class DataTagSchema(TypedDict):
 class DataTagFields(TypedDict):
     """Rules for interpreting the fields part of a code tag"""
 
+    unprocessed_defaults: list[str]
+
     # When deserializating a field value could appear in default, data and custom field positions.
     default_fields: dict[str, list[Any]]
     """Field without label identified by data type, range or fallback, e.g. user and date"""
 
-    # TODO: support dict[str, int | date | str | list[int, date, str]] ?
+    # TODO: support dict[str, int | date | str | list[int, date, str]] ? <matth 2025-07-04>
     data_fields: dict[str, Any]
     """Expected fields with labels, e.g. category, priority"""
 
@@ -90,7 +93,7 @@ class DataTagFields(TypedDict):
 #         raise TypeError(f"Double field with different values {field_name} : {values}")
 #     logger.warning(f"Double field with different values {field_name} : {values}")
 #
-#     # TODO: do we want to support str | list[str]?
+#     # TODO: do we want to support str | list[str]? <matth 2025-07-04>
 #     if values:
 #         return values[0]
 #     return ""
@@ -113,6 +116,26 @@ class DataTag(TypedDict, total=False):
 
 def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
     fields = tag["fields"]
+    if fields["unprocessed_defaults"]:
+        for value in fields.get("unprocessed_defaults", []):
+            consumed = False
+            for the_type, the_name in data_tag_schema["default_fields"].items():
+                if the_type == "int" and not fields["data_fields"].get(the_name) and not consumed:
+                    try:
+                        fields["data_fields"][the_name] = int(value)
+                        consumed = True
+                    except ValueError:
+                        logger.warning(f"Failed to convert {value} to int")
+                elif the_type == "date" and not fields["data_fields"].get(the_name) and not consumed:
+                    try:
+                        fields["data_fields"][the_name] = datetime.datetime.strptime(value, "%Y-%m-%d").date()
+                        consumed = True
+                    except ValueError:
+                        logger.warning(f"Failed to convert {value} to datetime")
+                elif the_type == "str" and not fields["data_fields"].get(the_name) and not consumed:
+                    fields["data_fields"][the_name] = value
+                    consumed = True
+
     if not fields.get("custom_fields", {}) and not fields.get("default_fields", {}):
         # nothing to promote
         return
@@ -125,15 +148,17 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
                 "Field in both data_fields and default_fields and they don't match: "
                 f'{default_key}: {fields["data_fields"][default_key]} != {default_value}'
             )
-            if isinstance(fields["data_fields"][default_key], list) and isinstance(default_value, list):
-                fields["data_fields"][default_key].extend(default_value)
-            elif isinstance(fields["data_fields"][default_key], list) and isinstance(default_value, str):
-                fields["data_fields"][default_key].append(default_value)
-            elif isinstance(fields["data_fields"][default_key], str) and isinstance(default_value, list):
-                fields["data_fields"][default_key] = default_value + [fields["data_fields"][default_key]]
-            elif isinstance(fields["data_fields"][default_key], str) and isinstance(default_value, str):
-                # promotes str to list[str], ugly!
-                fields["data_fields"][default_key] = [fields["data_fields"][default_key], default_value]
+
+            # # This only handles strongly type DATA() or TODO(). Comment tags are all strings!
+            # if isinstance(fields["data_fields"][default_key], list) and isinstance(default_value, list):
+            #     fields["data_fields"][default_key].extend(default_value)
+            # elif isinstance(fields["data_fields"][default_key], list) and isinstance(default_value, str):
+            #     fields["data_fields"][default_key].append(default_value)
+            # elif isinstance(fields["data_fields"][default_key], str) and isinstance(default_value, list):
+            #     fields["data_fields"][default_key] = default_value + [fields["data_fields"][default_key]]
+            # elif isinstance(fields["data_fields"][default_key], str) and isinstance(default_value, str):
+            #     # promotes str to list[str], ugly!
+            #     fields["data_fields"][default_key] = [fields["data_fields"][default_key], default_value]
 
         else:
             fields["data_fields"][default_key] = default_value
@@ -146,7 +171,7 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
             # Okay, found a custom field that should have been standard
             full_alias = field_aliases[custom_field]
 
-            if fields["data_fields"][full_alias]:
+            if fields["data_fields"].get(full_alias):
                 # found something already there
                 consumed = False
                 if isinstance(fields["data_fields"][full_alias], list):
@@ -239,7 +264,7 @@ def parse_fields(
         legit_names[key] = key
     field_aliases: dict[str, str] = merge_two_dicts(schema["data_field_aliases"], legit_names)
 
-    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
+    fields: DataTagFields = {"default_fields": {}, "data_fields": {}, "custom_fields": {}, "unprocessed_defaults": []}
 
     # Updated key_value_pattern:
     # - Handles quoted values (single or double) allowing any characters inside.
@@ -333,18 +358,20 @@ def parse_fields(
         if token == "#":  # nosec
             continue
         matched_default = False
+
         # for default_type, default_key in schema["default_fields"].items():
         # str must go last, it matches everything!
-        for default_type in ["int", "date", "str"]:
+        matched_default = False
+        for default_type in ["int", "date", "str", "str|list[str]"]:
             default_key = schema["default_fields"].get(default_type)
             if default_key:
+                # Default fields!
                 if not matched_default:
-                    # Default fields!
                     if default_type == "date" and date_pattern.match(token):
                         # Assign default_key from a standalone date token
                         fields["default_fields"][default_key] = token  # type: ignore[assignment]
                         matched_default = True
-                    elif default_type == "str":  # initials_pattern.match(token):
+                    elif default_type.replace(" ", "") == "str|list[str]":  # initials_pattern.match(token):
                         # Add standalone initials to assignees list
                         if default_key in fields["default_fields"]:
                             fields["default_fields"][default_key].extend([t.strip() for t in token.split(",") if t])
@@ -354,8 +381,14 @@ def parse_fields(
                     elif default_type == "int" and is_int(token):
                         fields["default_fields"][default_key] = token  # type: ignore[assignment]
                         matched_default = True
+                    elif default_type == "str":
+                        fields["default_fields"][default_key] = token  # type: ignore[assignment]
+                        matched_default = True
 
-    # TODO: promote default fields to data_fields
+        if not matched_default:
+            fields["unprocessed_defaults"].append(token)
+
+    # TODO: promote default fields to data_fields <matth 2025-07-04>
     return fields
 
 
@@ -405,7 +438,7 @@ def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool
                 "code_tag": tag_parts["code_tag"],
                 "comment": tag_parts["comment"],
                 "fields": fields,
-                "original_text": "N/A",  # BUG: Regex doesn't allow for showing this!
+                "original_text": "N/A",  # BUG: Regex doesn't allow for showing this! <matth 2025-07-04>
             }
         )
 
