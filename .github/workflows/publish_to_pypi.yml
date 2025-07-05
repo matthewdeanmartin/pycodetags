@@ -4,7 +4,6 @@ name: Publish to PyPI
 
 on:
   workflow_dispatch:
-    - branches: [ "main" ]
 
 jobs:
   build:
@@ -60,6 +59,11 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - name: Fail if branch is not main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          exit 1
       - name: Check out code
         uses: actions/checkout@v4.1.7
 

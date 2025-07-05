@@ -56,10 +56,11 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5.0.0
 
-      - name: Upload HTML site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./issues_site
+# already done?
+#      - name: Upload HTML site
+#        uses: actions/upload-pages-artifact@v3
+#        with:
+#          path: ./issues_site
 
       - name: Deploy to GitHub Pages
         id: deployment
