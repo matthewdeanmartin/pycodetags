@@ -36,14 +36,3 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      - name: Run make publish
-        run: uv run make publish
-
-      - name: Upload Package
-        uses: actions/upload-artifact@v4.3.6
-        with:
-          name: packages
-          path: dist/
-          if-no-files-found: error
-          retention-days: 1
-

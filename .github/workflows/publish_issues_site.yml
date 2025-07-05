@@ -40,6 +40,12 @@ jobs:
       - name: Run make issues
         run: uv run make issues
 
+      - name: Upload static files as artifact
+        id: deployment
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build_outputs_folder/
+
   deploy-site:
     name: Deploy HTML site to GitHub Pages
     runs-on: ubuntu-latest
