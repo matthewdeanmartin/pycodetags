@@ -63,7 +63,7 @@ jobs:
       - name: Upload HTML site
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./todo_site
+          path: ./issues_site
 
       - name: Deploy to GitHub Pages
         id: deployment

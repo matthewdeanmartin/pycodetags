@@ -25,12 +25,12 @@ import pycodetags_issue_tracker.templates as templates  # make sure templates is
 logger = logging.getLogger(__name__)
 
 
-def print_html(found: list[TODO], output: Path = Path("todo_site")) -> None:
+def print_html(found: list[TODO], output: Path = Path("issues_site")) -> None:
     """Generate an HTML report from collected TODOs.
 
     Args:
         found (CollectedTODOs): An instance of CollectedTODOs containing the collected TODOs.
-        output (Path): The directory where the HTML report will be saved. Defaults to "todo_site".
+        output (Path): The directory where the HTML report will be saved. Defaults to "issues_site".
     """
     # Load template from package
     with pkg_resources.files(templates).joinpath("report.html.jinja2").open("r", encoding="utf-8") as f:
