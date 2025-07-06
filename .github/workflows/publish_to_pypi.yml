@@ -1,6 +1,6 @@
 # .github/workflows/publish-to-pypi.yml
 
-name: Publish to PyPI
+name: Publish pycodetags to PyPI
 
 on:
   workflow_dispatch:
@@ -58,6 +58,7 @@ jobs:
       url: https://pypi.org/p/pycodetags
     permissions:
       id-token: write
+    needs: build
     steps:
       - name: Fail if branch is not main
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'

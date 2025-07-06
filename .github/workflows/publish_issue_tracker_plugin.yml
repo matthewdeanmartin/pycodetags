@@ -1,6 +1,6 @@
 # .github/workflows/publish-to-pypi.yml
 
-name: Publish to PyPI
+name: Publish pycodetags-issue-tracker to PyPI
 
 on:
   workflow_dispatch:
@@ -32,12 +32,12 @@ jobs:
         run: uv sync
 
       - name: Run make
-        run: cd plugins/pycodetags_issue_tracker && uv run make publish
+        run: cd plugins/pycodetags_issue_tracker && uv run make publish && ls dist
 
       - name: Upload Package
         uses: actions/upload-artifact@v4.3.6
         with:
-          name: issue_tracker_packages
+          name: issuetrackerpackages
           path: plugins/pycodetags_issue_tracker/dist/
           if-no-files-found: error
           retention-days: 1
@@ -50,6 +50,7 @@ jobs:
       url: https://pypi.org/p/pycodetags-issue-tracker
     permissions:
       id-token: write
+    needs: build
     steps:
       - name: Fail if branch is not main
         if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
@@ -62,7 +63,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4.1.8
         with:
-          name: issue_tracker_packages
+          name: issuetrackerpackages
           path: plugins/pycodetags_issue_tracker/dist/
 
       - name: Publish to PyPI
