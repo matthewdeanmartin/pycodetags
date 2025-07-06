@@ -63,6 +63,7 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "gha-update; python_version >= '3.12'",
     "mkdocstrings[python]",
     "mkdocs; python_version >= '3.12'",
     "mdformat",
