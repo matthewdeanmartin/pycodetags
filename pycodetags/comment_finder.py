@@ -26,27 +26,10 @@ except ImportError:
 
 LOGGER = logging.getLogger(__name__)
 
-
-def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str], None, None]:
-    """Parses a Python source file and yields comment block ranges.
-
-    Uses `ast-comments` to locate all comments, and determines the exact offsets
-    for each block of contiguous comments.
-
-    Args:
-        path (Path): Path to the Python source file.
-
-    Yields:
-        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
-        representing the comment block's position in the file (0-based).
-    """
-    if not path.is_file():
-        raise FileNotFoundError(f"File not found: {path}")
-    if path.suffix != ".py":
-        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
-
-    source = path.read_text(encoding="utf-8")
-    return find_comment_blocks_from_string(source)
+__all__ = [
+    "find_comment_blocks_from_string",
+    "find_comment_blocks_fallback"
+]
 
 
 def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, int, int, str], None, None]:
@@ -109,10 +92,6 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
         end_line, _, _, end_char = block[-1]
         final_comment = extract_comment_text(source, (start_line, start_char, end_line, end_char))
         yield (start_line, start_char, end_line, end_char, final_comment)
-
-
-def extract_comment_text_from_file(path: Path, offsets: tuple[int, int, int, int]) -> str:
-    return extract_comment_text(path.read_text(encoding="utf-8"), offsets)
 
 
 def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:

@@ -1,9 +1,12 @@
 # TODO
 
 ## TOP PRIORITIES
-- Need concept of default value for recognized fields. The copy paste and clutter cost is too high now.
-- Need offsets for locating Folk Tags in source code.
+- `pycodetags issues init` command to setup config.
+- `pycodetags issues fill-in-defaults` command to speed up data entry
+  - Need concept of default value for recognized fields. The copy paste and clutter cost is too high now.
+  - Need to be able to edit, maybe restrict to code blocks with one `<>` and only edit those fields
 - Folk tag need help
+  - Need offsets for locating Folk Tags in source code. 
 - Need offsets for second, third tags within a comment block.
 - Dog fooding:
   - Move all issues into python source (EASY)

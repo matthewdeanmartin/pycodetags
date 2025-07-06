@@ -169,6 +169,11 @@ PEPs and Standard Library Prior Art
 
 - [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal, now implemented, mostly by `pycodetags`
 
+## Project Heal
+- [CodeCov](https://app.codecov.io/gh/matthewdeanmartin/pycodetags) Unit Test Coverage
+- ![CI](https://github.com/matthewdeanmartin/pycodetags/actions/workflows/build.yml/badge.svg)
+- 
 ## Documentation
 
 - [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)
+

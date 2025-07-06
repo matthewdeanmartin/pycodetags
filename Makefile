@@ -153,8 +153,9 @@ issues:install_plugins
 	@echo "Checking issues"
 	# $(VENV)	pycodetags data --src pycodetags --src plugins --format json>issues_site/data.json
 	@echo "Current issues:"
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format text
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format text --verbose
 	@echo "For best results, fix these issues:"
 	$(VENV) pycodetags issues --src pycodetags --src plugins --format validate
 	@echo "Generating HTML report"
 	$(VENV) pycodetags issues --src pycodetags --src plugins --format html>issues_site/index.html
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format changelog>CHANGELOG_DRAFT.md

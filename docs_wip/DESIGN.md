@@ -6,7 +6,7 @@ There isn't a strict standard, so the code-tags needs to make some decisions.
 
 No workflow tool can work for all possible workflows.
 
-## Out of scope
+## Out of scope of data tags, possibley good candidates for plugins
 
 - all docstring parsing, including `@TODO` and other extensions of the docstring standards. Parsing 3 docstring standards is too much scope.
 - pure documentation, other than markers to indicate where documentation is needed
@@ -14,9 +14,7 @@ No workflow tool can work for all possible workflows.
 - discussion, e.g. `# QUESTION:`/`# REPLY`. This could be a crazy but good idea for a new library or tool.
 - multi-programming-language support. The goal is to support localization on day one.
 - integrations that strongly favor one issue tracker. The goal is to provide pytest-like plugin options.
-- Reformatting code or editing code, e.g. removing TODO items that are done, formatting comment whitespace,
-  syncing fields in source with issue trackers. The main risk is breaking code or deleting too much for folk comments
-  without an explicit terminator.
+
 
 ## Supported Item types
 

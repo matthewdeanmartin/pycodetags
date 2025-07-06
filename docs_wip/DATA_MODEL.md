@@ -17,6 +17,7 @@ examples in the wild.
 
 - code tag. Identity field. Upper case, many aliases.
 - comment.
+- meta data - file, line, offsets, etc
 - fields - mixture of expected and unexpected fields
   - **custom_fields** - name fields in angle brackets. Soft required even if empty, e.g. `<>`. Mutable. Idiosyncratic.
   - **priority**. Mutable. Idiosyncratic.
