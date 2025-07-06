@@ -9,12 +9,12 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
-from pycodetags import folk_code_tags
+from pycodetags import folk_tags_parser
 from pycodetags.comment_finder import find_comment_blocks_from_string
 from pycodetags.data_tags_methods import merge_two_dicts, promote_fields
 from pycodetags.data_tags_schema import DataTag, DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_schema import FolkTag
 
 try:
     from typing import TypedDict
@@ -69,7 +69,6 @@ def iterate_comments(
 
             for found in found_data_tags:
                 found["file_path"] = str(source_file) if source_file else None
-                found["line_number"] = _start_line
                 found["original_text"] = final_comment
                 found["original_schema"] = "PEP350"
                 found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
@@ -84,7 +83,7 @@ def iterate_comments(
                 #  category:parser priority:high status:development release:1.0.0 iteration:1>
                 found_folk_tags: list[FolkTag] = []
                 # TODO: support config of folk schema.<matth 2025-07-04 category:config priority:high status:development release:1.0.0 iteration:1>
-                folk_code_tags.process_text(
+                folk_tags_parser.process_text(
                     final_comment,
                     allow_multiline=True,
                     default_field_meaning="assignee",
@@ -92,6 +91,11 @@ def iterate_comments(
                     file_path=str(source_file) if source_file else "",
                     valid_tags=schema["matching_tags"],
                 )
+                for found_folk_tag in found_folk_tags:
+                    a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
+                    new_offset = _start_line + a, _start_char + b, _end_line + c, _end_char + d
+                    found_folk_tag["offsets"] = new_offset
+
                 if found_folk_tags:
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
                 things.extend(found_folk_tags)

@@ -3,7 +3,7 @@ import tempfile
 
 from pycodetags_issue_tracker.converters import convert_folk_tag_to_TODO
 
-from pycodetags.folk_code_tags import find_source_tags
+from pycodetags.folk_tags_parser import find_source_tags
 
 
 def write_temp_file(content: str) -> str:

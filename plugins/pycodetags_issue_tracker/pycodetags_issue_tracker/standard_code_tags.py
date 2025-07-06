@@ -49,8 +49,8 @@ class Fields(TypedDict, total=False):
 
     # Metadata, shouldn't be set by user.
     file_path: str  # mutable across time, identity for same revision
-    line_number: str  # mutable across time, identity for same revision
     file_revision: str  # With file_path, line_number, forms identity
+    # offsets?
 
     # When all of these mutable fields, or almost all of these are they same, the object probably points
     # to the same real world entity.

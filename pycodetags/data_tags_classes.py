@@ -63,7 +63,6 @@ class DATA(Serializable):
     # Source mapping, original parsing info
     # Do not deserialize these back into the comments!
     file_path: str | None = None
-    line_number: int | None = None
     original_text: str | None = None
     original_schema: str | None = None
     offsets: tuple[int, int, int, int] | None = None

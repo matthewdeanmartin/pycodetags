@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from collections.abc import Sequence
 from typing import cast
 
@@ -52,7 +53,8 @@ def run_cli_command(
     # args.output
     if command_name == "issues":
         if format_name == "validate":
-            views.print_validate(cast(list[TODO], found_data))
+            if views.print_validate(cast(list[TODO], found_data)):
+                sys.exit(100)
             return True
         if format_name == "html":
             views_templated.print_html(cast(list[TODO], found_data))

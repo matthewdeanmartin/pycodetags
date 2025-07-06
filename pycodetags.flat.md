@@ -15,7 +15,7 @@ import logging.config
 import pathlib
 
 import pycodetags.data_tags_schema as data_schema
-import pycodetags.folk_code_tags as folk_code_tags
+import pycodetags.folk_tags_parser as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
 from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
@@ -418,6 +418,7 @@ Once a comment block is found, it could still have multiple code tags in it.
 from __future__ import annotations
 
 import logging
+import tokenize
 from ast import walk
 from typing import Any
 
@@ -458,7 +459,14 @@ def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, in
     if not source:
         return blocks
 
-    tree = parse(source)
+    try:
+        tree = parse(source)
+    except tokenize.TokenError:
+        logging.warning("Can't parse source code, TokenError")
+        return []
+    except SyntaxError:
+        logging.warning("Can't parse source code, SyntaxError")
+        return []
     lines = source.splitlines()
 
     # Filter out comment nodes
@@ -478,7 +486,11 @@ def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, in
     block: list[tuple[int, int, int, int]] = []
 
     for comment in comments:
-        pos = comment_pos(comment)
+        try:
+            pos = comment_pos(comment)
+        except FileParsingError:
+            logging.warning(f"Failed to parse {comment}")
+            continue
 
         if not block:
             block.append(pos)
@@ -619,7 +631,7 @@ from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments
 from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 from pycodetags.pure_data_schema import PureDataSchema
 
 IOInput = Union[str, os.PathLike, TextIO]
@@ -1162,7 +1174,7 @@ from typing import Any
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_methods import promote_fields
 from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 logger = logging.getLogger(__name__)
 
@@ -1181,7 +1193,6 @@ def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA: 
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
         "file_path": folk_tag.get("file_path"),
-        "line_number": folk_tag.get("line_number"),
         "original_text": folk_tag.get("original_text"),
         "original_schema": "folk",
         "offsets": folk_tag.get("offsets"),
@@ -1237,7 +1248,6 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         "comment": tag_value["comment"],
         # Source Mapping
         "file_path": tag_value.get("file_path"),
-        "line_number": tag_value.get("line_number"),
         "original_text": tag_value.get("original_text"),
         "original_schema": "pep350",
         "offsets": tag_value.get("offsets"),
@@ -1330,7 +1340,6 @@ class DATA(Serializable):
     # Source mapping, original parsing info
     # Do not deserialize these back into the comments!
     file_path: str | None = None
-    line_number: int | None = None
     original_text: str | None = None
     original_schema: str | None = None
     offsets: tuple[int, int, int, int] | None = None
@@ -1661,12 +1670,12 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
-from pycodetags import folk_code_tags
+from pycodetags import folk_tags_parser
 from pycodetags.comment_finder import find_comment_blocks_from_string
 from pycodetags.data_tags_methods import merge_two_dicts, promote_fields
 from pycodetags.data_tags_schema import DataTag, DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_schema import FolkTag
 
 try:
     from typing import TypedDict
@@ -1721,7 +1730,6 @@ def iterate_comments(
 
             for found in found_data_tags:
                 found["file_path"] = str(source_file) if source_file else None
-                found["line_number"] = _start_line
                 found["original_text"] = final_comment
                 found["original_schema"] = "PEP350"
                 found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
@@ -1736,7 +1744,7 @@ def iterate_comments(
                 #  category:parser priority:high status:development release:1.0.0 iteration:1>
                 found_folk_tags: list[FolkTag] = []
                 # TODO: support config of folk schema.<matth 2025-07-04 category:config priority:high status:development release:1.0.0 iteration:1>
-                folk_code_tags.process_text(
+                folk_tags_parser.process_text(
                     final_comment,
                     allow_multiline=True,
                     default_field_meaning="assignee",
@@ -1744,6 +1752,11 @@ def iterate_comments(
                     file_path=str(source_file) if source_file else "",
                     valid_tags=schema["matching_tags"],
                 )
+                for found_folk_tag in found_folk_tags:
+                    a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
+                    new_offset = _start_line + a, _start_char + b, _end_line + c, _end_char + d
+                    found_folk_tag["offsets"] = new_offset
+
                 if found_folk_tags:
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
                 things.extend(found_folk_tags)
@@ -2036,7 +2049,6 @@ class DataTag(TypedDict, total=False):
 
     # metadata
     file_path: str | None
-    line_number: int | None
     original_text: str | None
     original_schema: str | None
     offsets: tuple[int, int, int, int] | None
@@ -2144,7 +2156,7 @@ class ValidationError(PyCodeTagsError):
 
 ```
 
-## File: folk_code_tags.py
+## File: folk_tags_parser.py
 
 ```python
 """
@@ -2170,10 +2182,9 @@ Not sure if I will implement completely loose parsing.
 from __future__ import annotations
 
 import logging
-import os
 import re
 
-from pycodetags.exceptions import SchemaError
+from pycodetags.folk_tags_schema import DefaultFieldMeaning, FolkTag
 
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
@@ -2181,134 +2192,87 @@ except ImportError:
     from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
     from typing_extensions import TypedDict  # noqa
 
+__all__ = ["process_text"]
 
 logger = logging.getLogger(__name__)
 
-DefaultFieldMeaning = Literal[
-    "person",  # accurate because who knows what that name in parens means
-    "assignee",
-    "originator",  # compatible with pep350
-    "tracker",
-]
 
-
-class FolkTag(TypedDict, total=False):
-    """Represents a folk tag found in source code."""
-
-    # data
-    code_tag: str
-    comment: str
-    default_field: str | None
-    custom_fields: dict[str, str]
-
-    # data
-    file_path: str
-    line_number: int
-    start_char: int
-    offsets: tuple[int, int, int, int]
-    original_text: str
-
-    # domain specific
-    tracker: str
-    assignee: str
-    originator: str
-    person: str
-
-
-def folk_tag_to_comment(tag: FolkTag) -> str:
-    """Convert a FolkTag to a comment string."""
-    people_text = ""
-    custom_field_text = ""
-    if tag.get("assignee") or tag.get("originator"):
-        people = ",".join(_ for _ in (tag.get("assignee", ""), tag.get("originator", "")) if _)
-        people.strip(", ")
-        if people:
-            people_text = f"({people.strip()})"
-    if tag["custom_fields"]:
-
-        for key, value in tag["custom_fields"].items():
-            custom_field_text += f"{key}={value.strip()} "
-        custom_field_text = f"({custom_field_text.strip()}) "
-
-    return f"# {tag['code_tag'].upper()}{people_text}: {custom_field_text}{tag['comment'].strip()}".strip()
-
-
-def find_source_tags(
-    source_path: str,
-    valid_tags: list[str] | None = None,
-    allow_multiline: bool = False,
-    default_field_meaning: DefaultFieldMeaning = "assignee",
-) -> list[FolkTag]:
-    """
-    Finds all folk tags in the source files.
-
-    Args:
-        source_path (str): Path to the source file or directory.
-        valid_tags (list[str], optional): List of valid code tags to look for. If None, all tags are considered valid.
-        allow_multiline (bool, optional): Whether to allow multiline comments. Defaults to False.
-        default_field_meaning (DefaultFieldMeaning, optional): Meaning of the default field. Defaults to "assignee".
-
-    Returns:
-        list[FolkTag]: A list of FolkTag dictionaries found in the source files.
-    """
-    if allow_multiline and not valid_tags:
-        raise SchemaError("Must include valid tag list if you want to allow multiline comments")
-
-    if not valid_tags:
-        valid_tags = []
-
-    if not os.path.exists(source_path):
-        raise FileNotFoundError(f"The path '{source_path}' does not exist.")
-
-    if os.path.isfile(source_path):
-        files_to_scan = [source_path]
-    else:
-        files_to_scan = []
-        for root, _, files in os.walk(source_path):
-            for file in files:
-                files_to_scan.append(os.path.join(root, file))
-
-    found_tags: list[FolkTag] = []
-    for file_path in files_to_scan:
-        with open(file_path, encoding="utf-8", errors="ignore") as f:
-            text = f.read()
-
-            process_text(text, allow_multiline, default_field_meaning, found_tags, file_path, valid_tags)
-
-    return found_tags
-
-
-def process_text(
-    text: str,
-    allow_multiline: bool,
-    default_field_meaning: DefaultFieldMeaning,
-    found_tags: list[FolkTag],
-    file_path: str,
-    valid_tags: list[str],
-) -> None:
-    if "\r\n" in text:
-        lines = text.split("\r\n")
-    else:
-        lines = text.split("\n")
-
-    if len(lines) == 1:
-        logger.debug(f"Processing  {file_path}: {lines[0]}")
-    else:
-        for line in lines:
-            logger.debug(f"Processing {file_path} ==>: {line}")
-    idx = 0
-    while idx < len(lines):
-        consumed = process_line(
-            file_path,
-            found_tags,
-            lines,
-            idx,
-            # schema
-            valid_tags,
-            allow_multiline,
-            default_field_meaning,
-        )
-        idx += consumed
+# def find_source_tags(
+#     source_path: str,
+#     valid_tags: list[str] | None = None,
+#     allow_multiline: bool = False,
+#     default_field_meaning: DefaultFieldMeaning = "assignee",
+# ) -> list[FolkTag]:
+#     """
+#     Finds all folk tags in the source files.
+#
+#     Args:
+#         source_path (str): Path to the source file or directory.
+#         valid_tags (list[str], optional): List of valid code tags to look for. If None, all tags are considered valid.
+#         allow_multiline (bool, optional): Whether to allow multiline comments. Defaults to False.
+#         default_field_meaning (DefaultFieldMeaning, optional): Meaning of the default field. Defaults to "assignee".
+#
+#     Returns:
+#         list[FolkTag]: A list of FolkTag dictionaries found in the source files.
+#     """
+#     if allow_multiline and not valid_tags:
+#         raise SchemaError("Must include valid tag list if you want to allow multiline comments")
+#
+#     if not valid_tags:
+#         valid_tags = []
+#
+#     if not os.path.exists(source_path):
+#         raise FileNotFoundError(f"The path '{source_path}' does not exist.")
+#
+#     if os.path.isfile(source_path):
+#         files_to_scan = [source_path]
+#     else:
+#         files_to_scan = []
+#         for root, _, files in os.walk(source_path):
+#             for file in files:
+#                 files_to_scan.append(os.path.join(root, file))
+#
+#     found_tags: list[FolkTag] = []
+#     for file_path in files_to_scan:
+#         with open(file_path, encoding="utf-8", errors="ignore") as f:
+#             text = f.read()
+#
+#             process_text(text, allow_multiline, default_field_meaning, found_tags, file_path, valid_tags)
+#
+#     return found_tags
+#
+#
+# def process_text(
+#     text: str,
+#     allow_multiline: bool,
+#     default_field_meaning: DefaultFieldMeaning,
+#     found_tags: list[FolkTag],
+#     file_path: str,
+#     valid_tags: list[str],
+# ) -> None:
+#     if "\r\n" in text:
+#         lines = text.split("\r\n")
+#     else:
+#         lines = text.split("\n")
+#
+#     if len(lines) == 1:
+#         logger.debug(f"Processing  {file_path}: {lines[0]}")
+#     else:
+#         for line in lines:
+#             logger.debug(f"Processing {file_path} ==>: {line}")
+#     idx = 0
+#     while idx < len(lines):
+#         consumed = process_line(
+#             file_path,
+#             found_tags,
+#             lines,
+#             idx,
+#             # schema
+#             valid_tags,
+#             allow_multiline,
+#             default_field_meaning,
+#         )
+#         idx += consumed
 
 
 def extract_first_url(text: str) -> str | None:
@@ -2327,6 +2291,39 @@ def extract_first_url(text: str) -> str | None:
     return match.group(0) if match else None
 
 
+def process_text(
+    text: str,
+    allow_multiline: bool,
+    default_field_meaning: DefaultFieldMeaning,
+    found_tags: list[FolkTag],
+    file_path: str,
+    valid_tags: list[str],
+) -> None:
+    if "\r\n" in text:
+        lines = text.split("\r\n")
+    else:
+        lines = text.split("\n")
+
+    if len(lines) == 1:
+        logger.debug(f"Processing  {file_path}: {lines[0]}")
+    else:
+        for log_line in lines:
+            logger.debug(f"Processing {file_path} ==>: {log_line}")
+
+    line_index = 0
+    while line_index < len(lines):
+        consumed_lines = process_line(
+            file_path,
+            found_tags,
+            lines,
+            line_index,
+            valid_tags,
+            allow_multiline,
+            default_field_meaning,
+        )
+        line_index += consumed_lines
+
+
 def process_line(
     file_path: str,
     found_tags: list[FolkTag],
@@ -2336,28 +2333,9 @@ def process_line(
     allow_multiline: bool,
     default_field_meaning: DefaultFieldMeaning,
 ) -> int:
-    """
-    Processes a single line to find and parse folk tags.
+    current_line = lines[start_idx]
 
-    Args:
-        file_path (str): Path to the source file.
-        found_tags (list): List to accumulate found tags.
-        lines (list[str]): List of lines in the source file.
-        start_idx (int): Index of the line to process.
-        valid_tags (list): List of valid code tags to look for.
-        allow_multiline (bool): Whether to allow multiline comments.
-        default_field_meaning (DefaultFieldMeaning): Meaning of the default field.
-
-    Returns:
-        int: Number of lines consumed by this tag.
-    """
-    if not valid_tags:
-        valid_tags = []
-
-    line = lines[start_idx]
-
-    # Match any comment line with an uppercase code_tag
-    match = re.match(r"\s*#\s*([A-Z]+)\b(.*)", line)
+    match = re.match(r"\s*#\s*([A-Z]+)\b(.*)", current_line)
     if not match:
         return 1
 
@@ -2367,15 +2345,12 @@ def process_line(
     if valid_tags and code_tag_candidate not in valid_tags:
         return 1
 
-    # Clean colon if present
     if content.startswith(":"):
         content = content[1:].lstrip()
 
-    # Offset tracking: start
     start_line = start_idx
-    start_char = line.find(f"# {code_tag_candidate}")
+    start_char = current_line.find("#")
 
-    # Multiline handling
     current_idx = start_idx
     if allow_multiline and valid_tags:
         multiline_content = [content]
@@ -2389,14 +2364,13 @@ def process_line(
                 break
         content = " ".join(multiline_content)
         end_line = next_idx - 1
-        end_char = len(lines[end_line])
+        end_char = len(lines[end_line].rstrip())
         consumed_lines = next_idx - start_idx
     else:
         end_line = start_idx
-        end_char = len(line)
+        end_char = len(current_line.rstrip())
         consumed_lines = 1
 
-    # Field parsing
     default_field = None
     custom_fields = {}
     comment = content
@@ -2424,11 +2398,8 @@ def process_line(
             default_field = id_match.group(1)
             comment = id_match.group(2).strip()
 
-    # Construct the tag
     found_tag: FolkTag = {
         "file_path": file_path,
-        "line_number": start_idx + 1,
-        "start_char": start_char,
         "code_tag": code_tag_candidate,
         "default_field": default_field,
         "custom_fields": custom_fields,
@@ -2444,12 +2415,74 @@ def process_line(
     if url:
         found_tag["tracker"] = url
 
-    # TODO: decide if heuristics like length are better than an explicit list or explicit : to end tag <matth 2025-07-04
-    #  category:parser status:development priority:low release:1.0.0 iteration:1>
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)
 
     return consumed_lines
+
+```
+
+## File: folk_tags_schema.py
+
+```python
+"""
+TypedDict and methods for datas structure to represent folk tags
+"""
+
+from __future__ import annotations
+
+try:
+    from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
+except ImportError:
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
+    from typing_extensions import TypedDict  # noqa
+
+
+DefaultFieldMeaning = Literal[
+    "person",  # accurate because who knows what that name in parens means
+    "assignee",
+    "originator",  # compatible with pep350
+    "tracker",
+]
+
+
+class FolkTag(TypedDict, total=False):
+    """Represents a folk tag found in source code."""
+
+    # data
+    code_tag: str
+    comment: str
+    default_field: str | None
+    custom_fields: dict[str, str]
+
+    # data
+    file_path: str
+    offsets: tuple[int, int, int, int] | None
+    original_text: str
+
+    # domain specific
+    tracker: str
+    assignee: str
+    originator: str
+    person: str
+
+
+def folk_tag_to_comment(tag: FolkTag) -> str:
+    """Convert a FolkTag to a comment string."""
+    people_text = ""
+    custom_field_text = ""
+    if tag.get("assignee") or tag.get("originator"):
+        people = ",".join(_ for _ in (tag.get("assignee", ""), tag.get("originator", "")) if _)
+        people.strip(", ")
+        if people:
+            people_text = f"({people.strip()})"
+    if tag["custom_fields"]:
+
+        for key, value in tag["custom_fields"].items():
+            custom_field_text += f"{key}={value.strip()} "
+        custom_field_text = f"({custom_field_text.strip()}) "
+
+    return f"# {tag['code_tag'].upper()}{people_text}: {custom_field_text}{tag['comment'].strip()}".strip()
 
 ```
 
@@ -2641,7 +2674,7 @@ import pluggy
 from pycodetags.config import CodeTagsConfig
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 
@@ -2803,16 +2836,18 @@ from pycodetags.view_tools import group_and_sort
 logger = logging.getLogger(__name__)
 
 
-def print_validate(found: list[DATA]) -> None:
+def print_validate(found: list[DATA]) -> bool:
     """
     Prints validation errors for TODOs.
 
     Args:
         found (list[DATA]): The collected TODOs and Dones.
     """
+    found_problems = False
     for item in sorted(found, key=lambda x: x.code_tag or ""):
         validations = item.validate()
         if validations:
+            found_problems = True
             print(item.as_data_comment())
             print(item.terminal_link())
             for validation in validations:
@@ -2821,6 +2856,7 @@ def print_validate(found: list[DATA]) -> None:
                 print(f"Original Text {item.original_schema}")
 
             print()
+    return found_problems
 
 
 def print_html(found: list[DATA]) -> None:
@@ -2972,6 +3008,169 @@ def group_and_sort(
 
 ```
 
+## File: _TODO.py
+
+```python
+"""
+Code Tag TODOs.
+"""
+
+#
+# # TODO
+#
+# ## TOP PRIORITIES
+# - `pycodetags issues init` command to setup config.
+#   - DONE (for data).
+#   - Need for Issues
+
+# TODO: `pycodetags issues fill-in-defaults` command to speed up data entry <matth 2025-07-06 category=cli
+#  priority=high>
+
+# TODO:  Need concept of default value for recognized fields. The copy paste and clutter cost is too high now.
+
+# TODO: Need to be able to edit, maybe restrict to code blocks with one `<>` and only edit those fields
+
+# TODO Folk tag need help: Need offsets for locating Folk Tags in source code. Needs testing <matth 2025-07-06 category=parsing
+#  priority=high status=development iteration=1>
+
+# TODO: Need offsets for second, third tags within a comment block.<matth 2025-07-06 category=cli
+#   priority=high status=development iteration=1>
+
+# TODO: Move all issues into python source (EASY) <matth 2025-07-06 category=build priority=high status=development iteration=1>
+
+# TODO: Add validate to build (make check) <matth 2025-07-06 category=build priority=high status=development iteration=1>
+
+# TODO: Add Generate issue_site and publish with gha <matth 2025-07-06 category=build priority=high status=development iteration=1>
+
+# TODO: Add Generate changelog <matth 2025-07-06 category=build priority=high status=development iteration=1>
+
+# TODO: Before release pipx install and exercise it! <matth 2025-07-06 category=build priority=high status=development iteration=1>
+
+# TODO: Add Identity feature (HARD) Enables git features (find originator, find origination date, find close date)
+# <matth 2025-07-06 category=base priority=high status=development iteration=1>
+
+# TODO: Revisit "Todo Objects" Raise an TODOException, e.g. `raise TODOException("Work on this")`
+#   <matth 2025-07-06 category=core priority=low status=development iteration=1>
+
+# TODO: Add a TODOSkipTest decorator <matth 2025-07-06 category=core priority=low status=development iteration=1>
+
+# TODO: assignee value is a mini csv format, delegate to python eval? csv parser? <matth 2025-07-06 category=core priority=medium status=development iteration=1>
+
+# TODO: Create a python list of TODO() objects.  <matth 2025-07-06 category=core priority=low status=development iteration=1>
+
+
+# ## REFACTOR TO DOMAIN NEUTRAL TAGS
+# - chat, issue tracker, code review, documentation must be plugins
+#   - each domain specific plugin app has 1 schema
+#   - other plugins can additional functionality and filter for the schema they recognize.
+# - Per schema plugins add functionality
+#   - For cli commands
+#   - Reports (filtered by schema)
+#   - Validation (filtered by schema)
+# - TODO exceptions are a problem. Like Warning, Deprecation, NotImplemented, they don't implement the same properties
+#
+# ## Basic Types Issues
+# - Identity, strict, fuzzy, by schema
+#   - Need this for tracking issues across git history.
+# - Overlapping values and strict mode
+#   - See promotion code, which lacks a good unit test.
+# - Huge mess with assignee/assignees being both `str | list[str]` Should probably force to always be list[str]: STILL A MESS
+#   - Maybe implement S() type that is a wrapper of str and list[str] with reasonable interface
+#
+# ## Tracker/Config
+# - Need
+#   - domain to detect if URL is tracker URL
+#   - ticket to allow short form
+#   - link format to put domain and ticket into a full url, e.g. http://{domain}/ticket?id={tracker} (security risks?)
+
+# ## Folk Tags
+# - Person/Assignee needs to be list[str] and support CSV serialization for parallelism with 350 parser: MESSY
+# - Finds tags inside of doc strings! Those aren't comments!
+#
+# ## CLI conveniences
+# - Turn off folk tags, turn off PEP tags individually. Can do by config, not by CLI
+# - Infer location of source code, `pycodetags report .`
+#
+# ## Public Interface
+# - Put basic things in CORE
+# - put everything else in another noncore library (otherwise plugins must import things not in the `__all__` export)
+#
+# ## Other big things
+# - TRICKY: Need identity code, Add Identity logic (% identical and configurable threshold)- PARTIAL
+
+# TODO: Object TODOs. Probably need AST version of TODO() finder because crawling the object graph of a module is missing a lot.
+
+# TODO: future releases for keepachangelog for versions/releases (Future releases/unreleased is biggest holdup)
+# TODO: Use changelog release schema for display/sorting
+
+# - BIG: Need git integration (as plugin?)
+# - Basic git integration
+#   - find code tags that have since been deleted
+#   - fill in origination/start/finish dates based on git dates
+# - basic localization - PARTIAL(via config)
+#
+# ## Plugin handler
+# - Do anything with a file found in folder (right now, plugin gets file only if build-in search skips it) : Done?
+#
+# ## Other issues
+#
+# Ironically, the library isn't ready to track its own TODO
+#
+# - TODOFixTest: implement it!
+# - Some sort of GIT integration
+# - Write to file. Piping to stdout is picking up too much cruft. - Partial implmentation?
+#
+# ## Web Dashboard
+#
+# - Report by responsible user (stand up report)
+# - Report by version/iteration/release (road map)
+# - Done (changelog)
+# - Report by tag (e.g. "bug", "feature", "enhancement")
+# - Metrics: time to close, overdue
+#
+# ## Converters
+#
+# - Add meta fields (file, line, original text, original schema)
+#
+# ## Views
+#
+# - switch more to jina2
+#
+# ## Config (TODO)
+#
+# - Workflow params
+#   - Action is log/print
+# - User Identification
+#   - Get user by github - Out of scope?
+#   - Get user by .env - need .env file support in general.
+#
+# # Integrations
+#
+# - Plugins. No heavy integrations. BASICALLY DONE!
+# - Create issues in tracker via API (needs plugin!) EXAMPLE AVAIL!
+# - Two way issue tracker sync (needs plugin!) EXAMPLE AVAIL!
+#
+# # Precommit
+#
+# - Out of scope- "Delete all TODOs before commit". If people don't want code tags, they also won't use this library.
+# - don't commit if due, if due for active user
+#
+# # Build steps/Release steps
+#
+# - Generate HTML representations
+# - Generate standard docs
+#   - TODO.md - Kind of done, clunky, not sure if it works with kanban plugin.
+#   - DONE.md - DONE
+#   - CHANGELOG.md - Need to validate.
+
+# TODO: Git Integration - Search history for completed issues (deleted TODO)
+# TODO: Git Integration -  add standard file revision field
+
+# TODO: User Names AUTHORS.md driven - Partially done
+# TODO: Git driven- Integration! Maybe needs plugin?
+
+```
+
 ## File: __about__.py
 
 ```python
@@ -2989,7 +3188,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME", "pycodetags"]
@@ -3220,7 +3419,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.validate:
             if len(found) == 0:
                 raise CommentNotFoundError("No data to validate.")
-            print_validate(found)
+            found_problems = print_validate(found)
+            if found_problems:
+                return 100
         else:
             if len(found) == 0:
                 raise CommentNotFoundError("No data to report.")

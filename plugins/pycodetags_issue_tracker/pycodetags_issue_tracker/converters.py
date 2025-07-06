@@ -13,7 +13,7 @@ from pycodetags_issue_tracker.todo_tag_types import TODO
 
 from pycodetags import DATA
 from pycodetags.data_tags_schema import DataTag
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,6 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
         closed_comment=get_from_custom_or_data("closed_comment", tag),
         tracker=get_from_custom_or_data("tracker", tag),
         file_path=tag.file_path,
-        line_number=tag.line_number,
         original_text=tag.original_text,
         original_schema=tag.original_schema,
         offsets=tag.offsets,
@@ -90,7 +89,6 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
     kwargs = {
         "code_tag": folk_tag.get("code_tag"),
         "file_path": folk_tag.get("file_path"),
-        "line_number": folk_tag.get("line_number"),
         # folk_tag.get("default_field"),
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
@@ -143,7 +141,6 @@ def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
         "category": data_fields.get("category"),
         # Source Mapping
         "file_path": data_fields.get("file_path"),
-        "line_number": data_fields.get("line_number"),
         "original_text": pep350_tag.get("original_text"),
         "original_schema": "pep350",
         "offsets": pep350_tag.get("offsets"),

@@ -10,7 +10,7 @@ import logging.config
 import pathlib
 
 import pycodetags.data_tags_schema as data_schema
-import pycodetags.folk_code_tags as folk_code_tags
+import pycodetags.folk_tags_parser as folk_code_tags
 from pycodetags.collect import collect_all_data
 from pycodetags.config import get_code_tags_config
 from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA

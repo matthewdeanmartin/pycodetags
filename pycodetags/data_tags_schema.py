@@ -49,7 +49,6 @@ class DataTag(TypedDict, total=False):
 
     # metadata
     file_path: str | None
-    line_number: int | None
     original_text: str | None
     original_schema: str | None
     offsets: tuple[int, int, int, int] | None

@@ -10,7 +10,7 @@ from typing import Any
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_methods import promote_fields
 from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,6 @@ def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA: 
         "custom_fields": folk_tag.get("custom_fields"),
         "comment": folk_tag["comment"],  # required
         "file_path": folk_tag.get("file_path"),
-        "line_number": folk_tag.get("line_number"),
         "original_text": folk_tag.get("original_text"),
         "original_schema": "folk",
         "offsets": folk_tag.get("offsets"),
@@ -85,7 +84,6 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         "comment": tag_value["comment"],
         # Source Mapping
         "file_path": tag_value.get("file_path"),
-        "line_number": tag_value.get("line_number"),
         "original_text": tag_value.get("original_text"),
         "original_schema": "pep350",
         "offsets": tag_value.get("offsets"),

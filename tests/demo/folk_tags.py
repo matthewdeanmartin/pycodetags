@@ -35,7 +35,7 @@ def super_debit():
 
 
 if __name__ == "__main__":
-    import pycodetags.folk_code_tags as folk
+    import pycodetags.folk_tags_parser as folk
 
     for tag in folk.find_source_tags(__file__):
         print(tag)

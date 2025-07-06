@@ -31,9 +31,10 @@ import pluggy
 from pycodetags.config import CodeTagsConfig
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
+
 
 class CodeTagsSpec:
 
@@ -43,7 +44,7 @@ class CodeTagsSpec:
 
     @hookspec
     def print_report(
-        self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
+            self, format_name: str, found_data: list[DATA], output_path: str, config: CodeTagsConfig
     ) -> bool:
         ...
 
@@ -57,7 +58,7 @@ class CodeTagsSpec:
 
     @hookspec
     def run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
+            self, command_name: str, args: argparse.Namespace, found_data: list[DATA], config: CodeTagsConfig
     ) -> bool:
         ...
 

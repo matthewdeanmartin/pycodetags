@@ -57,7 +57,8 @@ def print_rss(found: list[DATA], channel_info: dict[str, str]) -> None:
             item_pub_date.text = str(pub_date)
 
         guid = SubElement(item, "guid", isPermaLink="false")
-        guid.text = f"{item_data.file_path}-{item_data.line_number}-{item_data.comment}"
+        start_line, start_char, end_line, end_char = item_data.offsets
+        guid.text = f"{item_data.file_path}-{start_line}-{item_data.comment}"
 
     # Pretty print the XML
     from xml.dom import minidom

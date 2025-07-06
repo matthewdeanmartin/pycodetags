@@ -3,7 +3,7 @@ import re
 from pluggy import HookimplMarker
 
 from pycodetags.config import CodeTagsConfig
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 
 hookimpl = HookimplMarker("pycodetags")
 

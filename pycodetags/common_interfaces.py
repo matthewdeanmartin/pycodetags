@@ -15,7 +15,7 @@ from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_parsers import iterate_comments
 from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_code_tags import FolkTag
+from pycodetags.folk_tags_parser import FolkTag
 from pycodetags.pure_data_schema import PureDataSchema
 
 IOInput = Union[str, os.PathLike, TextIO]

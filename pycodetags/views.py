@@ -14,16 +14,18 @@ from pycodetags.view_tools import group_and_sort
 logger = logging.getLogger(__name__)
 
 
-def print_validate(found: list[DATA]) -> None:
+def print_validate(found: list[DATA]) -> bool:
     """
     Prints validation errors for TODOs.
 
     Args:
         found (list[DATA]): The collected TODOs and Dones.
     """
+    found_problems = False
     for item in sorted(found, key=lambda x: x.code_tag or ""):
         validations = item.validate()
         if validations:
+            found_problems = True
             print(item.as_data_comment())
             print(item.terminal_link())
             for validation in validations:
@@ -32,6 +34,7 @@ def print_validate(found: list[DATA]) -> None:
                 print(f"Original Text {item.original_schema}")
 
             print()
+    return found_problems
 
 
 def print_html(found: list[DATA]) -> None:

@@ -183,7 +183,7 @@
                         {% if t.due_date %}Due date: {{ t.due_date }}<br>{% endif %}
                         {% if t.release %}Release: {{ t.release }}<br>{% endif %}
                         {% if t.file_name %}File: {{ t.file_name }}<br>{% endif %}
-                        {% if t.line_number %}Line: {{ t.line_number }}<br>{% endif %}
+                        {% if t.offsets[0] %}Line: {{ t.line_number }}<br>{% endif %}
                         {% for key, val in (t.custom_fields or {}).items() %}
                             {% if val %}{{ key|capitalize }}: {{ val }}<br>{% endif %}
                         {% endfor %}

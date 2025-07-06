@@ -22,7 +22,6 @@ TODO_KEYWORDS = [
     # custom workflow fields
     # Source Mapping
     "file_path",
-    "line_number",
     "offsets",
     "custom_fields",
     # Idiosyncratic fields

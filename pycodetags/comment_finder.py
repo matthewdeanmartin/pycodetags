@@ -11,6 +11,7 @@ Once a comment block is found, it could still have multiple code tags in it.
 from __future__ import annotations
 
 import logging
+import tokenize
 from ast import walk
 from typing import Any
 
@@ -51,7 +52,14 @@ def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, in
     if not source:
         return blocks
 
-    tree = parse(source)
+    try:
+        tree = parse(source)
+    except tokenize.TokenError:
+        logging.warning("Can't parse source code, TokenError")
+        return []
+    except SyntaxError:
+        logging.warning("Can't parse source code, SyntaxError")
+        return []
     lines = source.splitlines()
 
     # Filter out comment nodes
@@ -71,7 +79,11 @@ def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, in
     block: list[tuple[int, int, int, int]] = []
 
     for comment in comments:
-        pos = comment_pos(comment)
+        try:
+            pos = comment_pos(comment)
+        except FileParsingError:
+            logging.warning(f"Failed to parse {comment}")
+            continue
 
         if not block:
             block.append(pos)

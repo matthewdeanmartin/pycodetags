@@ -20,7 +20,7 @@ def sample_data():
             default_fields={"originator": "JD"},
             custom_fields={"team": "alpha"},
             file_path="project/module.py",
-            line_number=10,
+            offsets=(10, 10, 10, 10),
         ),
         DATA(
             code_tag="DONE",
@@ -29,7 +29,7 @@ def sample_data():
             default_fields={"originator": "AL"},
             custom_fields={},
             file_path="project/module.py",
-            line_number=20,
+            offsets=(20, 10, 10, 10),
         ),
     ]
 
