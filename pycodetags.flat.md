@@ -419,11 +419,10 @@ from __future__ import annotations
 
 import logging
 from ast import walk
-from collections.abc import Generator
-from pathlib import Path
 from typing import Any
 
 from pycodetags.exceptions import FileParsingError
+from pycodetags.utils import persistent_memoize
 
 try:
     from ast_comments import Comment, parse
@@ -433,30 +432,11 @@ except ImportError:
 
 LOGGER = logging.getLogger(__name__)
 
-
-def find_comment_blocks(path: Path) -> Generator[tuple[int, int, int, int, str], None, None]:
-    """Parses a Python source file and yields comment block ranges.
-
-    Uses `ast-comments` to locate all comments, and determines the exact offsets
-    for each block of contiguous comments.
-
-    Args:
-        path (Path): Path to the Python source file.
-
-    Yields:
-        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
-        representing the comment block's position in the file (0-based).
-    """
-    if not path.is_file():
-        raise FileNotFoundError(f"File not found: {path}")
-    if path.suffix != ".py":
-        raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
-
-    source = path.read_text(encoding="utf-8")
-    return find_comment_blocks_from_string(source)
+__all__ = ["find_comment_blocks_from_string", "find_comment_blocks_from_string_fallback"]
 
 
-def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, int, int, str], None, None]:
+@persistent_memoize(ttl_seconds=60 * 60 * 24 * 7, use_gzip=True)
+def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, int, str]]:
     """Parses a Python source file and yields comment block ranges.
 
     Uses `ast-comments` to locate all comments, and determines the exact offsets
@@ -465,15 +445,19 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
     Args:
         source (str): Python source text.
 
-    Yields:
-        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
+    Returns:
+        list[tuple[int, int, int, int, str]]: (start_line, start_char, end_line, end_char, comment)
         representing the comment block's position in the file (0-based).
     """
+    blocks: list[tuple[int, int, int, int, str]] = []
     if parse is None:
         # Hack for 3.7!
-        yield from find_comment_blocks_fallback(source)
-        return
+        return find_comment_blocks_from_string_fallback(source)
         # type: ignore[no-redef,unused-ignore]
+
+    if not source:
+        return blocks
+
     tree = parse(source)
     lines = source.splitlines()
 
@@ -508,18 +492,15 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
                 start_line, start_char, _, _ = block[0]
                 end_line, _, _, end_char = block[-1]
                 final_comment = extract_comment_text(source, (start_line, start_char, end_line, end_char))
-                yield (start_line, start_char, end_line, end_char, final_comment)
+                blocks.append((start_line, start_char, end_line, end_char, final_comment))
                 block = [pos]
 
     if block:
         start_line, start_char, _, _ = block[0]
         end_line, _, _, end_char = block[-1]
         final_comment = extract_comment_text(source, (start_line, start_char, end_line, end_char))
-        yield (start_line, start_char, end_line, end_char, final_comment)
-
-
-def extract_comment_text_from_file(path: Path, offsets: tuple[int, int, int, int]) -> str:
-    return extract_comment_text(path.read_text(encoding="utf-8"), offsets)
+        blocks.append((start_line, start_char, end_line, end_char, final_comment))
+    return blocks
 
 
 def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:
@@ -549,28 +530,19 @@ def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:
     return "\n".join(block_lines)
 
 
-def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, int, int, str], None, None]:
-    """Parse a Python file and yield comment block positions and content.
+def find_comment_blocks_from_string_fallback(source: str) -> list[tuple[int, int, int, int, str]]:
+    """Parse Python source and yield comment block positions and content.
 
     Args:
-        path (Path): Path to the Python source file.
+        source (str): Python source file.
 
-    Yields:
-        Tuple[int, int, int, int, str]: A tuple of (start_line, start_char, end_line, end_char, comment)
+    Returns:
+        list[tuple[int, int, int, int, str]]: A tuple of (start_line, start_char, end_line, end_char, comment)
         representing the block's location and the combined comment text. All indices are 0-based.
     """
-    if isinstance(path, Path):
-        if not path.is_file():
-            raise FileNotFoundError(f"File not found: {path}")
-        if path.suffix != ".py":
-            raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
+    blocks = []
 
-        LOGGER.info("Reading Python file: %s", path)
-
-        with path.open("r", encoding="utf-8") as f:
-            lines = f.readlines()
-    else:
-        lines = path.split("\n")
+    lines = source.split("\n")
 
     in_block = False
     start_line = start_char = 0
@@ -603,7 +575,7 @@ def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, 
                 # End of comment block
                 comment_text = "\n".join(comment_lines)
                 LOGGER.debug("Ending comment block at line %d, char %d", end_line, end_char)
-                yield (start_line, start_char, end_line, end_char, comment_text)
+                blocks.append((start_line, start_char, end_line, end_char, comment_text))
                 in_block = False
 
         else:
@@ -611,18 +583,19 @@ def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, 
                 # Previous line had comment, current one doesn't: close block
                 comment_text = "\n".join(comment_lines)
                 LOGGER.debug("Ending comment block at line %d, char %d", end_line, end_char)
-                yield (start_line, start_char, end_line, end_char, comment_text)
+                blocks.append((start_line, start_char, end_line, end_char, comment_text))
                 in_block = False
 
     if in_block:
         comment_text = "\n".join(comment_lines)
         LOGGER.debug("Ending final comment block at line %d, char %d", end_line, end_char)
-        yield (start_line, start_char, end_line, end_char, comment_text)
+        blocks.append((start_line, start_char, end_line, end_char, comment_text))
+    return blocks
 
 
 if parse is None:
     # Hack for 3.7!
-    find_comment_blocks = find_comment_blocks_fallback  # type: ignore[no-redef,unused-ignore]
+    find_comment_blocks_from_string = find_comment_blocks_from_string_fallback  # type: ignore[no-redef,unused-ignore]
 
 ```
 
@@ -876,9 +849,6 @@ from typing import Any
 
 from pycodetags.exceptions import ConfigError
 
-# from pycodetags.user import get_current_user
-# from pycodetags.users_from_authors import parse_authors_file_simple
-
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:
@@ -982,35 +952,198 @@ class CodeTagsConfig:
 def get_code_tags_config() -> CodeTagsConfig:
     return CodeTagsConfig.get_instance()
 
+```
 
-if __name__ == "__main__":
+## File: config_init.py
 
-    # ------------------------ USAGE EXAMPLES ------------------------
+```python
+from __future__ import annotations
 
-    # Lazy loading singleton config
+import os
 
-    def example_usage() -> None:
-        """Example usage of the CodeTagsConfig."""
-        config = get_code_tags_config()
-        if not config.runtime_behavior_enabled:
-            print("Runtime behavior is disabled.")
+
+def init_pycodetags_config():
+    """
+    Initializes the [tool.pycodetags] section in pyproject.toml with 0 dependencies.
+
+    This interactive script will:
+    1. Check for an existing `pycodetags` configuration and exit if found.
+    2. Scan the current directory for potential Python source folders.
+    3. Ask the user to confirm the correct source folder.
+    4. Generate a default configuration for pycodetags with helpful comments.
+    5. Safely add this configuration to `pyproject.toml`, creating the file if it
+       doesn't exist.
+    """
+    pyproject_path = "pyproject.toml"
+    print("--- PyCodeTags Config Initializer ---")
+
+    # Step 1: Check if the configuration already exists to prevent overwriting.
+    if os.path.exists(pyproject_path):
+        try:
+            with open(pyproject_path, encoding="utf-8") as f:
+                content = f.read()
+            if "[tool.pycodetags]" in content:
+                print(f"\nConfiguration for '[tool.pycodetags]' already exists in {pyproject_path}.")
+                print("Initialization is not needed. Please edit the file manually for any changes.")
+                return
+        except OSError as e:
+            print(f"Error reading {pyproject_path}: {e}")
             return
 
-        print("Valid priorities:", config.active_schemas())
+    # Step 2: Find potential source folders and get user selection.
+    print("\nSearching for potential source code folders...")
+    potential_folders = _find_potential_src_folders()
 
-    # Setting a custom or mock config for testing or alternate use
-    class MockConfig(CodeTagsConfig):
-        """Mock configuration for testing purposes."""
+    if not potential_folders:
+        print("Could not automatically detect any source folders.")
+        src_folder = input("Please manually enter the path to your source folder (e.g., 'src', 'my_app'): ")
+    else:
+        src_folder = _select_src_folder_interactive(potential_folders) or ""
 
-        def __init__(self, pyproject_path: str = "pyproject.toml"):
-            super().__init__(pyproject_path)
-            self.config = {"valid_priorities": ["urgent"], "disable_all_runtime_behavior": False}
+    if not src_folder or not src_folder.strip():
+        print("\nNo source folder selected. Aborting initialization.")
+        return
 
-    # Set the mock instance
-    CodeTagsConfig.set_instance(MockConfig())
+    print(f"\nUsing '{src_folder}' as the primary source folder.")
 
-    # Now using get_code_tags_config will use the mock
-    example_usage()
+    # Step 3: Generate the TOML content.
+    toml_section = _generate_pycodetags_toml_section(src_folder)
+
+    # Step 4: Safely write the content to pyproject.toml.
+    _write_to_pyproject_safe(toml_section, pyproject_path)
+
+    print("\nInitialization complete! You can now customize the settings in pyproject.toml.")
+
+
+def _find_potential_src_folders(root: str = ".") -> list[str]:
+    """
+    Identifies potential source code folders in the given root directory.
+
+    It prioritizes common names like 'src' and the project's root folder name,
+    then scans for other directories containing Python files.
+    """
+    folders = []
+    # The current directory's name is often the package name.
+    project_name = os.path.basename(os.path.abspath(root))
+
+    # Check for common source folder names first.
+    for name in ["src", "app", project_name]:
+        if os.path.isdir(name) and name not in folders:
+            # Check if it actually contains python files to reduce noise.
+            try:
+                if any(f.endswith(".py") for f in os.listdir(name)):
+                    folders.append(name)
+            except OSError:
+                continue  # Ignore permission errors
+
+    # Find other directories at the top level that contain .py files.
+    for item in os.listdir(root):
+        if os.path.isdir(item) and not item.startswith(".") and "venv" not in item:
+            if item in folders:
+                continue
+            try:
+                if any(f.endswith(".py") for f in os.listdir(item)):
+                    folders.append(item)
+            except OSError:
+                continue  # Ignore permission errors
+
+    return folders
+
+
+def _select_src_folder_interactive(folders: list[str]) -> str | None:
+    """
+    Prompts the user to select their source folder from a list.
+    """
+    print("\nPlease select your primary source folder from the list below:")
+    for i, folder in enumerate(folders):
+        print(f"  {i+1}) {folder}")
+    print(f"  {len(folders)+1}) [Manual Entry]")
+    print(f"  {len(folders)+2}) [Cancel]")
+
+    while True:
+        try:
+            choice_str = input(f"Enter your choice [1-{len(folders)+2}]: ")
+            choice_int = int(choice_str)
+            if 1 <= choice_int <= len(folders):
+                return folders[choice_int - 1]
+            elif choice_int == len(folders) + 1:
+                return input("Enter path to your source folder: ")
+            elif choice_int == len(folders) + 2:
+                return None
+            else:
+                print(f"Invalid choice. Please enter a number between 1 and {len(folders)+2}.")
+        except (ValueError, IndexError):
+            print("Invalid input. Please enter a number from the list.")
+
+
+def _generate_pycodetags_toml_section(src_folder: str) -> str:
+    """
+    Generates the [tool.pycodetags] TOML string with helpful comments.
+    """
+    return f"""
+[tool.pycodetags]
+# Source folders to scan for code tags.
+# This allows you to run `pycodetags` without specifying the path every time.
+src = ["{src_folder}"]
+
+# --- Optional: Common Configurations ---
+
+# Specify Python modules to scan. Useful if your project structure is complex.
+# modules = []
+
+# Define which tag schemas are active.
+# Default schemas are: todo, fixme, hack, note, perf, bug, question, important
+# Example: active_schemas = ["todo", "fixme", "bug"]
+
+# --- Runtime Behavior Control ---
+# These settings control pycodetags's behavior when imported in your code.
+
+# Master switch to disable all runtime features (e.g., for production).
+# Setting this to true ensures zero performance overhead from the library.
+disable_all_runtime_behavior = false
+
+# Enables or disables the runtime actions ('log', 'warn', 'stop').
+# If false, runtime checks are silent, even if `disable_all_runtime_behavior` is false.
+enable_actions = true
+
+# Default action for runtime checks if a tag doesn't specify one.
+# Valid options: "warn", "stop" (raises TypeError), "log", or "nothing".
+default_action = "warn"
+
+# Automatically disables all runtime actions when in a CI environment.
+# Checks for common CI environment variables (e.g., CI, GITHUB_ACTIONS).
+disable_on_ci = true
+
+# Allow pycodetags to load environment variables from a .env file.
+use_dot_env = true
+"""
+
+
+def _write_to_pyproject_safe(toml_section: str, pyproject_path: str):
+    """
+    Safely appends the configuration to pyproject.toml.
+
+    It creates the file if it doesn't exist and adds newlines for separation
+    if the file already has content.
+    """
+    try:
+        # Open in append mode, which creates the file if it doesn't exist.
+        with open(pyproject_path, "a", encoding="utf-8") as f:
+            # f.tell() gives the current position. If > 0, the file is not empty.
+            if f.tell() > 0:
+                f.write("\n")  # Add a blank line for separation.
+
+            f.write(toml_section.strip())
+
+        print(f"\nSuccessfully configured '[tool.pycodetags]' in {pyproject_path}")
+    except OSError as e:
+        print(f"\nError: Could not write to {pyproject_path}. {e}")
+
+
+if __name__ == "__main__":
+    # To run this script directly, save it as a .py file (e.g., setup_codetags.py)
+    # and run `python setup_codetags.py` in your project's root directory.
+    init_pycodetags_config()
 
 ```
 
@@ -1951,113 +2084,6 @@ class DataTagFields(TypedDict):
 
 ```
 
-## File: dotenv.py
-
-```python
-"""
-.env file support to avoid another dependency.
-"""
-
-from __future__ import annotations
-
-import logging
-import os
-from pathlib import Path
-
-logger = logging.getLogger(__name__)
-
-
-def _strip_inline_comment(value: str) -> str:
-    """Strip unquoted inline comments starting with '#'."""
-    result = []
-    in_single = in_double = False
-
-    for i, char in enumerate(value):
-        if char == "'" and not in_double:
-            in_single = not in_single
-        elif char == '"' and not in_single:
-            in_double = not in_double
-        elif char == "#" and not in_single and not in_double:
-            logger.debug(f"Stripping inline comment starting at index {i}")
-            break
-        result.append(char)
-    return "".join(result).strip()
-
-
-def _unquote(value: str) -> str:
-    """Remove surrounding quotes from a string if they match."""
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
-        return value[1:-1]
-    return value
-
-
-def load_dotenv(file_path: Path | None = None) -> None:
-    """Load environment variables from a .env file into os.environ.
-
-    Args:
-        file_path (Optional[Path]): Optional custom path to a .env file.
-            If not provided, defaults to ".env" in the current working directory.
-
-    Notes:
-        - Lines that are blank, comments (starting with #), or shebangs (#!) are ignored.
-        - Lines must be in the form of `KEY=VALUE` or `export KEY=VALUE`.
-        - Existing environment variables will not be overwritten.
-        - Inline comments (starting with unquoted #) are stripped.
-        - Quoted values are unwrapped.
-    """
-    if file_path is None:
-        file_path = Path.cwd() / ".env"
-
-    logger.info(f"Looking for .env file at: {file_path}")
-
-    if not file_path.exists():
-        logger.warning(f".env file not found at: {file_path}")
-        return
-
-    logger.info(".env file found. Starting to parse...")
-
-    with file_path.open("r", encoding="utf-8") as f:
-        for line_number, line in enumerate(f, start=1):
-            original_line = line.rstrip("\n")
-            line = line.strip()
-
-            logger.debug(f"Line {line_number}: '{original_line}'")
-
-            if not line or line.startswith("#") or line.startswith("#!") or line.startswith("!/"):
-                logger.debug(f"Line {line_number} is blank, a comment, or a shebang. Skipping.")
-                continue
-
-            if line.startswith("export "):
-                line = line[len("export ") :].strip()
-
-            if "=" not in line:
-                logger.warning(f"Line {line_number} is not a valid assignment. Skipping: '{original_line}'")
-                continue
-
-            key, value = line.split("=", 1)
-            key = key.strip()
-            value = value.strip()
-
-            if not key:
-                logger.warning(f"Line {line_number} has empty key. Skipping: '{original_line}'")
-                continue
-
-            value = _strip_inline_comment(value)
-            value = _unquote(value)
-
-            if key in os.environ:
-                logger.info(f"Line {line_number}: Key '{key}' already in os.environ. Skipping.")
-                continue
-
-            os.environ[key] = value
-            logger.info(f"Line {line_number}: Loaded '{key}' = '{value}'")
-
-
-if __name__ == "__main__":
-    load_dotenv()
-
-```
-
 ## File: exceptions.py
 
 ```python
@@ -2747,6 +2773,12 @@ PureDataSchema: DataTagSchema = {
 
 ```
 
+## File: pyproject.toml
+
+```toml
+
+```
+
 ## File: views.py
 
 ```python
@@ -2949,11 +2981,6 @@ __all__ = [
     "__license__",
     "__requires_python__",
     "__status__",
-    "__homepage__",
-    "__repository__",
-    "__documentation__",
-    "__issues__",
-    "__changelog__",
 ]
 
 __title__ = "pycodetags"
@@ -2964,11 +2991,6 @@ __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-t
 __license__ = "MIT"
 __requires_python__ = ">=3.7"
 __status__ = "4 - Beta"
-__homepage__ = "https://github.com/matthewdeanmartin/pycodetags"
-__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
-__documentation__ = "https://pycodetags.readthedocs.io/en/latest/"
-__issues__ = "https://matthewdeanmartin.github.io/pycodetags/"
-__changelog__ = "https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md"
 
 ```
 
@@ -3032,13 +3054,14 @@ import pycodetags.__about__ as __about__
 import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.config_init import init_pycodetags_config
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_schema import DataTagSchema
-from pycodetags.dotenv import load_dotenv
 from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_diagnostics import plugin_currently_loaded
 from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.utils import load_dotenv
 from pycodetags.views import print_html, print_json, print_summary, print_text, print_validate
 
 
@@ -3099,8 +3122,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # Create subparsers for commands
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
+    subparsers.add_parser("init", parents=[base_parser], help="Initialize domain-free config")
+
     # 'report' command
     report_parser = subparsers.add_parser("data", parents=[base_parser], help="Generate code tag reports")
+
     # report runs collectors, collected things can be validated
     report_parser.add_argument("--module", action="append", help="Python module to inspect (e.g., 'my_project.main')")
     report_parser.add_argument("--src", action="append", help="file or folder of source code")
@@ -3161,6 +3187,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.command:
         parser.print_help()
         return 1
+
+    if args.command == "init":
+        init_pycodetags_config()
+        return 0
 
     # Handle the 'report' command
     if args.command in ("report", "data"):
@@ -3251,6 +3281,373 @@ def common_switches(parser) -> None:
 
 if __name__ == "__main__":
     sys.exit(main())
+
+```
+
+## File: utils\cache_utils.py
+
+```python
+"""
+A zero-dependency, persistent, file-system-based memoization decorator for Python.
+
+This module provides a decorator that caches the results of function calls on the
+filesystem. This allows the cache to persist across multiple executions of a script,
+making it ideal for CLI tools or build processes that repeatedly process the same data.
+
+Features:
+- Zero external dependencies (uses only the Python standard library).
+- Caches are stored in a `.pycodetags_cache` directory by default.
+- Automatically locates the project root by searching for a `pyproject.toml` file.
+- Cache directory can be overridden for testing or custom configurations.
+- Automatically creates a .gitignore file in the cache directory.
+- Provides a `clear_cache` function to purge all cache items on demand.
+- Optional gzip compression for cache files to save disk space.
+- Stale cache entries are automatically removed based on a configurable TTL.
+- Cache keys are generated from the function's name and arguments, supporting
+  various argument types including complex objects.
+- Handles potential race conditions and corrupted cache files gracefully.
+"""
+
+from __future__ import annotations
+
+import gzip
+import hashlib
+import logging
+import pickle  # nosec
+import shutil
+import time
+from collections.abc import Callable
+from functools import wraps
+from pathlib import Path
+from typing import Any, TypeVar
+
+logger = logging.getLogger(__name__)
+
+# Define a generic TypeVar for annotating the decorated function's return type.
+F = TypeVar("F", bound=Callable[..., Any])
+
+# A global flag to ensure the cache cleanup logic runs only once per process.
+_CACHE_CLEANUP_PERFORMED: dict[str, bool] = {}
+
+
+def _get_cache_dir(cache_dir_override: Path | None = None) -> Path:
+    """
+    Determines the correct cache directory path.
+
+    Uses the override if provided, otherwise searches for the project root.
+    """
+    if cache_dir_override:
+        return cache_dir_override
+
+    current_path = Path.cwd().resolve()
+    for parent in [current_path] + list(current_path.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent / ".pycodetags_cache"
+
+    raise FileNotFoundError(
+        "Could not find project root. The 'persistent_memoize' decorator requires "
+        "a 'pyproject.toml' file to determine the cache location, or you must "
+        "provide a 'cache_dir_override'."
+    )
+
+
+def clear_cache(cache_dir_override: Path | None = None) -> None:
+    """
+    Deletes all items in the cache directory, except for the .gitignore file.
+
+    Args:
+        cache_dir_override: Specify the cache directory to clear. If None, it
+                            will be determined automatically by looking for
+                            pyproject.toml.
+    """
+    try:
+        cache_dir = _get_cache_dir(cache_dir_override)
+        if not cache_dir.is_dir():
+            print(f"Cache directory {cache_dir} does not exist. Nothing to clear.")
+            return
+
+        for item in cache_dir.iterdir():
+            try:
+                if item.name == ".gitignore":
+                    continue
+                if item.is_dir():
+                    shutil.rmtree(item)
+                else:
+                    item.unlink()
+            except OSError as e:
+                print(f"Warning: Could not remove cache item {item}. Error: {e}")
+        print(f"Cache cleared successfully at {cache_dir}.")
+    except (FileNotFoundError, OSError) as e:
+        print(f"Error clearing cache: {e}")
+
+
+def persistent_memoize(
+    ttl_seconds: int = 86400,
+    cache_dir_override: Path | None = None,
+    use_gzip: bool = False,
+    raise_on_missing_config: bool = False,
+) -> Callable[[F], F]:
+    """
+    A decorator factory for filesystem-based memoization.
+
+    Args:
+        ttl_seconds: The time-to-live for cache entries, in seconds.
+                     Defaults to 86400 (24 hours).
+        cache_dir_override: An optional Path object to specify the cache
+                            directory, bypassing project root detection.
+                            Ideal for unit tests.
+        use_gzip: If True, compresses cache files using gzip. This can save
+                  significant disk space but adds a small CPU overhead.
+                  Defaults to False.
+        raise_on_missing_config: Raise exception if pyproject.toml not found.
+
+    Returns:
+        A decorator that can be applied to a function.
+    """
+    global _CACHE_CLEANUP_PERFORMED
+
+    try:
+        cache_dir = _get_cache_dir(cache_dir_override)
+        cache_dir.mkdir(exist_ok=True)
+
+        # Ensure the cache directory is ignored by git
+        gitignore_path = cache_dir / ".gitignore"
+        if not gitignore_path.exists():
+            with gitignore_path.open("w") as f:
+                f.write("*\n")
+
+    except (FileNotFoundError, OSError) as e:
+        print(f"Warning: Persistent memoization disabled. Reason: {e}")
+        if raise_on_missing_config:
+            raise FileNotFoundError(
+                "Persistent memoization requires a 'pyproject.toml' file to determine "
+                "the cache location, or you must provide a 'cache_dir_override'."
+            ) from e
+
+        def no_op_decorator(func: F) -> F:
+            return func
+
+        return no_op_decorator
+
+    # --- Stale Cache Cleanup (runs once per session per cache_dir) ---
+    cache_dir_str = str(cache_dir)
+    if not _CACHE_CLEANUP_PERFORMED.get(cache_dir_str):
+        now = time.time()
+        try:
+            for cache_file in cache_dir.iterdir():
+                if cache_file.is_file() and cache_file.name != ".gitignore":
+                    try:
+                        modification_time = cache_file.stat().st_mtime
+                        if (now - modification_time) > ttl_seconds:
+                            cache_file.unlink()
+                    except OSError:
+                        pass
+        except OSError as e:
+            print(f"Warning: Could not perform cache cleanup. Error: {e}")
+        _CACHE_CLEANUP_PERFORMED[cache_dir_str] = True
+
+    def decorator(func: F) -> F:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                key_data = pickle.dumps((args, sorted(kwargs.items())))
+            except Exception:
+                return func(*args, **kwargs)
+
+            hasher = hashlib.sha256()
+            hasher.update(func.__qualname__.encode("utf-8"))
+            hasher.update(key_data)
+
+            extension = ".pkl.gz" if use_gzip else ".pkl"
+            cache_filename = f"{hasher.hexdigest()}{extension}"
+            cache_filepath = cache_dir / cache_filename
+
+            if cache_filepath.is_file() and (time.time() - cache_filepath.stat().st_mtime) < ttl_seconds:
+                try:
+                    open_func = gzip.open if use_gzip else open
+                    with open_func(cache_filepath, "rb") as f:
+                        return pickle.load(f)  # nosec
+                except (pickle.UnpicklingError, EOFError, OSError, gzip.BadGzipFile) as e:
+                    print(f"Warning: Could not read cache file {cache_filepath}. Recomputing. Error: {e}")
+
+            result = func(*args, **kwargs)
+            try:
+                open_func = gzip.open if use_gzip else open
+                with open_func(cache_filepath, "wb") as f:
+                    pickle.dump(result, f)
+            except OSError as e:
+                print(f"Warning: Could not write to cache file {cache_filepath}. Error: {e}")
+
+            return result
+
+        return wrapper  # type: ignore
+
+    return decorator
+
+
+# # --- Example Usage ---
+# if __name__ == '__main__':
+#     # # Create a dummy pyproject.toml for demonstration
+#     # if not Path('pyproject.toml').exists():
+#     #     Path('pyproject.toml').touch()
+#
+#     @persistent_memoize(ttl_seconds=20, use_gzip=True)
+#     def slow_gzipped_op(data: dict) -> dict:
+#         """A dummy function that simulates a slow operation with gzip."""
+#         print(f"Executing slow_gzipped_op for data: {str(data)[:20]}...")
+#         time.sleep(2)
+#         result = {**data, "processed_at": time.time()}
+#         print("...Gzipped operation complete.")
+#         return result
+#
+#     print("--- Gzip Test: First Run (Slow) ---")
+#     start_time = time.time()
+#     res1 = slow_gzipped_op({"id": 123, "payload": "a" * 100})
+#     print(f"Result 1: 'processed_at': {res1['processed_at']}")
+#     print(f"Time taken: {time.time() - start_time:.2f}s\n")
+#
+#     print("--- Gzip Test: Second Run (Fast, from cache) ---")
+#     start_time = time.time()
+#     res2 = slow_gzipped_op({"id": 123, "payload": "a" * 100})
+#     print(f"Result 2: 'processed_at': {res2['processed_at']}")
+#     print(f"Time taken: {time.time() - start_time:.2f}s\n")
+#
+#     assert res1['processed_at'] == res2['processed_at']
+#     print("Timestamps match, confirming cache was used.")
+#
+#     print("\n--- Cache Clearing Test ---")
+#     print("Calling clear_cache()...")
+#     clear_cache()
+#
+#     print("\n--- Gzip Test: Third Run (Slow again, after clearing cache) ---")
+#     start_time = time.time()
+#     res3 = slow_gzipped_op({"id": 123, "payload": "a" * 100})
+#     print(f"Result 3: 'processed_at': {res3['processed_at']}")
+#     print(f"Time taken: {time.time() - start_time:.2f}s\n")
+#
+#     assert res1['processed_at'] != res3['processed_at']
+#     print("Timestamp is new, confirming cache was cleared and value was recomputed.")
+
+```
+
+## File: utils\dotenv.py
+
+```python
+"""
+.env file support to avoid another dependency.
+"""
+
+from __future__ import annotations
+
+import logging
+import os
+from pathlib import Path
+
+logger = logging.getLogger(__name__)
+
+
+def _strip_inline_comment(value: str) -> str:
+    """Strip unquoted inline comments starting with '#'."""
+    result = []
+    in_single = in_double = False
+
+    for i, char in enumerate(value):
+        if char == "'" and not in_double:
+            in_single = not in_single
+        elif char == '"' and not in_single:
+            in_double = not in_double
+        elif char == "#" and not in_single and not in_double:
+            logger.debug(f"Stripping inline comment starting at index {i}")
+            break
+        result.append(char)
+    return "".join(result).strip()
+
+
+def _unquote(value: str) -> str:
+    """Remove surrounding quotes from a string if they match."""
+    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+        return value[1:-1]
+    return value
+
+
+def load_dotenv(file_path: Path | None = None) -> None:
+    """Load environment variables from a .env file into os.environ.
+
+    Args:
+        file_path (Optional[Path]): Optional custom path to a .env file.
+            If not provided, defaults to ".env" in the current working directory.
+
+    Notes:
+        - Lines that are blank, comments (starting with #), or shebangs (#!) are ignored.
+        - Lines must be in the form of `KEY=VALUE` or `export KEY=VALUE`.
+        - Existing environment variables will not be overwritten.
+        - Inline comments (starting with unquoted #) are stripped.
+        - Quoted values are unwrapped.
+    """
+    if file_path is None:
+        file_path = Path.cwd() / ".env"
+
+    logger.info(f"Looking for .env file at: {file_path}")
+
+    if not file_path.exists():
+        logger.info(f".env file not found at: {file_path}")
+        return
+
+    logger.info(".env file found. Starting to parse...")
+
+    with file_path.open("r", encoding="utf-8") as f:
+        for line_number, line in enumerate(f, start=1):
+            original_line = line.rstrip("\n")
+            line = line.strip()
+
+            logger.debug(f"Line {line_number}: '{original_line}'")
+
+            if not line or line.startswith("#") or line.startswith("#!") or line.startswith("!/"):
+                logger.debug(f"Line {line_number} is blank, a comment, or a shebang. Skipping.")
+                continue
+
+            if line.startswith("export "):
+                line = line[len("export ") :].strip()
+
+            if "=" not in line:
+                logger.warning(f"Line {line_number} is not a valid assignment. Skipping: '{original_line}'")
+                continue
+
+            key, value = line.split("=", 1)
+            key = key.strip()
+            value = value.strip()
+
+            if not key:
+                logger.warning(f"Line {line_number} has empty key. Skipping: '{original_line}'")
+                continue
+
+            value = _strip_inline_comment(value)
+            value = _unquote(value)
+
+            if key in os.environ:
+                logger.info(f"Line {line_number}: Key '{key}' already in os.environ. Skipping.")
+                continue
+
+            os.environ[key] = value
+            logger.info(f"Line {line_number}: Loaded '{key}' = '{value}'")
+
+
+if __name__ == "__main__":
+    load_dotenv()
+
+```
+
+## File: utils\__init__.py
+
+```python
+"""
+Module of code thematically unrelated to pycodetags.
+"""
+
+__all__ = ["persistent_memoize", "clear_cache", "load_dotenv"]
+
+from pycodetags.utils.cache_utils import clear_cache, persistent_memoize
+from pycodetags.utils.dotenv import load_dotenv
 
 ```
 

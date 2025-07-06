@@ -89,9 +89,6 @@ from typing import Any
 
 from pycodetags.exceptions import ConfigError
 
-# from pycodetags.user import get_current_user
-# from pycodetags.users_from_authors import parse_authors_file_simple
-
 try:
     import tomllib  # Python 3.11+
 except ModuleNotFoundError:
@@ -194,33 +191,3 @@ class CodeTagsConfig:
 
 def get_code_tags_config() -> CodeTagsConfig:
     return CodeTagsConfig.get_instance()
-
-
-if __name__ == "__main__":
-
-    # ------------------------ USAGE EXAMPLES ------------------------
-
-    # Lazy loading singleton config
-
-    def example_usage() -> None:
-        """Example usage of the CodeTagsConfig."""
-        config = get_code_tags_config()
-        if not config.runtime_behavior_enabled:
-            print("Runtime behavior is disabled.")
-            return
-
-        print("Valid priorities:", config.active_schemas())
-
-    # Setting a custom or mock config for testing or alternate use
-    class MockConfig(CodeTagsConfig):
-        """Mock configuration for testing purposes."""
-
-        def __init__(self, pyproject_path: str = "pyproject.toml"):
-            super().__init__(pyproject_path)
-            self.config = {"valid_priorities": ["urgent"], "disable_all_runtime_behavior": False}
-
-    # Set the mock instance
-    CodeTagsConfig.set_instance(MockConfig())
-
-    # Now using get_code_tags_config will use the mock
-    example_usage()

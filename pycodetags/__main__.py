@@ -16,13 +16,14 @@ import pycodetags.__about__ as __about__
 import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.config_init import init_pycodetags_config
 from pycodetags.data_tags_classes import DATA
 from pycodetags.data_tags_schema import DataTagSchema
-from pycodetags.dotenv import load_dotenv
 from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_diagnostics import plugin_currently_loaded
 from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.utils import load_dotenv
 from pycodetags.views import print_html, print_json, print_summary, print_text, print_validate
 
 
@@ -83,8 +84,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     # Create subparsers for commands
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
+    subparsers.add_parser("init", parents=[base_parser], help="Initialize domain-free config")
+
     # 'report' command
     report_parser = subparsers.add_parser("data", parents=[base_parser], help="Generate code tag reports")
+
     # report runs collectors, collected things can be validated
     report_parser.add_argument("--module", action="append", help="Python module to inspect (e.g., 'my_project.main')")
     report_parser.add_argument("--src", action="append", help="file or folder of source code")
@@ -145,6 +149,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     if not args.command:
         parser.print_help()
         return 1
+
+    if args.command == "init":
+        init_pycodetags_config()
+        return 0
 
     # Handle the 'report' command
     if args.command in ("report", "data"):

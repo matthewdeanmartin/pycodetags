@@ -169,10 +169,27 @@ PEPs and Standard Library Prior Art
 
 - [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal, now implemented, mostly by `pycodetags`
 
-## Project Heal
-- [CodeCov](https://app.codecov.io/gh/matthewdeanmartin/pycodetags) Unit Test Coverage
-- ![CI](https://github.com/matthewdeanmartin/pycodetags/actions/workflows/build.yml/badge.svg)
-- 
+## Project Health
+
+| Metric         | Status |
+|----------------|--------|
+| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/pycodetags/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/pycodetags) |
+| Docs           | [![Docs](https://readthedocs.org/projects/pycodetags/badge/?version=latest)](https://pycodetags.readthedocs.io/en/latest/) |
+| PyPI           | [![PyPI](https://img.shields.io/pypi/v/pycodetags)](https://pypi.org/project/pycodetags/) |
+| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/pycodetags?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/pycodetags) |
+| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/pycodetags)](https://github.com/matthewdeanmartin/pycodetags/blob/main/LICENSE.md) |
+| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/pycodetags) |
+
+## Libray info pages
+- [pycodetags](https://libraries.io/pypi/pycodetags)
+- [pycodetags-issue-tracker](https://libraries.io/pypi/pycodetags-issue-tracker) plugin
+
+## Snyk Security Pages
+
+- [pycodetags](https://security.snyk.io/package/pip/pycodetags)
+- [pycodetags-issue-tracker](https://security.snyk.io/package/pip/pycodetags-issue-tracker) plugin
+
+
 ## Documentation
 
 - [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)

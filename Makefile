@@ -149,13 +149,13 @@ install_plugins:
 	uv pip install -e plugins/pycodetags_to_sqlite
 
 .PHONY: issues
-issues:install_plugins
+issues:
 	@echo "Checking issues"
 	# $(VENV)	pycodetags data --src pycodetags --src plugins --format json>issues_site/data.json
 	@echo "Current issues:"
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format text --verbose
+	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format text
 	@echo "For best results, fix these issues:"
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format validate
+	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format validate
 	@echo "Generating HTML report"
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format html>issues_site/index.html
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format changelog>CHANGELOG_DRAFT.md
+	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format html>issues_site/index.html
+	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format changelog>CHANGELOG_DRAFT.md

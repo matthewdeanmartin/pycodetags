@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from pycodetags.comment_finder import extract_comment_text, find_comment_blocks
+from pycodetags.comment_finder import extract_comment_text, find_comment_blocks_from_string
 
 
 def _write_temp_file(tmp_path: Path, content: str) -> Path:
@@ -12,15 +12,14 @@ def _write_temp_file(tmp_path: Path, content: str) -> Path:
     return file_path
 
 
-def test_single_comment_block(tmp_path: Path):
+def test_single_comment_block():
     content = """\
 print("hello")
 # Start of a comment
 # Comment block continues
 print("no more comment block")
 """
-    path = _write_temp_file(tmp_path, content)
-    blocks = list(find_comment_blocks(path))
+    blocks = list(find_comment_blocks_from_string(content))
     assert blocks == [
         (
             1,
@@ -38,7 +37,7 @@ print("no more comment block")
     )
 
 
-def test_three_comment_blocks(tmp_path: Path):
+def test_three_comment_blocks():
     content = """\
 print("hello")
 
@@ -50,8 +49,7 @@ print("again") # This is a comment block, a new one
 
 print("no more comment block")
 """
-    path = _write_temp_file(tmp_path, content)
-    blocks = list(find_comment_blocks(path))
+    blocks = list(find_comment_blocks_from_string(content))
     assert blocks == [
         (2, 0, 2, 20, "# Start of a comment"),
         (4, 15, 4, 51, "# This is a comment block, a new one"),
@@ -75,7 +73,7 @@ print("no more comment block")
 
 # @pytest.mark.skip("This is the degenerate case.")
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
-def test_no_comment_blocks(tmp_path: Path):
+def test_no_comment_blocks():
     content = '''\
 print("hello")
 
@@ -85,12 +83,11 @@ print("hello")
 
 print("no more comment block")
 '''
-    path = _write_temp_file(tmp_path, content)
-    blocks = list(find_comment_blocks(path))
+    blocks = list(find_comment_blocks_from_string(content))
     assert not blocks
 
 
-def test_triple(tmp_path):
+def test_triple():
     content = """
 # TODO: Finish this module <priority:high assignee:dev_a>
 # A regular comment
@@ -99,6 +96,5 @@ def some_function():
     # BUG: This might cause an error in production <status:open c:critical>
     pass
 """
-    path = _write_temp_file(tmp_path, content)
-    blocks = list(find_comment_blocks(path))
+    blocks = list(find_comment_blocks_from_string(content))
     assert len(blocks) == 2

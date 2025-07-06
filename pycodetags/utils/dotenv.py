@@ -55,7 +55,7 @@ def load_dotenv(file_path: Path | None = None) -> None:
     logger.info(f"Looking for .env file at: {file_path}")
 
     if not file_path.exists():
-        logger.warning(f".env file not found at: {file_path}")
+        logger.info(f".env file not found at: {file_path}")
         return
 
     logger.info(".env file found. Starting to parse...")

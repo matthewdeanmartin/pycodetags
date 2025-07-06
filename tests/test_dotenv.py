@@ -5,7 +5,7 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-from pycodetags.dotenv import load_dotenv
+from pycodetags.utils import load_dotenv
 
 
 @contextmanager

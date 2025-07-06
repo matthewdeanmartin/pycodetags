@@ -12,11 +12,10 @@ from __future__ import annotations
 
 import logging
 from ast import walk
-from collections.abc import Generator
-from pathlib import Path
 from typing import Any
 
 from pycodetags.exceptions import FileParsingError
+from pycodetags.utils import persistent_memoize
 
 try:
     from ast_comments import Comment, parse
@@ -26,13 +25,11 @@ except ImportError:
 
 LOGGER = logging.getLogger(__name__)
 
-__all__ = [
-    "find_comment_blocks_from_string",
-    "find_comment_blocks_fallback"
-]
+__all__ = ["find_comment_blocks_from_string", "find_comment_blocks_from_string_fallback"]
 
 
-def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, int, int, str], None, None]:
+@persistent_memoize(ttl_seconds=60 * 60 * 24 * 7, use_gzip=True)
+def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, int, str]]:
     """Parses a Python source file and yields comment block ranges.
 
     Uses `ast-comments` to locate all comments, and determines the exact offsets
@@ -41,15 +38,19 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
     Args:
         source (str): Python source text.
 
-    Yields:
-        Tuple[int, int, int, int, str]: (start_line, start_char, end_line, end_char, comment)
+    Returns:
+        list[tuple[int, int, int, int, str]]: (start_line, start_char, end_line, end_char, comment)
         representing the comment block's position in the file (0-based).
     """
+    blocks: list[tuple[int, int, int, int, str]] = []
     if parse is None:
         # Hack for 3.7!
-        yield from find_comment_blocks_fallback(source)
-        return
+        return find_comment_blocks_from_string_fallback(source)
         # type: ignore[no-redef,unused-ignore]
+
+    if not source:
+        return blocks
+
     tree = parse(source)
     lines = source.splitlines()
 
@@ -84,14 +85,15 @@ def find_comment_blocks_from_string(source: str) -> Generator[tuple[int, int, in
                 start_line, start_char, _, _ = block[0]
                 end_line, _, _, end_char = block[-1]
                 final_comment = extract_comment_text(source, (start_line, start_char, end_line, end_char))
-                yield (start_line, start_char, end_line, end_char, final_comment)
+                blocks.append((start_line, start_char, end_line, end_char, final_comment))
                 block = [pos]
 
     if block:
         start_line, start_char, _, _ = block[0]
         end_line, _, _, end_char = block[-1]
         final_comment = extract_comment_text(source, (start_line, start_char, end_line, end_char))
-        yield (start_line, start_char, end_line, end_char, final_comment)
+        blocks.append((start_line, start_char, end_line, end_char, final_comment))
+    return blocks
 
 
 def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:
@@ -121,28 +123,19 @@ def extract_comment_text(text: str, offsets: tuple[int, int, int, int]) -> str:
     return "\n".join(block_lines)
 
 
-def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, int, int, str], None, None]:
-    """Parse a Python file and yield comment block positions and content.
+def find_comment_blocks_from_string_fallback(source: str) -> list[tuple[int, int, int, int, str]]:
+    """Parse Python source and yield comment block positions and content.
 
     Args:
-        path (Path): Path to the Python source file.
+        source (str): Python source file.
 
-    Yields:
-        Tuple[int, int, int, int, str]: A tuple of (start_line, start_char, end_line, end_char, comment)
+    Returns:
+        list[tuple[int, int, int, int, str]]: A tuple of (start_line, start_char, end_line, end_char, comment)
         representing the block's location and the combined comment text. All indices are 0-based.
     """
-    if isinstance(path, Path):
-        if not path.is_file():
-            raise FileNotFoundError(f"File not found: {path}")
-        if path.suffix != ".py":
-            raise FileParsingError(f"Expected a Python file (.py), got: {path.suffix}")
+    blocks = []
 
-        LOGGER.info("Reading Python file: %s", path)
-
-        with path.open("r", encoding="utf-8") as f:
-            lines = f.readlines()
-    else:
-        lines = path.split("\n")
+    lines = source.split("\n")
 
     in_block = False
     start_line = start_char = 0
@@ -175,7 +168,7 @@ def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, 
                 # End of comment block
                 comment_text = "\n".join(comment_lines)
                 LOGGER.debug("Ending comment block at line %d, char %d", end_line, end_char)
-                yield (start_line, start_char, end_line, end_char, comment_text)
+                blocks.append((start_line, start_char, end_line, end_char, comment_text))
                 in_block = False
 
         else:
@@ -183,15 +176,16 @@ def find_comment_blocks_fallback(path: Path | str) -> Generator[tuple[int, int, 
                 # Previous line had comment, current one doesn't: close block
                 comment_text = "\n".join(comment_lines)
                 LOGGER.debug("Ending comment block at line %d, char %d", end_line, end_char)
-                yield (start_line, start_char, end_line, end_char, comment_text)
+                blocks.append((start_line, start_char, end_line, end_char, comment_text))
                 in_block = False
 
     if in_block:
         comment_text = "\n".join(comment_lines)
         LOGGER.debug("Ending final comment block at line %d, char %d", end_line, end_char)
-        yield (start_line, start_char, end_line, end_char, comment_text)
+        blocks.append((start_line, start_char, end_line, end_char, comment_text))
+    return blocks
 
 
 if parse is None:
     # Hack for 3.7!
-    find_comment_blocks = find_comment_blocks_fallback  # type: ignore[no-redef,unused-ignore]
+    find_comment_blocks_from_string = find_comment_blocks_from_string_fallback  # type: ignore[no-redef,unused-ignore]

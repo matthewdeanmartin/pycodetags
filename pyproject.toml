@@ -34,6 +34,10 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 
+[project.urls]
+Repository = "https://github.com/astral-sh/ruff"
+Documentation = "https://docs.astral.sh/ruff/"
+Changelog = "https://github.com/astral-sh/ruff/blob/main/CHANGELOG.md"
 homepage = "https://github.com/matthewdeanmartin/pycodetags"
 # development
 repository = "https://github.com/matthewdeanmartin/pycodetags"
@@ -43,6 +47,8 @@ issues = "https://matthewdeanmartin.github.io/pycodetags/"
 changelog = "https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md"
 # support – e.g. chat or forum - TODO
 
+[tool.hatch.build.targets.sdist]
+include = ["/README.md", "LICENSE", "/pycodetags", "/tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = [

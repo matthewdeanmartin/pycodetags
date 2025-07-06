@@ -1,6 +1,7 @@
 """
 Registry of plugin hooks. These are exported via "entrypoints".
 """
+
 from __future__ import annotations
 
 import argparse

@@ -1,40 +1,16 @@
-import pytest
-
-from pycodetags.comment_finder import find_comment_blocks_fallback
-from pycodetags.exceptions import FileParsingError
+from pycodetags.comment_finder import find_comment_blocks_from_string_fallback
 
 
-def test_missing_file(tmp_path):
-    non_existing = tmp_path / "nofile.py"
-    with pytest.raises(FileNotFoundError):
-        list(find_comment_blocks_fallback(non_existing))
-
-
-def test_wrong_extension(tmp_path):
-    txt = tmp_path / "not_python.txt"
-    txt.write_text("foo = 1")
-    with pytest.raises(FileParsingError):
-        list(find_comment_blocks_fallback(txt))
-
-
-def test_no_comments(tmp_path):
-    p = tmp_path / "clean.py"
-    p.write_text("def foo():\n    return 42\n")
-    assert not list(find_comment_blocks_fallback(p))
-
-
-def test_single_comment_line(tmp_path):
-    p = tmp_path / "single.py"
-    p.write_text("# hello world\n")
-    blocks = list(find_comment_blocks_fallback(p))
+def test_single_comment_line():
+    content = "# hello world\n"
+    blocks = list(find_comment_blocks_from_string_fallback(content))
     assert blocks == [(0, 0, 0, len("# hello world"), "# hello world")]
 
 
-def test_contiguous_comment_block(tmp_path):
-    p = tmp_path / "block.py"
+def test_contiguous_comment_block():
     content = "# one\n# two\n# three\n"
-    p.write_text(content)
-    blocks = list(find_comment_blocks_fallback(p))
+
+    blocks = list(find_comment_blocks_from_string_fallback(content))
     assert len(blocks) == 1
     start, sc, end, ec, text = blocks[0]
     assert (start, sc) == (0, 0)
@@ -42,11 +18,11 @@ def test_contiguous_comment_block(tmp_path):
     assert text == "# one\n# two\n# three"
 
 
-def test_multiple_blocks(tmp_path):
-    p = tmp_path / "multi.py"
+def test_multiple_blocks():
+
     lines = ["# first\n", "print()\n", "# second line 1\n", "# second line 2\n", "x = 2\n", "# third\n"]
-    p.write_text("".join(lines))
-    blocks = list(find_comment_blocks_fallback(p))
+    content = "".join(lines)
+    blocks = list(find_comment_blocks_from_string_fallback(content))
     assert len(blocks) == 3
 
     # first block
@@ -60,10 +36,9 @@ def test_multiple_blocks(tmp_path):
     assert b3 == (5, 0, 5, len("# third"), "# third")
 
 
-def test_inline_comments(tmp_path):
-    p = tmp_path / "inline.py"
-    p.write_text("x = 1  # comment here\n\ny = 2  # another\nz = 3\n")
-    blocks = list(find_comment_blocks_fallback(p))
+def test_inline_comments():
+    content = "x = 1  # comment here\n\ny = 2  # another\nz = 3\n"
+    blocks = list(find_comment_blocks_from_string_fallback(content))
     # Two inline comments produce two blocks
     assert len(blocks) == 2
     # Check second inline comment
@@ -71,10 +46,10 @@ def test_inline_comments(tmp_path):
     assert text2 == "# another"
 
 
-def test_block_at_end_of_file(tmp_path):
-    p = tmp_path / "endblock.py"
-    p.write_text("foo = 1\n# at end\n# still end")
-    blocks = list(find_comment_blocks_fallback(p))
+def test_block_at_end_of_file():
+
+    p = "foo = 1\n# at end\n# still end"
+    blocks = list(find_comment_blocks_from_string_fallback(p))
     assert len(blocks) == 1
     start, _, end, _, text = blocks[0]
     assert start == 1
