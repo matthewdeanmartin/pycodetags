@@ -63,7 +63,7 @@ class Fields(TypedDict, total=False):
     category: str  # mutable
     iteration: str  # mutable
     release: str  # mutable
-    change_type: str # mutable
+    change_type: str  # mutable
 
     # creates need for alias merging, when both priority and p exist
     p: str

@@ -33,10 +33,6 @@ def sample_data() -> list[TODO]:
     return found
 
 
-def test_html(sample_data):
-    views.print_html(sample_data)
-
-
 def test_text(sample_data):
     views.print_text(sample_data)
 

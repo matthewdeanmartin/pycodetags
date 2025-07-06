@@ -34,10 +34,8 @@ def print_validate(found: list[TODO]) -> None:
                 print(f"  {validation}")
             print(f"Original Schema {item.original_schema}")
             print(f"Original Text {item.original_text}")
-                # print(item)
+            # print(item)
             print()
-
-
 
 
 def print_text(found: list[TODO]) -> None:

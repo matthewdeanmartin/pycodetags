@@ -241,7 +241,7 @@ class TODO(DATA):
                     suggestions = []
                     if mandatory_field == "status":
                         suggestions = config.valid_status()
-                    elif mandatory_field== "category":
+                    elif mandatory_field == "category":
                         suggestions = config.valid_categories()
                     elif mandatory_field == "priority":
                         suggestions = config.valid_priorities()
@@ -249,9 +249,7 @@ class TODO(DATA):
                         suggestions = config.valid_iterations()
 
                     if suggestions:
-                        issues.append(
-                            f"{mandatory_field} is required, suggest {suggestions}"
-                        )
+                        issues.append(f"{mandatory_field} is required, suggest {suggestions}")
                     else:
                         issues.append(f"{mandatory_field} is required")
 

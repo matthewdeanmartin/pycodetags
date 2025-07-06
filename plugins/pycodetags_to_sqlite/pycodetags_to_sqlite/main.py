@@ -17,6 +17,7 @@ hookimpl = HookimplMarker("pycodetags")
 
 class SqliteExportApp:
     """Organizes pluggy hooks"""
+
     @hookimpl
     def register_app(
         self,
@@ -35,8 +36,15 @@ class SqliteExportApp:
 
     @hookimpl
     def run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data:
-            Callable[[DataTagSchema], Sequence[DataTag]], config: CodeTagsConfig
+        self,
+        # pylint: disable=unused-argument
+        command_name: str,
+        # pylint: disable=unused-argument
+        args: argparse.Namespace,
+        # pylint: disable=unused-argument
+        found_data: Callable[[DataTagSchema], Sequence[DataTag]],
+        # pylint: disable=unused-argument
+        config: CodeTagsConfig,
     ) -> bool:
         """Run any CLI command that the plugin supports"""
         # callback_data = found_data(PureDataSchema)

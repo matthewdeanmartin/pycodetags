@@ -34,11 +34,13 @@ def blank_to_null(value: str | None) -> str | None:
         return None
     return value.strip()
 
-def convert_datas_to_TODOs(tags: Iterable[DATA])->Iterable[TODO]:
+
+def convert_datas_to_TODOs(tags: Iterable[DATA]) -> Iterable[TODO]:
     """Syntactic sugar to convert many tags"""
     return [convert_data_to_TODO(_) for _ in tags]
 
-def get_from_custom_or_data(name:str, tag:DATA)->Any:
+
+def get_from_custom_or_data(name: str, tag: DATA) -> Any:
     value = (tag.data_fields or {}).get(name)
     if value:
         return value
@@ -52,30 +54,29 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
     return TODO(
         code_tag=tag.code_tag,
         comment=tag.comment,
-        default_fields=tag.default_fields or [],
+        default_fields=tag.default_fields or {},
         data_fields=tag.data_fields or {},
         custom_fields=tag.custom_fields or {},
         unprocessed_defaults=tag.unprocessed_defaults or [],
-
-        assignee=get_from_custom_or_data("assignee",tag),
-        originator=get_from_custom_or_data("originator",tag),
-        origination_date=get_from_custom_or_data("origination_date",tag),
-        due=get_from_custom_or_data("due",tag),
-        release_due=get_from_custom_or_data("release_due",tag),
-        release=get_from_custom_or_data("release",tag),
-        iteration=get_from_custom_or_data("iteration",tag),
-        change_type=get_from_custom_or_data("change_type",tag),
-        closed_date=get_from_custom_or_data("closed_date",tag),
-        closed_comment=get_from_custom_or_data("closed_comment",tag),
-        tracker=get_from_custom_or_data("tracker",tag),
+        assignee=get_from_custom_or_data("assignee", tag),
+        originator=get_from_custom_or_data("originator", tag),
+        origination_date=get_from_custom_or_data("origination_date", tag),
+        due=get_from_custom_or_data("due", tag),
+        release_due=get_from_custom_or_data("release_due", tag),
+        release=get_from_custom_or_data("release", tag),
+        iteration=get_from_custom_or_data("iteration", tag),
+        change_type=get_from_custom_or_data("change_type", tag),
+        closed_date=get_from_custom_or_data("closed_date", tag),
+        closed_comment=get_from_custom_or_data("closed_comment", tag),
+        tracker=get_from_custom_or_data("tracker", tag),
         file_path=tag.file_path,
         line_number=tag.line_number,
         original_text=tag.original_text,
         original_schema=tag.original_schema,
         offsets=tag.offsets,
-        priority=get_from_custom_or_data("priority",tag),
-        status=get_from_custom_or_data("status",tag),
-        category=get_from_custom_or_data("category",tag),
+        priority=get_from_custom_or_data("priority", tag),
+        status=get_from_custom_or_data("status", tag),
+        category=get_from_custom_or_data("category", tag),
     )
 
 
@@ -97,8 +98,8 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
         "assignee": blank_to_null(folk_tag.get("assignee")),
         "originator": blank_to_null(folk_tag.get("originator")),
         # person=folk_tag.get("person")
-        "_original_text": folk_tag.get("original_text"),
-        "_original_schema": "folk",
+        "original_text": folk_tag.get("original_text"),
+        "original_schema": "folk",
     }
     custom_fields = folk_tag.get("custom_fields", {})
     for keyword in TODO_KEYWORDS:

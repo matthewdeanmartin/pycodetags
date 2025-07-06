@@ -65,4 +65,3 @@ def print_rss(found: list[DATA], channel_info: dict[str, str]) -> None:
     xml_str = tostring(rss, "utf-8")
     parsed_str = minidom.parseString(xml_str)
     print(parsed_str.toprettyxml(indent="  "))
-

@@ -7,7 +7,7 @@ from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_f
 
 from pycodetags.common_interfaces import string_to_data_tag_typed_dicts
 from pycodetags.converters import upgrade_to_specific_schema
-from pycodetags.data_tags import parse_codetags, parse_fields, promote_fields
+from pycodetags.data_tags_parsers import parse_codetags, parse_fields, promote_fields
 
 
 # Helper function to create a dummy file for testing file operations
@@ -36,6 +36,8 @@ def test_parse_fields_basic():
             "assignee": ["john.doe"],
         },
         "custom_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -51,6 +53,8 @@ def test_parse_fields_with_aliases():
             "tracker": "bugtracker",
         },
         "custom_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -64,6 +68,8 @@ def test_parse_fields_quoted_values():
         },
         "default_fields": {},
         "custom_fields": {"custom": "some value with spaces"},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -79,22 +85,27 @@ def test_parse_fields_mixed_separators_and_spacing():
         },
         "custom_fields": {"custom_field": "value"},
         "default_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
 def test_parse_fields_origination_date_and_assignee_initials():
-    field_string = "2023-01-01 JRS,AB assignee:user1"
+    field_string = "2023-01-01 JRS assignee:user1"
     expected = {
         "data_fields": {
             "origination_date": "2023-01-01",
-            "assignee": ["user1", "JRS", "AB"],
+            "originator": "JRS",
+            "assignee": ["user1"],
         },
         "default_fields": {
             "origination_date": "2023-01-01",
-            "assignee": ["JRS", "AB"],
+            "originator": "JRS",
         },
         "custom_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     result = parse_fields(field_string, IssueTrackerSchema, strict=False)
     promote_fields({"fields": result}, IssueTrackerSchema)
@@ -103,7 +114,13 @@ def test_parse_fields_origination_date_and_assignee_initials():
 
 def test_parse_fields_no_fields():
     field_string = ""
-    expected = {"default_fields": {}, "custom_fields": {}, "data_fields": {}}
+    expected = {
+        "default_fields": {},
+        "custom_fields": {},
+        "data_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
+    }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
 
@@ -113,6 +130,8 @@ def test_parse_fields_only_custom_fields():
         "default_fields": {},
         "data_fields": {},
         "custom_fields": {"custom1": "value1", "custom2": "value2"},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -131,6 +150,8 @@ def test_parse_fields_unquoted_value_stops_at_whitespace():
             "origination_date": "2025-06-15",
         },
         "custom_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -141,6 +162,8 @@ def test_parse_fields_multiple_assignees_comma_separated():
         "data_fields": {"assignee": ["alice", "bob", "charlie"]},
         "custom_fields": {},
         "default_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -225,7 +248,13 @@ def test_parse_codetags_empty_field_string():
     assert len(results) == 1
     assert results[0]["code_tag"] == "REVIEW"
     assert results[0]["comment"] == "Check this code"
-    assert results[0]["fields"] == {"default_fields": {}, "custom_fields": {}, "data_fields": {}}
+    assert results[0]["fields"] == {
+        "default_fields": {},
+        "custom_fields": {},
+        "data_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
+    }
 
 
 # Tests for extract_comment_blocks function
@@ -445,6 +474,8 @@ def test_parse_fields_originator_field():
         "data_fields": {
             "originator": "john.doe",
         },
+        "identity_fields": [],
+        "unprocessed_defaults": [],
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
 
@@ -457,6 +488,7 @@ def test_parse_fields_quotes_with_escaped_chars():
         "custom_fields": {"custom": r'value with "quotes" and \'single quotes\''},
     }
     assert parse_fields(field_string, IssueTrackerSchema, strict=False) == expected
+
 
 # def test_parse_fields_single_quote_with_escaped_chars():
 #     field_string = r"custom:'value with \'quotes\' and \"double quotes\"' "

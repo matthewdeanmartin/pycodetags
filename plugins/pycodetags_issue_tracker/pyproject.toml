@@ -3,7 +3,7 @@ name = "pycodetags-issue-tracker"
 version = "0.1.0"
 description = "Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code"
 dependencies = [
-    # "pycodetags"
+    "pycodetags"
 ]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy

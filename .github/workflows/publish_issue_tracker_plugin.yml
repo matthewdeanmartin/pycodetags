@@ -1,0 +1,69 @@
+# .github/workflows/publish-to-pypi.yml
+
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4.1.7
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5.1.1
+        with:
+          python-version: '3.13'
+
+      - name: Install uv and pipx
+        run: |
+          pip install uv && pip install pipx
+
+      - name: Install global dependencies
+        run: |
+          pipx install uv && pipx install "coderoller" && \
+          pipx install isort && pipx install black && pipx install bandit && \
+          pipx install pylint && pipx install pre-commit && pipx install poetry && pipx install hatch
+
+      - name: Install Dependencies
+        run: uv sync
+
+      - name: Run make
+        run: cd plugins/pycodetags_issue_tracker && uv run make publish
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v4.3.6
+        with:
+          name: issue_tracker_packages
+          path: plugins/pycodetags_issue_tracker/dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  pypi-publish:
+    name: Upload release to PyPI
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/pycodetags-issue-tracker
+    permissions:
+      id-token: write
+    steps:
+      - name: Fail if branch is not main
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/main'
+        run: |
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          exit 1
+      - name: Check out code
+        uses: actions/checkout@v4.1.7
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4.1.8
+        with:
+          name: issue_tracker_packages
+          path: plugins/pycodetags_issue_tracker/dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.4

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pycodetags_issue_tracker.converters import blank_to_null, convert_folk_tag_to_TODO, convert_pep350_tag_to_TODO
 
-from pycodetags.data_tags import DataTag
+from pycodetags import DataTag
 
 # -- blank_to_null tests --
 

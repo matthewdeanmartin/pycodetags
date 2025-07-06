@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import logging
 import sqlite3
+from typing import Any
 
 from pycodetags.data_tags_classes import DATA
 
@@ -29,7 +30,7 @@ def _create_and_populate_denormalized_table(cursor: sqlite3.Cursor, found: list[
         logger.warning("No DATA items found to export to denormalized table.")
         return
 
-    all_keys = set()
+    all_keys: set[str] = set()
     for d in all_dicts:
         all_keys.update(d.keys())
 
@@ -43,12 +44,12 @@ def _create_and_populate_denormalized_table(cursor: sqlite3.Cursor, found: list[
     # Prepare insert statement
     cols_for_insert = ", ".join([f'"{col}"' for col in sorted_keys])
     placeholders = ", ".join(["?"] * len(sorted_keys))
-    insert_sql = f"INSERT INTO code_tags_denormalized ({cols_for_insert}) VALUES ({placeholders})"
+    insert_sql = f"INSERT INTO code_tags_denormalized ({cols_for_insert}) VALUES ({placeholders})"  # nosec
     logger.debug(f"Prepared insert statement: {insert_sql}")
 
     # Insert data
     for d in all_dicts:
-        values = []
+        values: list[Any | None] = []
         for key in sorted_keys:
             val = d.get(key)
             # SQLite can handle basic types, but lists/dicts/tuples need to be stored as strings.
@@ -78,7 +79,8 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
 
     # Create tables
     logger.debug("Creating normalized tables.")
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE tags (
             id INTEGER PRIMARY KEY,
             code_tag TEXT,
@@ -92,8 +94,10 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             offsets_end_line INTEGER,
             offsets_end_char INTEGER
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE data_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -101,8 +105,10 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE custom_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -110,8 +116,10 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE default_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -119,47 +127,68 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """)
-    cursor.execute("""
+    """
+    )
+    cursor.execute(
+        """
         CREATE TABLE unprocessed_defaults (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
             value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """)
+    """
+    )
     logger.debug("Normalized tables created successfully.")
 
     # Populate tables
     for item in found:
         offsets = item.offsets or (None, None, None, None)
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tags (code_tag, comment, file_path, line_number, original_text, original_schema,
                               offsets_start_line, offsets_start_char, offsets_end_line, offsets_end_char)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (item.code_tag, item.comment, item.file_path, item.line_number, item.original_text, item.original_schema,
-              offsets[0], offsets[1], offsets[2], offsets[3]))
+        """,
+            (
+                item.code_tag,
+                item.comment,
+                item.file_path,
+                item.line_number,
+                item.original_text,
+                item.original_schema,
+                offsets[0],
+                offsets[1],
+                offsets[2],
+                offsets[3],
+            ),
+        )
         tag_id = cursor.lastrowid
 
         if item.data_fields:
             for key, value in item.data_fields.items():
-                cursor.execute("INSERT INTO data_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
-                               (tag_id, key, str(value)))
+                cursor.execute(
+                    "INSERT INTO data_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
+                    (tag_id, key, str(value)),
+                )
 
         if item.custom_fields:
             for key, value in item.custom_fields.items():
-                cursor.execute("INSERT INTO custom_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
-                               (tag_id, key, str(value)))
+                cursor.execute(
+                    "INSERT INTO custom_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
+                    (tag_id, key, str(value)),
+                )
 
         if item.default_fields:
             for key, value in item.default_fields.items():
-                cursor.execute("INSERT INTO default_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
-                               (tag_id, key, str(value)))
+                cursor.execute(
+                    "INSERT INTO default_fields (tag_id, field_name, field_value) VALUES (?, ?, ?)",
+                    (tag_id, key, str(value)),
+                )
 
         if item.unprocessed_defaults:
             for value in item.unprocessed_defaults:
-                cursor.execute("INSERT INTO unprocessed_defaults (tag_id, value) VALUES (?, ?)",
-                               (tag_id, value))
+                cursor.execute("INSERT INTO unprocessed_defaults (tag_id, value) VALUES (?, ?)", (tag_id, value))
     logger.info(f"Populated normalized tables with {len(found)} tags and their fields.")
 
 

@@ -4,16 +4,21 @@ You've seen `# TODO:` comments? What if they could be used as an issue tracker?
 
 What if `# TODO:` style comments could serialize and deserialize records, turning comments into a database?
 
-What if you could also write comments as decorators that warn or stop you on the due date?
+[Live example](https://matthewdeanmartin.github.io/pycodetags/).
 
-Replace or complement your `# TODO:` comments with decorators similar to NotImplement, Deprecated or Warning
-and get issue tracker features, too.
+
+[//]: # (What if you could also write comments as decorators that warn or stop you on the due date?)
+
+[//]: # ()
+[//]: # (Replace or complement your `# TODO:` comments with decorators similar to NotImplement, Deprecated or Warning)
+
+[//]: # (and get issue tracker features, too.)
 
 Lightweight and keeps your issue tracker in your code.
 
-Backwards compatible with both `# TODO:` comments and PEP-350 comments.
+Backwards compatible with folk `# TODO:` comments, which can vary greatly in how people write them.
 
-Core library is Datatags, which are abstract and domain free. Plugs have domain-specific tags.
+Core library is for Data Tags, which are abstract and domain free. Plugs have domain-specific tags, e.g. Issue Tracking.
 
 ## Installation
 
@@ -42,7 +47,7 @@ Ways to track a TODO item
 
 - PEP-350 code tags, e.g. `# TODO: implement game <due=2025-06-01>`
 - Folk code tags, e.g. `# TODO(matth): example.com/ticktet=123 implement game`
-- Add a function decorator, e.g. `@TODO("Work on this")`
+- ADVANCED: Add a function decorator, e.g. `@TODO("Work on this")`
 
 While you work
 - View the issue-tracker-like single page website `pycodetas issues html`
@@ -156,84 +161,14 @@ The expectation is that this config is used at development time, optionally on t
 deployed to production or an end users machine. If you are using only comment code tags, it is not an issue. There
 is a runtime cost or risk only when using strongly typed code tags.
 
-```toml
-[tool.code_tags]
-# Range Validation, Range Sources
-# Empty list means use file
-valid_authors = []
-valid_authors_file = "AUTHORS.md"
-# Can be Gnits, single_column, humans.txt
-valid_authors_schema = "single_column"
-# Case-insensitive. Needs at least "done"
-valid_status = [
-    "planning",
-    "ready",
-    "done",
-    "development",
-    "inprogress",
-    "testing",
-    "closed",
-    "fixed",
-    "nobug",
-    "wontfix"
-]
-# Only displayed
-valid_categories = []
-# Only displayed
-valid_priorities = ["high", "medium", "low"]
-
-# Used to support change log generation and other features.
-closed_status = ["done", "closed", "fixed", "nobug", "wontfix"]
-# Empty list means no restrictions
-valid_releases = []
-# Use to look up valid releases (versions numbers)
-valid_releases_file = "CHANGELOG.md"
-valid_releases_file_schema = "CHANGELOG.md"
-# Used in sorting and views
-releases_schema = "semantic"
-# Subsection of release. Only displayed.
-valid_iterations = ["1", "2", "3", "4"]
-
-# Empty list means all are allowed
-valid_custom_field_names = []
-# Originator and origination date are important for issue identification
-# Without it, heuristics are more likely to fail to match issues to their counterpart in git history
-mandatory_fields = ["originator", "origination_date"]
-# Helpful for parsing tracker field, used to make ticket a clickable url
-tracker_domain = "example.com"
-# Can be url or ticket
-tracker_style = "url"
-
-# Active user from "os", "env", "git"
-user_identification_technique = "os"
-# .env variable if method is "env"
-user_env_var = "CODE_TAGS_USER"
-
-# Defines the action for a TODO condition: "stop", "warn", "nothing".
-enable_actions = true
-default_action = "warn"
-action_on_past_due = true
-action_only_on_responsible_user = true
-
-# Environment detection
-disable_on_ci = true
-
-# Use .env file
-use_dot_env = true
-
-# default CLI arguments
-modules = ["demo","code_tags"]
-src = ["demo", "code_tags", "tests", "plugins"]
-active_schemas = ["todo", "folk"]
-```
+See [documentation](https://pycodetags.readthedocs.io/en/latest/) for details.
 
 ## Prior Art
 
 PEPs and Standard Library Prior Art
 
-- [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal
+- [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal, now implemented, mostly by `pycodetags`
 
 ## Documentation
 
 - [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)
-- [FAQ](docs_wip/FAQ.md)

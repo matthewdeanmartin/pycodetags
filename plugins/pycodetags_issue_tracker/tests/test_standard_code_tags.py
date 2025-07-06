@@ -1,24 +1,26 @@
 from pycodetags_issue_tracker.converters import convert_pep350_tag_to_TODO
 from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
 
-from pycodetags.data_tags import parse_codetags
+from pycodetags.data_tags_parsers import parse_codetags
 
 
 def test_single_line_fixme_tag():
-    input_text = "# FIXME: Seems like this Loop should be finite. <MDE, CLE d:2015-1-1 p:2>"
+    input_text = "# FIXME: Seems like this Loop should be finite. <MDE d:2015-1-1 p:2>"
     result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
     assert result == [
         {
             "code_tag": "FIXME",
             "comment": "Seems like this Loop should be finite.",
             "fields": {
-                "default_fields": {"assignee": ["MDE", "CLE"]},
+                "default_fields": {"originator": "MDE"},
                 "data_fields": {
-                    "assignee": ["MDE", "CLE"],
+                    "originator": "MDE",
                     "priority": "2",
                     "due": "2015-1-1",
                 },
                 "custom_fields": {},
+                "identity_fields": [],
+                "unprocessed_defaults": [],
             },
             "original_text": "N/A",
         }
@@ -36,16 +38,18 @@ def test_inline_bug_tag():
             "comment": "Crashes if run on Sundays.",
             "fields": {
                 "default_fields": {
-                    "assignee": ["MDE"],
+                    "originator": "MDE",
                     "origination_date": "2005-09-04",
                 },
                 "data_fields": {
-                    "assignee": ["MDE"],
+                    "originator": "MDE",
                     "due": "2015-6-6",
                     "priority": "2",
                     "origination_date": "2005-09-04",
                 },
                 "custom_fields": {},
+                "identity_fields": [],
+                "unprocessed_defaults": [],
             },
             "original_text": "N/A",
         }
@@ -77,6 +81,8 @@ def test_multiline_todo_tag():
                     "due": "2025-12-25",
                 },
                 "custom_fields": {"custom_field": "some_value"},
+                "identity_fields": [],
+                "unprocessed_defaults": [],
             },
             "original_text": "N/A",
         }
@@ -108,6 +114,8 @@ def test_tag_with_mixed_fields():
                     "origination_date": "2025-06-15",
                 },
                 "custom_fields": {},
+                "identity_fields": [],
+                "unprocessed_defaults": [],
             },
             "original_text": "N/A",
         }
@@ -123,7 +131,13 @@ def test_tag_with_empty_field_block():
         {
             "code_tag": "NOTE",
             "comment": "Remember to check performance.",
-            "fields": {"default_fields": {}, "custom_fields": {}, "data_fields": {}},
+            "fields": {
+                "default_fields": {},
+                "custom_fields": {},
+                "data_fields": {},
+                "identity_fields": [],
+                "unprocessed_defaults": [],
+            },
             "original_text": "N/A",
         }
     ]
@@ -138,7 +152,13 @@ def test_consecutive_tags_in_block():
     # RFE: 3 <>
     """
     result = parse_codetags(input_text, IssueTrackerSchema, strict=False)
-    empties = {"default_fields": {}, "data_fields": {}, "custom_fields": {}}
+    empties = {
+        "default_fields": {},
+        "data_fields": {},
+        "custom_fields": {},
+        "identity_fields": [],
+        "unprocessed_defaults": [],
+    }
     assert result == [
         {"code_tag": "TODO", "comment": "1", "fields": empties, "original_text": "N/A"},
         {"code_tag": "NOTE", "comment": "2", "fields": empties, "original_text": "N/A"},
@@ -213,7 +233,7 @@ def test_due_and_assignee():
     print("Test Output for Due Date:", test_results_due)
     assert test_results_due and test_results_due[0]["fields"]["data_fields"].get("due") == "2015-6-6"
 
-    assert test_results_due and test_results_due[0]["fields"]["default_fields"].get("assignee") == ["MDE"]
+    assert test_results_due and test_results_due[0]["fields"]["default_fields"].get("originator") == "MDE"
 
 
 def test_assignee_and_date():

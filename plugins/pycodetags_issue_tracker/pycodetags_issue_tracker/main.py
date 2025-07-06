@@ -20,6 +20,7 @@ hookimpl = HookimplMarker("pycodetags")
 
 class IssueTrackerApp:
     """Organizes pluggy hooks"""
+
     @hookimpl
     def register_app(
         self,
@@ -40,8 +41,11 @@ class IssueTrackerApp:
 
     @hookimpl
     def run_cli_command(
-        self, command_name: str, args: argparse.Namespace, found_data:
-            Callable[[DataTagSchema], Sequence[DATA]], config: CodeTagsConfig
+        self,
+        command_name: str,
+        args: argparse.Namespace,
+        found_data: Callable[[DataTagSchema], Sequence[DATA]],
+        config: CodeTagsConfig,
     ) -> bool:
         """Run any CLI command that the plugin supports"""
         callback_data = found_data(IssueTrackerSchema)
