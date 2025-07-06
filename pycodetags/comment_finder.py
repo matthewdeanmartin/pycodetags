@@ -60,6 +60,9 @@ def find_comment_blocks_from_string(source: str) -> list[tuple[int, int, int, in
     except SyntaxError:
         logging.warning("Can't parse source code, SyntaxError")
         return []
+    except ValueError:
+        logging.warning("Can't parse source code, ValueError")
+        return []
     lines = source.splitlines()
 
     # Filter out comment nodes

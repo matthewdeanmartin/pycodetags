@@ -27,7 +27,7 @@ import logging
 import pickle  # nosec
 import shutil
 import time
-from collections.abc import Callable
+from typing import Callable
 from functools import wraps
 from pathlib import Path
 from typing import Any, TypeVar
