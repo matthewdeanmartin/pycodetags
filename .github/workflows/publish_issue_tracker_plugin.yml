@@ -64,7 +64,7 @@ jobs:
         uses: actions/download-artifact@v4.1.8
         with:
           name: issuetrackerpackages
-          path: plugins/pycodetags_issue_tracker/dist/
+          path: dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.4
