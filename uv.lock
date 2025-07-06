@@ -2832,21 +2832,45 @@ requires-dist = [{ name = "jinja2" }]
 name = "pycodetags-github-issues-sync"
 version = "0.1.0"
 source = { editable = "plugins/pycodetags_issue_tracker_gh_sync" }
+dependencies = [
+    { name = "pycodetags" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pycodetags", editable = "." }]
 
 [[package]]
 name = "pycodetags-issue-tracker"
 version = "0.1.0"
 source = { editable = "plugins/pycodetags_issue_tracker" }
+dependencies = [
+    { name = "pycodetags" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pycodetags", editable = "." }]
 
 [[package]]
 name = "pycodetags-to-sqlite"
 version = "0.1.0"
 source = { editable = "plugins/pycodetags_to_sqlite" }
+dependencies = [
+    { name = "pycodetags" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pycodetags", editable = "." }]
 
 [[package]]
 name = "pycodetags-universal"
 version = "0.1.0"
 source = { editable = "plugins/pycodetags_universal" }
+dependencies = [
+    { name = "pycodetags" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pycodetags", editable = "." }]
 
 [[package]]
 name = "pydoctest"

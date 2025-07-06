@@ -3,7 +3,7 @@ name = "pycodetags-github-issues-sync"
 version = "0.1.0"
 description = "A github issues sync plugin for pycodetags"
 dependencies = [
-    # "pycodetags"
+    "pycodetags>=0.3.0"
 ]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy

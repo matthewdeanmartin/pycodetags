@@ -111,8 +111,11 @@ dev = [
 [tool.uv]
 default-groups = "all"
 
+[tool.uv.sources]
+pycodetags = { workspace = true }
+
 [tool.uv.workspace]
-members = [".",
+members = ["./",
     # App plugins
     "plugins/pycodetags_chat",
     "plugins/pycodetags_issue_tracker",
