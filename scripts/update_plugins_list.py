@@ -25,7 +25,7 @@ It includes PyPI projects whose names begin with `{HOST_APP}-` or `{HOST_APP.rep
 Packages classified as inactive are excluded.
 
 For detailed insights into how this list is generated,
-please refer to [the update script](https://github.com/matthewdeanmartin/code_tags/blob/main/scripts/update_plugins_list.py').
+please refer to [the update script](https://github.com/matthewdeanmartin/pycodetags/blob/main/scripts/update_plugins_list.py').
 
 > **Warning**
 >
@@ -114,7 +114,7 @@ def iter_plugins() -> Iterator[PluginInfo]:
         requires = "N/A"
         if info["requires_dist"]:
             for requirement in info["requires_dist"]:
-                if re.match(r"pytest(?![-.\\w])", requirement):
+                if re.match(r"pycodetags(?![-.\\w])", requirement):
                     requires = requirement
                     break
 

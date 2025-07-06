@@ -3,7 +3,14 @@ name = "pycodetags-universal"
 version = "0.1.0"
 description = "Plugin for pycodetags to find code tags in any language"
 dependencies = [
-    "pycodetags>=0.3.0"
+       "pycodetags>=0.3.0",
+    "pluggy",
+
+     # backwards compatibility
+    "toml; python_version < '3.11'",
+    "importlib-resources; python_version < '3.9'",
+    "typing_extensions ; python_version < '3.8'",
+
 ]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy

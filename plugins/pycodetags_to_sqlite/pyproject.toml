@@ -3,7 +3,13 @@ name = "pycodetags-to-sqlite"
 version = "0.1.0"
 description = "A markdown view plugin for pycodetags"
 dependencies = [
-    "pycodetags>=0.3.0"
+     "pycodetags>=0.3.0",
+    "pluggy",
+
+     # backwards compatibility
+    "toml; python_version < '3.11'",
+    "importlib-resources; python_version < '3.9'",
+    "typing_extensions ; python_version < '3.8'",
 ]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy
