@@ -2353,6 +2353,7 @@ def process_line(
     """
     if not valid_tags:
         valid_tags = []
+
     line = lines[start_idx]
 
     # Match any comment line with an uppercase code_tag
@@ -2366,10 +2367,15 @@ def process_line(
     if valid_tags and code_tag_candidate not in valid_tags:
         return 1
 
+    # Clean colon if present
     if content.startswith(":"):
         content = content[1:].lstrip()
 
-    # Accumulate multiline if enabled
+    # Offset tracking: start
+    start_line = start_idx
+    start_char = line.find(f"# {code_tag_candidate}")
+
+    # Multiline handling
     current_idx = start_idx
     if allow_multiline and valid_tags:
         multiline_content = [content]
@@ -2382,11 +2388,15 @@ def process_line(
             else:
                 break
         content = " ".join(multiline_content)
+        end_line = next_idx - 1
+        end_char = len(lines[end_line])
         consumed_lines = next_idx - start_idx
     else:
+        end_line = start_idx
+        end_char = len(line)
         consumed_lines = 1
 
-    # Parse fields
+    # Field parsing
     default_field = None
     custom_fields = {}
     comment = content
@@ -2414,17 +2424,17 @@ def process_line(
             default_field = id_match.group(1)
             comment = id_match.group(2).strip()
 
+    # Construct the tag
     found_tag: FolkTag = {
-        # locatoin
         "file_path": file_path,
         "line_number": start_idx + 1,
-        "start_char": 0,
-        # data
+        "start_char": start_char,
         "code_tag": code_tag_candidate,
         "default_field": default_field,
         "custom_fields": custom_fields,
         "comment": comment,
         "original_text": content,
+        "offsets": (start_line, start_char, end_line, end_char),
     }
 
     if default_field and default_field_meaning:
@@ -2438,6 +2448,7 @@ def process_line(
     #  category:parser status:development priority:low release:1.0.0 iteration:1>
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)
+
     return consumed_lines
 
 ```
@@ -2770,12 +2781,6 @@ PureDataSchema: DataTagSchema = {
         # No alias, no domain!
     },
 }
-
-```
-
-## File: pyproject.toml
-
-```toml
 
 ```
 

@@ -150,6 +150,7 @@ install_plugins:
 
 .PHONY: issues
 issues:
+	uv pip install -e plugins/pycodetags_issue_tracker
 	@echo "Checking issues"
 	# $(VENV)	pycodetags data --src pycodetags --src plugins --format json>issues_site/data.json
 	@echo "Current issues:"

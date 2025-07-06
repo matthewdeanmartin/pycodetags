@@ -48,7 +48,7 @@ class JavascriptFolkTagPlugin:
         except FileNotFoundError as fnfe:
             print(f"FileNotFoundError: Could not find file {file_path}. Error: {fnfe}")
             return []
-        except Exception as e: # pylint: disable=broad-exception-caught
+        except Exception as e:  # pylint: disable=broad-exception-caught
             print(f"Error reading file {file_path}: {e}")
             return []
 

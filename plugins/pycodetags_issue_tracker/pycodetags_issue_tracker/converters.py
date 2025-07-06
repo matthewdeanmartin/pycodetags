@@ -100,6 +100,7 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
         # person=folk_tag.get("person")
         "original_text": folk_tag.get("original_text"),
         "original_schema": "folk",
+        "offsets": folk_tag.get("offsets"),
     }
     custom_fields = folk_tag.get("custom_fields", {})
     for keyword in TODO_KEYWORDS:

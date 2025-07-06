@@ -1,6 +1,6 @@
 [project]
 name = "pycodetags"
-version = "0.3.0"
+version = "0.4.0"
 description = "TODOs in source code as a first class construct, follows PEP350"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
