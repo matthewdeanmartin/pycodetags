@@ -1,18 +1,14 @@
 import os
-import sys
+
 import pytest
 
 # To test the script, we need to import its functions.
 # Assuming the script is named `pycodetags_init.py` and is in the same directory.
 # If it's part of a package, you'd import it differently.
-from pycodetags.config_init import  (
-    init_pycodetags_config,
-    _find_potential_src_folders,
-    _write_to_pyproject_safe,
-)
-
+from pycodetags.config_init import _find_potential_src_folders, _write_to_pyproject_safe, init_pycodetags_config
 
 # --- Fixtures ---
+
 
 @pytest.fixture
 def temp_project_dir(tmp_path):
@@ -36,6 +32,7 @@ def temp_project_dir(tmp_path):
 
 # --- Test Cases ---
 
+
 def test_init_config_when_already_exists(temp_project_dir, capsys):
     """
     Test that the script exits gracefully if config already exists.
@@ -58,7 +55,7 @@ src = ["src"]
     captured = capsys.readouterr()
     assert "already exists" in captured.out
 
-    with open("pyproject.toml", "r", encoding="utf-8") as f:
+    with open("pyproject.toml", encoding="utf-8") as f:
         final_content = f.read()
     assert final_content == pyproject_content
 
@@ -69,14 +66,14 @@ def test_init_config_with_auto_detect_selection(temp_project_dir, monkeypatch, c
     """
     # Arrange: Mock user input to select the first option ('src').
     # The detected folders should be 'src' and 'my_app'.
-    monkeypatch.setattr('builtins.input', lambda _: "1")
+    monkeypatch.setattr("builtins.input", lambda _: "1")
 
     # Act: Run the initializer
     init_pycodetags_config()
 
     # Assert: Check that pyproject.toml was created and has the correct content.
     assert os.path.exists("pyproject.toml")
-    with open("pyproject.toml", "r", encoding="utf-8") as f:
+    with open("pyproject.toml", encoding="utf-8") as f:
         content = f.read()
 
     assert "[tool.pycodetags]" in content
@@ -85,14 +82,13 @@ def test_init_config_with_auto_detect_selection(temp_project_dir, monkeypatch, c
     assert "Using 'src' as the primary source folder." in captured.out
 
 
-
 def test_init_config_with_cancel_option(temp_project_dir, monkeypatch, capsys):
     """
     Test that the script aborts if the user selects 'Cancel'.
     """
     # Arrange: Mock user input to select "Cancel".
     # Detected folders are 'src', 'my_app', 'tests'. Manual is 4, Cancel is 5.
-    monkeypatch.setattr('builtins.input', lambda _: "5")
+    monkeypatch.setattr("builtins.input", lambda _: "5")
 
     # Act: Run the initializer
     init_pycodetags_config()
@@ -131,9 +127,8 @@ def test_write_to_existing_pyproject_safe(temp_project_dir):
     _write_to_pyproject_safe(new_section, "pyproject.toml")
 
     # Assert
-    with open("pyproject.toml", "r", encoding="utf-8") as f:
+    with open("pyproject.toml", encoding="utf-8") as f:
         final_content = f.read()
 
     expected_content = initial_content + "\n\n" + new_section
-    assert (final_content.replace(" ","").replace("\n","") ==
-            expected_content.replace(" ","").replace("\n",""))
+    assert final_content.replace(" ", "").replace("\n", "") == expected_content.replace(" ", "").replace("\n", "")
