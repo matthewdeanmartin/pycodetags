@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pycodetags.data_tags_schema import DataTagSchema
 
 IssueTrackerSchema: DataTagSchema = {

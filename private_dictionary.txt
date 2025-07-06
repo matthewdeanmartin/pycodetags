@@ -44,7 +44,6 @@ txt
 Case-insensitive
 insensitive
 pycodetags
-pycodetag
 datatag
 codetag
 TODO

@@ -32,7 +32,7 @@ For code tag decorators, objects, exceptions, context managers with run-time beh
 
 To get a domain specific data tags (TODO tags), e.g. issue tracker or discussion, install with plugin
 
-`pip install pycodetag pycodetags-issue-tracker`
+`pip install pycodetags pycodetags-issue-tracker`
 
 Requires python 3.7+. 3.7 will probably work.
 
