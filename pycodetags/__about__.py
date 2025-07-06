@@ -9,9 +9,11 @@ __all__ = [
     "__license__",
     "__requires_python__",
     "__status__",
-    "__repository__",
     "__homepage__",
+    "__repository__",
     "__documentation__",
+    "__issues__",
+    "__changelog__",
 ]
 
 __title__ = "pycodetags"
@@ -22,6 +24,8 @@ __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-t
 __license__ = "MIT"
 __requires_python__ = ">=3.7"
 __status__ = "4 - Beta"
-__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
 __homepage__ = "https://github.com/matthewdeanmartin/pycodetags"
+__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
 __documentation__ = "https://pycodetags.readthedocs.io/en/latest/"
+__issues__ = "https://matthewdeanmartin.github.io/pycodetags/"
+__changelog__ = "https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md"

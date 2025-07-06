@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import datetime
 
 import pycodetags_issue_tracker.views as views

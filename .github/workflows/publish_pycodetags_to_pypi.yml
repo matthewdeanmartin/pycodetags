@@ -5,6 +5,9 @@ name: Publish pycodetags to PyPI
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -67,6 +70,8 @@ jobs:
           exit 1
       - name: Check out code
         uses: actions/checkout@v4.1.7
+        with:
+          persist-credentials: false
 
       - name: Download artifact
         uses: actions/download-artifact@v4.1.8

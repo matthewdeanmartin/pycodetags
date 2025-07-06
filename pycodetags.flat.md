@@ -2949,9 +2949,11 @@ __all__ = [
     "__license__",
     "__requires_python__",
     "__status__",
-    "__repository__",
     "__homepage__",
+    "__repository__",
     "__documentation__",
+    "__issues__",
+    "__changelog__",
 ]
 
 __title__ = "pycodetags"
@@ -2962,9 +2964,11 @@ __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-t
 __license__ = "MIT"
 __requires_python__ = ">=3.7"
 __status__ = "4 - Beta"
-__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
 __homepage__ = "https://github.com/matthewdeanmartin/pycodetags"
+__repository__ = "https://github.com/matthewdeanmartin/pycodetags"
 __documentation__ = "https://pycodetags.readthedocs.io/en/latest/"
+__issues__ = "https://matthewdeanmartin.github.io/pycodetags/"
+__changelog__ = "https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md"
 
 ```
 
@@ -2982,6 +2986,7 @@ Everything else is a plugin.
 __all__ = [
     # Data tag support
     "DATA",
+    "DataTag",
     "DataTagSchema",
     "PureDataSchema",
     # Serialization interfaces
@@ -3000,7 +3005,7 @@ __all__ = [
 
 from pycodetags.common_interfaces import dump, dump_all, dumps, dumps_all, load, load_all, loads, loads_all
 from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_schema import DataTagSchema
+from pycodetags.data_tags_schema import DataTag, DataTagSchema
 from pycodetags.plugin_specs import CodeTagsSpec
 from pycodetags.pure_data_schema import PureDataSchema
 

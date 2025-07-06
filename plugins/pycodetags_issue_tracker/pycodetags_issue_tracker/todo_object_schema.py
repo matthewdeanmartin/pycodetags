@@ -3,7 +3,6 @@ Extract to break cyclical import
 """
 from __future__ import annotations
 
-
 TODO_KEYWORDS = [
     # People
     "assignee",

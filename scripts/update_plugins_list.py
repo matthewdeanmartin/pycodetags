@@ -159,7 +159,7 @@ def plugin_definitions(plugins: Iterable[PluginInfo]) -> Iterator[str]:
 
 def main() -> None:
     plugins = [*iter_plugins()]
-    reference_dir = pathlib.Path( "docs")
+    reference_dir = pathlib.Path("docs")
     plugin_list = reference_dir / "plugin_list.md"
 
     with plugin_list.open("w", encoding="UTF-8") as f:

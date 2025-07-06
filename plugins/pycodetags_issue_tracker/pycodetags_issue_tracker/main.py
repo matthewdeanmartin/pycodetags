@@ -2,8 +2,9 @@
 Registry of plugin hooks. These are exported via "entrypoints".
 """
 from __future__ import annotations
+
 import argparse
-from typing import Sequence, Callable
+from collections.abc import Callable, Sequence
 
 import pluggy
 from pluggy import HookimplMarker
