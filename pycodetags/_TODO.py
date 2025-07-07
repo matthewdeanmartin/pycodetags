@@ -2,6 +2,17 @@
 Code Tag TODOs.
 """
 
+# <
+#   matth  -- for the right project, it is allways matth.
+#   2025-07-06 -- could infer from first date shows up in git history.
+# status=development -- always development if empty/missing.
+# category=core
+# priority=high -- always medium if empty/missing
+# release=1.0.0 -- always next major, look up in pyproject.toml
+# iteration=1 -- always 1? This is roughly sprint # and that is a high churn field. :(
+# >
+
+
 #
 # # TODO
 #
