@@ -4,14 +4,14 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-import pycodetags.comment_finder
+import pycodetags.python.comment_finder
 
 
 @given(source=st.text())
 def test_fuzz_find_comment_blocks_from_string(source: str) -> None:
-    pycodetags.comment_finder.find_comment_blocks_from_string(source=source)
+    pycodetags.python.comment_finder.find_comment_blocks_from_string(source=source)
 
 
 @given(source=st.text())
 def test_fuzz_find_comment_blocks_from_string_fallback(source: str) -> None:
-    pycodetags.comment_finder.find_comment_blocks_from_string_fallback(source=source)
+    pycodetags.python.comment_finder.find_comment_blocks_from_string_fallback(source=source)

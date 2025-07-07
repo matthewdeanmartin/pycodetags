@@ -1,6 +1,6 @@
 # File: tests/test_users_from_authors.py
 
-from pycodetags_issue_tracker.users_from_authors import parse_authors_file
+from pycodetags_issue_tracker.user_utils.users_from_authors import parse_authors_file
 
 
 def test_parse_authors_file(tmp_path):

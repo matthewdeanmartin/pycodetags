@@ -53,12 +53,12 @@ isort: .build_history/isort
 .build_history/black: .build_history .build_history/isort $(FILES)
 	@echo "Formatting code"
 	$(VENV) metametameta pep621
-	$(VENV) black pycodetags --exclude .venv
-	$(VENV) black tests --exclude .venv
-	$(VENV) black demo --exclude .venv
-	$(VENV) black scripts --exclude .venv
+	$(VENV) black pycodetags # --exclude .venv
+	$(VENV) black tests # --exclude .venv
+	$(VENV) black demo # --exclude .venv
+	$(VENV) black scripts # --exclude .venv
 	@touch .build_history/black
-	$(VENV) coderoller-flatten-repo pycodetags
+	$(VENV) ./make_prompt.sh
 
 .PHONY: black
 black: .build_history/black

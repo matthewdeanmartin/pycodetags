@@ -4,7 +4,7 @@ from pathlib import Path
 
 # Assuming pycodetags is installed or in your Python path
 from pycodetags.__main__ import main as pycodetags_main
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 from pycodetags.plugin_manager import reset_plugin_manager
 
 

@@ -11,11 +11,11 @@ import pluggy
 from pluggy import HookimplMarker
 from pycodetags_issue_tracker import cli
 from pycodetags_issue_tracker.converters import convert_data_to_TODO
-from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
 from pycodetags_issue_tracker.plugin_manager import set_plugin_manager
 
 from pycodetags import DATA, DataTagSchema
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 
 hookimpl = HookimplMarker("pycodetags")
 
@@ -82,5 +82,11 @@ class IssueTrackerApp:
         # This doesn't work for domain specific TODOs
         return []
 
+    @hookimpl
+    def provide_schemas(self) -> list[DataTagSchema]:
+        """
+        Return one or more schema definitions provided by this plugin.
+        """
+        return [IssueTrackerSchema]
 
 issue_tracker_app_plugin = IssueTrackerApp()

@@ -5,7 +5,11 @@ import pytest
 # To test the script, we need to import its functions.
 # Assuming the script is named `pycodetags_init.py` and is in the same directory.
 # If it's part of a package, you'd import it differently.
-from pycodetags.config_init import _find_potential_src_folders, _write_to_pyproject_safe, init_pycodetags_config
+from pycodetags.app_config.config_init import (
+    _find_potential_src_folders,
+    _write_to_pyproject_safe,
+    init_pycodetags_config,
+)
 
 # --- Fixtures ---
 

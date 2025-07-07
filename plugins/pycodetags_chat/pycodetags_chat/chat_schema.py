@@ -4,7 +4,7 @@ for lightweight annotation, threading, and possible synchronization
 with external platforms like Mastodon.
 """
 
-from pycodetags import DataTagSchema
+from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 DiscussionTagSchema: DataTagSchema = {
     "name": "discussion",

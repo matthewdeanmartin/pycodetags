@@ -1,12 +1,13 @@
 from unittest.mock import Mock, create_autospec
 
-import pycodetags.plugin_diagnostics as pd
+import pycodetags.plugin_manager as pd
 
 
 def test_no_plugins_loaded(capsys):
     pm = create_autospec("pluggy.PluginManager", instance=True)
     pm.get_plugins = Mock()
     pm.get_plugins.return_value = []
+
 
     pd.plugin_currently_loaded(pm)
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import datetime
 
-import pycodetags_issue_tracker.views as views
+import pycodetags_issue_tracker.views.views as views
 import pytest
 from pycodetags_issue_tracker import TODO
 

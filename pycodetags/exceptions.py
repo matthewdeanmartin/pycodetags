@@ -2,12 +2,12 @@ class PyCodeTagsError(Exception):
     """Base exception for all PyCodeTags errors."""
 
 
-class ConfigError(PyCodeTagsError):
-    """Exception raised during processing of config file."""
+class DataTagError(PyCodeTagsError):
+    """Exception by Data Tag code"""
 
 
-class InvalidActionError(ConfigError):
-    """Exception raised during code tag actions."""
+class ValidationError(PyCodeTagsError):
+    """Schema or domain dependent problem with code tag data."""
 
 
 class SchemaError(PyCodeTagsError):
@@ -50,5 +50,9 @@ class CommentNotFoundError(FileParsingError):
     """No code tag data found in input source."""
 
 
-class ValidationError(PyCodeTagsError):
-    """Schema or domain dependent problem with code tag data."""
+class ConfigError(PyCodeTagsError):
+    """Exception raised during processing of config file."""
+
+
+class InvalidActionError(ConfigError):
+    """Exception raised during code tag actions."""

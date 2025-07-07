@@ -5,7 +5,7 @@ import logging
 import pluggy
 from pycodetags_issue_tracker import TODO
 
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 
 logger = logging.getLogger(__name__)
 hookimpl = pluggy.HookimplMarker("pycodetags")

@@ -1,7 +1,7 @@
 import pytest
 
-from pycodetags.folk_tags_parser import extract_first_url, process_line, process_text
-from pycodetags.folk_tags_schema import folk_tag_to_comment
+from pycodetags.folk_tags.folk_tags_parser import extract_first_url, process_line, process_text
+from pycodetags.folk_tags.folk_tags_schema import folk_tag_to_comment
 
 # -- folk_tag_to_comment tests --
 

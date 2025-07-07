@@ -21,8 +21,8 @@ black:
 	@echo "Formatting code"
 	$(VENV) metametameta pep621
 	$(VENV) isort .
-	$(VENV) black pycodetags_issue_tracker --exclude .venv
-	$(VENV) black tests --exclude .venv
+	$(VENV) black pycodetags_issue_tracker # --exclude .venv
+	$(VENV) black tests # --exclude .venv
 	$(VENV) coderoller-flatten-repo pycodetags_issue_tracker
 
 .PHONY: bandit

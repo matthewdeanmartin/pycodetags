@@ -1,4 +1,4 @@
-from pycodetags.comment_finder import find_comment_blocks_from_string_fallback
+from pycodetags.python.comment_finder import find_comment_blocks_from_string_fallback
 
 
 def test_single_comment_line():

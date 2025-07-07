@@ -3,13 +3,12 @@ import sys
 
 import pytest
 
-from pycodetags.converters import convert_data_tag_to_data_object
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_methods import promote_fields
-from pycodetags.data_tags_parsers import iterate_comments_from_file, parse_codetags
-
 # Assuming pycodetags is installed or accessible in the Python path
-from pycodetags.data_tags_schema import DataTag, DataTagFields, DataTagSchema
+from pycodetags.data_tags import DataTag, DataTagSchema
+from pycodetags.data_tags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_methods import convert_data_tag_to_data_object, promote_fields
+from pycodetags.data_tags.data_tags_parsers import iterate_comments_from_file, parse_codetags
+from pycodetags.data_tags.data_tags_schema import DataTagFields
 
 # Define a sample schema for testing
 TEST_SCHEMA: DataTagSchema = {
@@ -34,6 +33,7 @@ TEST_SCHEMA: DataTagSchema = {
         "a": "assignee",
         "o": "origination_date",
     },
+    "field_infos": {},
 }
 
 

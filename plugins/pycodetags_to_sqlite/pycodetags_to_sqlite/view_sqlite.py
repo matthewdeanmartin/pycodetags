@@ -8,7 +8,7 @@ import logging
 import sqlite3
 from typing import Any
 
-from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_classes import DATA
 
 logger = logging.getLogger(__name__)
 

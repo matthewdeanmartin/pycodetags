@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 
 
 @pytest.fixture

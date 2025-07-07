@@ -9,9 +9,8 @@ import argparse
 
 import pluggy
 
-from pycodetags.config import CodeTagsConfig
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_schema import DataTag
+from pycodetags.app_config import CodeTagsConfig
+from pycodetags.data_tags import DATA, DataTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 

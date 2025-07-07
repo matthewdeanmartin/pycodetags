@@ -3,6 +3,7 @@ from pycodetags import DataTagSchema
 
 # DATA: temperature <98 humidity=54 wind=3>
 # DATA: temperature <78 humidity=67 wind=2>
+# DATA: temperature <humidity=67 wind=2>
 
 
 # Schema-free example
@@ -19,13 +20,37 @@ Temperatures: DataTagSchema = {
         "int": "temperature"
     },
     "data_fields": {
-        "wind":"int",
-        "humidity":"int"
+        "wind": "int",
+        "humidity": "int"
     },
     "data_field_aliases": {
         "w": "wind",
         "h": "humidity"
-    }
+    },
+    "field_infos": [{
+        "name": "wind",
+        "data_type": "float",
+        "valid_values": [],
+        "label": "Wind",
+        "description": "Wind speed",
+        "aliases": ["w", "vind"],
+
+        "value_on_new": "",
+        "value_on_blank": "",
+        "value_on_delete": ""
+    },
+        {
+            "name": "wind",
+            "data_type": "float",
+            "valid_values": [],
+            "label": "Humidity",
+            "description": "Humidity in Percent",
+            "aliases": ["h", "humidity"],
+            "value_on_new": "",
+            "value_on_blank": "",
+            "value_on_delete": ""
+        }
+    ]
 }
 
 data = pycodetags.load_all(open(__file__),

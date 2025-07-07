@@ -9,7 +9,7 @@ import textwrap
 from dataclasses import Field, field, fields
 from typing import Any
 
-from pycodetags_issue_tracker.todo_tag_types import TODO
+from pycodetags_issue_tracker.schema.todo_tag_types import TODO
 
 
 def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types_aliases.py") -> None:

@@ -1,6 +1,6 @@
 [project]
 name = "pycodetags"
-version = "0.5.0"
+version = "0.6.0"
 description = "TODOs in source code as a first class construct, follows PEP350"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
@@ -8,15 +8,18 @@ keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", 
 license = "MIT"
 requires-python = ">=3.7"
 dependencies = [
-    # backwards compatibility
-    "toml; python_version < '3.11'",
-    "importlib-resources; python_version < '3.9'",
-    "typing_extensions ; python_version < '3.8'",
     # plugin support
     "pluggy",
     # no additional dependencies, if it needs a dep, implement as plugin
     # For getting the comments in the first place
-    "ast-comments>=1.2.3; python_version >= '3.8'"
+    "ast-comments>=1.2.3; python_version >= '3.8'",
+    # For intialization/default fields, without which the data entry burden is pretty bad.
+    "jmespath",
+    # backwards compatibility
+    "toml; python_version < '3.11'",
+    "importlib-resources; python_version < '3.9'",
+    "typing_extensions ; python_version < '3.8'",
+
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -65,6 +68,7 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "pelican>=4.11.0; python_version >= '3.12'",
     "gha-update; python_version >= '3.12'",
     "mkdocstrings[python]",
     "mkdocs; python_version >= '3.12'",
@@ -355,7 +359,12 @@ valid_iterations = ["1", "2", "3", "4"]
 valid_custom_field_names = []
 # Originator and origination date are important for issue identification
 # Without it, heuristics are more likely to fail to match issues to their counterpart in git history
-mandatory_fields = ["originator", "origination_date", "status", "category", "priority", "release", "iteration"]
+mandatory_fields = [
+    "originator", "origination_date", # primary keys
+    "status", "category", "priority", # can be known
+    "release", # can mean planned or actual. Ambiguous
+    # "iteration" # if this roughly means sprint number, it is a high churn field.
+]
 # Helpful for parsing tracker field, used to make ticket a clickable url
 tracker_domain = "example.com"
 # Can be url or ticket

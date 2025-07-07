@@ -10,10 +10,9 @@ from collections.abc import Callable
 
 import pluggy
 
-from pycodetags.config import CodeTagsConfig
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_tags_parser import FolkTag
+from pycodetags.app_config import CodeTagsConfig
+from pycodetags.data_tags import DATA, DataTag, DataTagSchema
+from pycodetags.folk_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 
@@ -126,3 +125,10 @@ class CodeTagsSpec:
             True if file processed by plugin
         """
         return False
+
+    @hookspec
+    def provide_schemas(self) -> list[DataTagSchema]:
+        """
+        Return one or more schema definitions provided by this plugin.
+        """
+        return []

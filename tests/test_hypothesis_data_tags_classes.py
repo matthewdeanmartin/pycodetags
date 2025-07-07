@@ -2,12 +2,13 @@
 # and is provided under the Creative Commons Zero public domain dedication.
 
 from __future__ import annotations
+
 import typing
 
 from hypothesis import given
 from hypothesis import strategies as st
 
-import pycodetags.data_tags_classes
+import pycodetags.data_tags.data_tags_classes
 
 
 @given(
@@ -38,7 +39,7 @@ def test_fuzz_DATA(
     original_schema: typing.Union[str, None],
     offsets: typing.Union[tuple[int, int, int, int], None],
 ) -> None:
-    pycodetags.data_tags_classes.DATA(
+    pycodetags.data_tags.data_tags_classes.DATA(
         code_tag=code_tag,
         comment=comment,
         default_fields=default_fields,

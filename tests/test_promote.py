@@ -2,8 +2,8 @@
 
 import pytest
 
-from pycodetags.data_tags_methods import promote_fields
-from pycodetags.data_tags_schema import DataTag
+from pycodetags.data_tags import DataTag
+from pycodetags.data_tags.data_tags_methods import promote_fields
 
 
 @pytest.fixture
@@ -19,6 +19,7 @@ def simple_schema():
         "data_field_aliases": {
             "p": "priority",  # alias for testing
         },
+        "field_infos": {},
     }
 
 

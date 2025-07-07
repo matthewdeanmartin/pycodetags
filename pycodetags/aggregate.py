@@ -1,5 +1,6 @@
 """
-Aggregate live module and source files for all known schemas
+Searches for tags three different ways: Data Tags and Folk Tags in source code. Also searches for live objects
+in the object graph of the specified modules.
 """
 
 from __future__ import annotations
@@ -9,16 +10,20 @@ import logging
 import logging.config
 import pathlib
 
-import pycodetags.data_tags_schema as data_schema
-import pycodetags.folk_tags_parser as folk_code_tags
-from pycodetags.collect import collect_all_data
-from pycodetags.config import get_code_tags_config
-from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_parsers import iterate_comments_from_file
-from pycodetags.data_tags_schema import DataTag, DataTagSchema
+
+from pycodetags.pure_data_schema import PureDataSchema
+from pycodetags.app_config import get_code_tags_config
+from pycodetags.python.collect import collect_all_data
+from pycodetags.data_tags import (
+    DATA,
+    DataTag,
+    DataTagSchema,
+    convert_data_tag_to_data_object,
+    iterate_comments_from_file,
+)
 from pycodetags.exceptions import FileParsingError, ModuleImportError
-from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.folk_tags import FolkTag
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +46,10 @@ def aggregate_all_kinds_multiple_input(
     if not source_paths:
         source_paths = []
     if schema is None:
-        schema = data_schema.PureDataSchema
+        schema = PureDataSchema
     logger.info(f"aggregate_all_kinds_multiple_input: module_names={module_names}, source_paths={source_paths}")
     collected_DATA: list[DATA] = []
-    collected: list[DataTag | folk_code_tags.FolkTag] = []
+    collected: list[DataTag | FolkTag] = []
     found_in_modules: list[DATA] = []
     for module_name in module_names:
         found_tags, found_in_modules = aggregate_all_kinds(module_name, "", schema)
@@ -70,7 +75,7 @@ def aggregate_all_kinds_multiple_input(
 
 def aggregate_all_kinds(
     module_name: str, source_path: str, schema: DataTagSchema
-) -> tuple[list[DataTag | folk_code_tags.FolkTag], list[DATA]]:
+) -> tuple[list[DataTag | FolkTag], list[DATA]]:
     """
     Aggregate all TODOs and DONEs from a module and source files.
 
@@ -99,10 +104,10 @@ def aggregate_all_kinds(
             logger.error(f"Error: Could not import module(s) '{module_name}'")
             raise ModuleImportError(f"Error: Could not import module(s) '{module_name}'") from ie
 
-    found_tags: list[DataTag | folk_code_tags.FolkTag] = []
+    found_tags: list[DataTag | FolkTag] = []
     schemas: list[DataTagSchema] = [schema]
     # TODO: get schemas from plugins.<matth 2025-07-04
-    #   category:plugin priority:medium status:development release:1.0.0 iteration:1>
+    #   category:plugin priority:2 status:development release:1.0.0 iteration:1>
 
     if source_path:
         src_found = 0
@@ -120,6 +125,7 @@ def aggregate_all_kinds(
                 found_tags.extend(found_items)
                 src_found += 1
             else:
+                from pycodetags.plugin_manager import get_plugin_manager
                 pm = get_plugin_manager()
                 # Collect folk tags from plugins
                 plugin_results = pm.hook.find_source_tags(
@@ -133,3 +139,24 @@ def aggregate_all_kinds(
             raise FileParsingError(f"Can't find any files in source folder {source_path}")
 
     return found_tags, found_in_modules
+
+
+def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA:  # pylint: disable=unused-argument
+    """
+    Convert a FolkTag to a DATA object. A DATA object does not attempt to
+    convert domain specific fields to strongly typed properties/fields
+
+    Args:
+        folk_tag (FolkTag): The FolkTag to convert.
+        schema (DataTagSchema): Which schema to force the folk tag into
+    """
+    kwargs = {
+        "code_tag": folk_tag.get("code_tag"),
+        "custom_fields": folk_tag.get("custom_fields"),
+        "comment": folk_tag["comment"],  # required
+        "file_path": folk_tag.get("file_path"),
+        "original_text": folk_tag.get("original_text"),
+        "original_schema": "folk",
+        "offsets": folk_tag.get("offsets"),
+    }
+    return DATA(**kwargs)  # type: ignore[arg-type]

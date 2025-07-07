@@ -11,14 +11,12 @@ from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import TextIO, Union, cast
 
-from pycodetags.converters import convert_data_tag_to_data_object, convert_folk_tag_to_DATA
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_parsers import iterate_comments
-from pycodetags.data_tags_schema import DataTag, DataTagSchema
-from pycodetags.folk_tags_parser import FolkTag
+from pycodetags.aggregate import convert_folk_tag_to_DATA
+from pycodetags.data_tags import DATA, DataTag, DataTagSchema, convert_data_tag_to_data_object, iterate_comments
+from pycodetags.folk_tags import FolkTag
 from pycodetags.pure_data_schema import PureDataSchema
 
-IOInput = Union[str, os.PathLike, TextIO]
+IOInput = Union[str, os.PathLike, TextIO]  # type: ignore[type-arg]
 IOSource = Union[str, IOInput]
 
 
@@ -94,11 +92,11 @@ def dumps(obj: DATA) -> str:
     if not obj:
         return ""
     # TODO: check plugins to answer for _schema <matth 2025-07-04
-    #  category:plugin priority:medium status:development release:1.0.0 iteration:1>
+    #  category:plugin priority:2 status:development release:1.0.0 iteration:1>
     return obj.as_data_comment()
 
 
-def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:
+def dump(obj: DATA, dest: Union[str, Path, os.PathLike, TextIO]) -> None:  # type: ignore[type-arg]
     """Serialize to a file-like or path-like"""
     with _open_for_write(dest) as f:
         f.write(obj.as_data_comment())
@@ -148,3 +146,40 @@ def loads_all(
 ) -> Iterable[DATA]:
     """Deserialize many data tags from a string"""
     return string_to_data(s, file_path, schema, include_folk_tags)
+
+
+
+def inspect_file(
+    file_path: str | Path, schema: DataTagSchema | None = None, include_folk_tags: bool = False
+) -> list[DATA]:
+    """
+    Parse a file and return a list of DATA objects (tags) for interactive inspection.
+    Usage in REPL or notebooks:
+    """
+    file_path = Path(file_path)
+    if not file_path.exists():
+        raise FileNotFoundError(f"No such file: {file_path}")
+
+    content = file_path.read_text(encoding="utf-8")
+    schema = schema or PureDataSchema
+
+    return list(string_to_data(content, file_path=file_path, schema=schema, include_folk_tags=include_folk_tags))
+
+
+def list_available_schemas() -> list[DataTagSchema]:
+    """
+    Discover all available schemas from pycodetags core and any loaded plugins.
+
+    Returns:
+        List of DataTagSchema definitions.
+    """
+    schemas = [PureDataSchema]
+    # cyclical import
+    from pycodetags.plugin_manager import get_plugin_manager
+
+    pm = get_plugin_manager()
+    if hasattr(pm.hook, "provide_schemas"):
+        for result in pm.hook.provide_schemas():
+            if isinstance(result, list):
+                schemas.extend(result)
+    return schemas

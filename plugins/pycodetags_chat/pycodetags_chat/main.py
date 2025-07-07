@@ -7,9 +7,10 @@ from collections.abc import Callable, Sequence
 
 import pluggy
 from pluggy import HookimplMarker
+from pycodetags_chat.chat_schema import DiscussionTagSchema
 
-from pycodetags import DATA, DataTagSchema
-from pycodetags.config import CodeTagsConfig
+from pycodetags.data_tags import DATA, DataTagSchema
+from pycodetags.app_config.config import CodeTagsConfig
 
 hookimpl = HookimplMarker("pycodetags")
 
@@ -64,6 +65,13 @@ class ChatApp:
         """Name of format of data report that the plugin supports"""
         # Returns a new way to view raw data.
         return []
+
+    @hookimpl
+    def provide_schemas(self) -> list[DataTagSchema]:
+        """
+        Return one or more schema definitions provided by this plugin.
+        """
+        return [DiscussionTagSchema]
 
 
 chat_app_plugin = ChatApp()

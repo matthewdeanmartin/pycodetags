@@ -1,6 +1,6 @@
 import pytest
 
-from pycodetags.view_tools import group_and_sort
+from pycodetags.views.view_tools import group_and_sort
 
 
 def test_groups_items_by_key_function():

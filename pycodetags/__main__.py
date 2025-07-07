@@ -15,14 +15,13 @@ import pluggy
 import pycodetags.__about__ as __about__
 import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
-from pycodetags.config import CodeTagsConfig, get_code_tags_config
-from pycodetags.config_init import init_pycodetags_config
-from pycodetags.data_tags_classes import DATA
-from pycodetags.data_tags_schema import DataTagSchema
+from pycodetags.app_config.config import CodeTagsConfig, get_code_tags_config
+from pycodetags.app_config.config_init import init_pycodetags_config
+from pycodetags.data_tags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_schema import DataTagSchema
 from pycodetags.exceptions import CommentNotFoundError
 from pycodetags.logging_config import generate_config
-from pycodetags.plugin_diagnostics import plugin_currently_loaded
-from pycodetags.plugin_manager import get_plugin_manager
+from pycodetags.plugin_manager import get_plugin_manager, plugin_currently_loaded
 from pycodetags.utils import load_dotenv
 from pycodetags.views import print_html, print_json, print_summary, print_text, print_validate
 
@@ -236,7 +235,7 @@ def source_and_modules_searcher(command: str, modules: list[str], src: list[str]
     return found_data_for_plugins
 
 
-def common_switches(parser) -> None:
+def common_switches(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
     parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
     parser.add_argument("--info", default=False, action="store_true", help="info level logging output")

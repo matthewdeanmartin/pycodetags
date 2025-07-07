@@ -1,7 +1,7 @@
 from pycodetags_issue_tracker.converters import convert_pep350_tag_to_TODO
-from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
 
-from pycodetags.data_tags_parsers import parse_codetags
+from pycodetags.data_tags.data_tags_parsers import parse_codetags
 
 
 def test_single_line_fixme_tag():

@@ -1,7 +1,7 @@
 import datetime
 
-from pycodetags_issue_tracker.todo_tag_types import TODO
-from pycodetags_issue_tracker.views import print_changelog
+from pycodetags_issue_tracker.schema.todo_tag_types import TODO
+from pycodetags_issue_tracker.views.views import print_changelog
 
 
 def test_print_changelog_order(capsys, monkeypatch):

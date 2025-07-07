@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from xml.etree.ElementTree import Element, SubElement, tostring
 
-from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_classes import DATA
 
 logger = logging.getLogger(__name__)
 

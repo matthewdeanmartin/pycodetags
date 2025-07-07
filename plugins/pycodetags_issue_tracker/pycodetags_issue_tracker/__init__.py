@@ -13,8 +13,8 @@ __all__ = [
     "DOCUMENT",
 ]
 
-from pycodetags_issue_tracker.todo_tag_types import TODO
-from pycodetags_issue_tracker.todo_tag_types_aliases import (
+from pycodetags_issue_tracker.schema.todo_tag_types import TODO
+from pycodetags_issue_tracker.schema.todo_tag_types_aliases import (
     ALERT,
     BUG,
     CLEVER,

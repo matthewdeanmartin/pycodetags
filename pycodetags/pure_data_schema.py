@@ -4,7 +4,7 @@ The domain-free schema.
 When used, all fields are parsed as custom fields.
 """
 
-from pycodetags.data_tags_schema import DataTagSchema
+from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 PureDataSchema: DataTagSchema = {
     "name": "DATA",
@@ -18,4 +18,5 @@ PureDataSchema: DataTagSchema = {
     "data_field_aliases": {
         # No alias, no domain!
     },
+    "field_infos": {},
 }

@@ -1,7 +1,8 @@
 import pytest
 
-from pycodetags.data_tags_methods import promote_fields
-from pycodetags.data_tags_parsers import is_int, merge_two_dicts, parse_codetags, parse_fields
+from pycodetags import DataTagSchema
+from pycodetags.data_tags.data_tags_methods import promote_fields
+from pycodetags.data_tags.data_tags_parsers import is_int, merge_two_dicts, parse_codetags, parse_fields
 
 
 @pytest.mark.parametrize(
@@ -19,11 +20,14 @@ def test_is_int_behavior(s, expected):
     assert is_int(s) == expected
 
 
-def schema_stub():
+def schema_stub() -> DataTagSchema:
     return {
+        "name": "stub",
+        "matching_tags": [],
         "default_fields": {"date": "origination_date", "str": "assignee"},
         "data_fields": {"priority": "str", "category": "str", "assignee": "str"},
         "data_field_aliases": {"p": "priority", "c": "category", "a": "assignee"},
+        "field_infos": {},
     }
 
 

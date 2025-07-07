@@ -2,12 +2,12 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from pycodetags_issue_tracker.issue_tracker_schema import IssueTrackerSchema
-from pycodetags_issue_tracker.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
+from pycodetags_issue_tracker.schema.standard_code_tags import extract_comment_blocks_fallback as extract_comment_blocks
 
 from pycodetags.common_interfaces import string_to_data_tag_typed_dicts
-from pycodetags.converters import upgrade_to_specific_schema
-from pycodetags.data_tags_parsers import parse_codetags, parse_fields, promote_fields
+from pycodetags.data_tags.data_tags_methods import upgrade_to_specific_schema
+from pycodetags.data_tags.data_tags_parsers import parse_codetags, parse_fields, promote_fields
 
 
 # Helper function to create a dummy file for testing file operations

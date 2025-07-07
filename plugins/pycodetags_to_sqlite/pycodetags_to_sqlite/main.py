@@ -8,9 +8,7 @@ from collections.abc import Callable, Sequence
 import pluggy
 from pluggy import HookimplMarker
 
-from pycodetags import DATA, DataTagSchema
-from pycodetags.config import CodeTagsConfig
-from pycodetags.data_tags_schema import DataTag
+from pycodetags import DATA, CodeTagsConfig, DataTag, DataTagSchema
 
 hookimpl = HookimplMarker("pycodetags")
 

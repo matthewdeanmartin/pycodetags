@@ -146,11 +146,12 @@ def plugin_definitions(plugins: Iterable[PluginInfo]) -> Iterator[str]:
     for plugin in plugins:
         yield dedent(
             f"""
-            ## {plugin['name']}
+            ## [{plugin['name']}](https://pypi.org/project/{plugin['name']}/)
 
             - **Last release**: {plugin['last_release']}
             - **Status**: {plugin['status']}
             - **Requires**: {plugin['requires']}
+            - ** [Safety and Health](https://snyk.io/advisor/python/{plugin['name']})**
 
             {plugin['summary']}
             """
@@ -161,6 +162,10 @@ def main() -> None:
     plugins = [*iter_plugins()]
     reference_dir = pathlib.Path("docs")
     plugin_list = reference_dir / "plugin_list.md"
+
+    if not plugin_list.exists():
+        reference_dir = pathlib.Path("../docs")
+        plugin_list = reference_dir / "plugin_list.md"
 
     with plugin_list.open("w", encoding="UTF-8") as f:
         f.write(FILE_HEAD)

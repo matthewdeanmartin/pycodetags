@@ -4,10 +4,11 @@ import argparse
 from collections.abc import Sequence
 from typing import cast
 
-from pycodetags_issue_tracker import TODO, views, views_templated
+from pycodetags_issue_tracker import TODO, views
+from pycodetags_issue_tracker.views import views_templated
 
 from pycodetags import DATA
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 
 
 def handle_cli(subparsers: argparse._SubParsersAction):

@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 
 import pytest
 
-from pycodetags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.views import print_data_md, print_html, print_json, print_text, print_validate
 
 

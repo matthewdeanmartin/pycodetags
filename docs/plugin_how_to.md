@@ -28,7 +28,7 @@ Implement some or all of these methods as some sort of callable.
 ```python
 import argparse
 import pluggy
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
 from pycodetags.data_tag_types import DATA
 from pycodetags.data_tags import DataTag
 from pycodetags.folk_tags_parser import FolkTag

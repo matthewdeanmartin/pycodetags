@@ -5,10 +5,14 @@ import sys
 from collections.abc import Sequence
 from typing import cast
 
-from pycodetags_issue_tracker import TODO, views, views_templated
+from pycodetags_issue_tracker import TODO
+
 
 from pycodetags import DATA
-from pycodetags.config import CodeTagsConfig
+from pycodetags.app_config.config import CodeTagsConfig
+from pycodetags_issue_tracker.views import views_templated
+from pycodetags_issue_tracker.views.views import print_done_file, print_changelog, print_text, print_todo_md, \
+    print_validate
 
 
 def handle_cli(subparsers: argparse._SubParsersAction):
@@ -53,23 +57,23 @@ def run_cli_command(
     # args.output
     if command_name == "issues":
         if format_name == "validate":
-            if views.print_validate(cast(list[TODO], found_data)):
+            if print_validate(cast(list[TODO], found_data)):
                 sys.exit(100)
             return True
         if format_name == "html":
             views_templated.print_html(cast(list[TODO], found_data))
             return True
         if format_name == "todomd":
-            views.print_todo_md(cast(list[TODO], found_data))
+            print_todo_md(cast(list[TODO], found_data))
             return True
         if format_name == "text":
-            views.print_text(cast(list[TODO], found_data))
+            print_text(cast(list[TODO], found_data))
             return True
         if format_name == "changelog":
-            views.print_changelog(cast(list[TODO], found_data))
+            print_changelog(cast(list[TODO], found_data))
             return True
         if format_name == "donefile":
-            views.print_done_file(cast(list[TODO], found_data))
+            print_done_file(cast(list[TODO], found_data))
             return True
         return False
     return False
