@@ -73,6 +73,26 @@ class DataTagSchema(TypedDict):
     data_field_aliases: dict[str, str]
     """name:alias, e.g. priority:p"""
 
+class FieldInfo(TypedDict):
+    name:str
+    """Name as written in tag, no spaces"""
+    data_type:str
+    """str, int, list[str], str|list[str]"""
+    valid_values:list[str]
+    """Default range, override with config"""
+    label:str
+    """What to display in UI"""
+    description:str
+    """What does this field mean"""
+    aliases:list[str]
+    """Alternate names and abbreviations for field"""
+
+    value_on_new:str
+    """Value on first appearance of data tag, e.g. originator={git-user}"""
+    value_on_blank:str
+    """Value of last resort that is reasonable at all times, e.g. priority=medium"""
+    value_on_delete:str
+    """Value of missing field after data tag is deleted, e.g. status=closed"""
 
 class DataTagFields(TypedDict):
     """Rules for interpreting the fields part of a code tag"""
@@ -93,3 +113,4 @@ class DataTagFields(TypedDict):
 
     identity_fields: list[str]
     """Fields which combine to form an identity for the tag, e.g. originator, origination_date"""
+
