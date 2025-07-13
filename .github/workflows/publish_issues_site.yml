@@ -38,7 +38,7 @@ jobs:
         run: uv sync
 
       - name: Run make issues
-        run: uv run make issues
+        run: chmod +x *.sh && uv run make issues
 
       - name: Upload static files as artifact
         id: deployment
