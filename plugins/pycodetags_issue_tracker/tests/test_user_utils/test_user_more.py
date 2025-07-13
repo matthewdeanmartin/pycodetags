@@ -1,6 +1,7 @@
 import subprocess
 
 import pytest
+
 # Import functions to test
 from pycodetags_issue_tracker.user_utils.user import get_current_user, get_env_user, get_git_user, get_os_user
 

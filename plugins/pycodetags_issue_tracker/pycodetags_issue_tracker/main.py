@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import argparse
 from collections.abc import Sequence
-from collections.abc import Callable
+from typing import Callable  # noqa
 
 import pluggy
 from pluggy import HookimplMarker
@@ -89,5 +89,6 @@ class IssueTrackerApp:
         Return one or more schema definitions provided by this plugin.
         """
         return [IssueTrackerSchema]
+
 
 issue_tracker_app_plugin = IssueTrackerApp()

@@ -60,9 +60,8 @@ This section follows a single task through its entire lifecycle.
 While working in `src/my_project/parser.py`, Matt discovers a significant bug where the comment parser fails to walk the
 entire Abstract Syntax Tree (AST). He immediately documents it as a `BUG` right where he found it.
 
-```
-# src/my_project/parser.py
-
+#### src/my_project/parser.py
+```python
 def find_comment_blocks_from_string(source: str):
     tree = parse(source)
     lines = source.splitlines()
@@ -128,9 +127,8 @@ The final tag looks like this:
 
 Before pushing his changes, Cle runs the validation command to ensure all his code tags conform to the project's rules.
 
-```
+```bash
 pycodetags issues --format validate
-
 ```
 
 If he had forgotten the `release` field on his `done` tag, validation would fail with a helpful message:
@@ -142,7 +140,6 @@ If he had forgotten the `release` field on his `done` tag, validation would fail
 
 Original Schema pep350
 ...
-
 ```
 
 This ensures data quality and prevents incomplete records from entering the codebase.
@@ -155,9 +152,8 @@ With tasks managed in the code, reporting becomes automated.
 
 At the end of the release cycle, Matt needs to generate release notes. He runs:
 
-```
+```bash
 pycodetags issues --format changelog
-
 ```
 
 This command finds all tags marked `status:done` for the `1.0.0` release and formats them into a clean changelog file.
@@ -180,14 +176,13 @@ All notable changes to this project will be documented in this file.
 
 To get a quick overview of all tasks, Matt can generate a Markdown-based board:
 
-```
+```bash
 pycodetags issues --format todomd
-
 ```
 
 **Output (`TODO.md`):**
 
-```
+```markdown
 # Code Tags TODO Board
 Tasks and progress overview.
 
@@ -207,9 +202,8 @@ Tasks and progress overview.
 To get a more visual overview of the project's health, including metrics on bug density and code sentiment, Matt can
 generate a full HTML report.
 
-```
+```bash
 pycodetags issues --format html
-
 ```
 
 This command creates an `issues_site/` directory with an `index.html` file and automatically opens it in his browser,
@@ -220,25 +214,23 @@ showing a dashboard with all open and closed issues, plus calculated health metr
 Sometimes, Matt needs to store structured data in comments that isn't an issue. For this, he uses the generic `DATA`
 tag. This is useful for configuration details, metadata, or notes that should live with the code.
 
-```
+```python
 # DATA: Database connection details for the test environment.
 #  <host:"test.db.internal" port:5432 user:"test_user">
 def connect_to_database():
-    # ...
-
+    ...
 ```
 
 This data doesn't appear in issue reports but can be extracted for other purposes, like scripting or documentation
 generation.
 
-```
+```bash
 pycodetags data --format json
-
 ```
 
 **Output:**
 
-```
+```json
 [
   {
     "code_tag": "DATA",
@@ -249,8 +241,7 @@ pycodetags data --format json
       "user": "test_user"
     },
     "file_path": "src/my_project/db.py",
-    "line_number": 5,
-    ...
+    "line_number": 5
   }
 ]
-
+```

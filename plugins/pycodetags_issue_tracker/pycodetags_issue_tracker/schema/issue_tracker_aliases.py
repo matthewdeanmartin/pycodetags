@@ -21,7 +21,6 @@ def REQUIREMENT(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -68,7 +67,6 @@ def STORY(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -115,7 +113,6 @@ def IDEA(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -162,7 +159,6 @@ def FIXME(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -209,7 +205,6 @@ def BUG(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -256,7 +251,6 @@ def HACK(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -303,7 +297,6 @@ def CLEVER(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -350,7 +343,6 @@ def MAGIC(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -397,7 +389,6 @@ def ALERT(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -444,7 +435,6 @@ def PORT(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,
@@ -491,7 +481,6 @@ def DOCUMENT(
     closed_comment: str | None = None,
     tracker: str | None = None,
     file_path: str | None = None,
-    
     original_text: str | None = None,
     original_schema: str | None = None,
     custom_fields: dict[str, str] | None = None,

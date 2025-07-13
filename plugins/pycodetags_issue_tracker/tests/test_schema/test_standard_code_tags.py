@@ -14,6 +14,7 @@ def test_single_line_fixme_tag():
             "fields": {
                 "default_fields": {"originator": "MDE"},
                 "data_fields": {
+                    "change_type": "Changed",
                     "originator": "MDE",
                     "priority": "2",
                     "due": "2015-1-1",
@@ -42,6 +43,7 @@ def test_inline_bug_tag():
                     "origination_date": "2005-09-04",
                 },
                 "data_fields": {
+                    "change_type": "Changed",
                     "originator": "MDE",
                     "due": "2015-6-6",
                     "priority": "2",
@@ -76,7 +78,8 @@ def test_multiline_todo_tag():
             "fields": {
                 "default_fields": {},
                 "data_fields": {
-                    "assignee": ["JRNewbie"],
+                    "change_type": "Changed",
+                    "assignee": "JRNewbie",
                     "priority": "3",
                     "due": "2025-12-25",
                 },
@@ -109,7 +112,8 @@ def test_tag_with_mixed_fields():
                     "origination_date": "2025-06-15",
                 },
                 "data_fields": {
-                    "assignee": ["Micahe", "CLE"],
+                    "change_type": "Changed",
+                    "assignee": "Micahe,CLE",
                     "priority": "1",
                     "origination_date": "2025-06-15",
                 },
@@ -242,10 +246,7 @@ def test_assignee_and_date():
     test_results_assignee = parse_codetags(input_text_assignee, IssueTrackerSchema, strict=False)
     print("\nInput for Assignee Test:", input_text_assignee.strip())
     print("Test Output for Assignee:", test_results_assignee)
-    assert test_results_assignee and test_results_assignee[0]["fields"]["data_fields"].get("assignee") == [
-        "Micahe",
-        "CLE",
-    ]
+    assert test_results_assignee and test_results_assignee[0]["fields"]["data_fields"].get("assignee") == "Micahe,CLE"
 
     assert (
         test_results_assignee

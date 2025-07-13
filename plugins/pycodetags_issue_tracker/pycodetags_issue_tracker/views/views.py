@@ -40,6 +40,7 @@ def print_validate(found: list[TODO]) -> bool:
             print()
     return found_problems
 
+
 def print_text(found: list[TODO]) -> None:
     """
     Prints TODOs and Dones in text format.

@@ -48,7 +48,6 @@ def print_html(found: list[TODO], output: Path = Path("issues_site")) -> None:
     health_o_meter = HealthOMeter(found)
     metrics = health_o_meter.calculate_metrics()
 
-
     dones = list(_ for _ in found if _.is_probably_done())
     todos = list(_ for _ in found if not _.is_probably_done())
     rendered = template.render(

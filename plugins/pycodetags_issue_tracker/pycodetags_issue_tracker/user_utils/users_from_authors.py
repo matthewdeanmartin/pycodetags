@@ -60,5 +60,3 @@ def parse_authors_file(file_path: str) -> list[dict[str, str | Any]]:
                 print(f"Warning: Could not fully parse line: '{line}'")
 
     return authors
-
-

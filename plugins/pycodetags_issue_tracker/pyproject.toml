@@ -1,9 +1,9 @@
 [project]
 name = "pycodetags-issue-tracker"
-version = "0.2.0"
+version = "0.3.0"
 description = "Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code"
 dependencies = [
-    "pycodetags>=0.5.0",
+    "pycodetags>=0.6.0",
     "jinja2",
     "pluggy",
      # backwards compatibility

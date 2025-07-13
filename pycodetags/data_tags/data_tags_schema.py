@@ -127,3 +127,6 @@ def merge_schemas(base: DataTagSchema, override: DataTagSchema) -> DataTagSchema
         merged[key] = {**base_dict, **override_dict}  # type: ignore
 
     return merged
+
+def data_fields_as_list(schema:DataTagSchema):
+    return list(schema["data_fields"].keys())

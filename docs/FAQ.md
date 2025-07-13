@@ -11,7 +11,7 @@ need to reject the library on account of the implied workflow not matching their
 The most likely users are people with `# TODO:` comments in their code base and they shouldn't need to rewrite to get
 started.
 
-## Why PEP-330 if it was rejected?
+## Why PEP-350 if it was rejected?
 
 I haven't found any other attempts to write standard's specification. The spec wasn't bad, it just wasn't something
 that made sense to have the python central body promulgate.
@@ -73,6 +73,6 @@ If you deploy your application to your own server no external team will import o
 If you are distributing a library, you might want to remove code tags on release to declutter and keep TODO objects out
 of the object graph.
 
-## Code tas or codetags?
+## Code tags or codetags?
 
 It is two words, so "code tags"

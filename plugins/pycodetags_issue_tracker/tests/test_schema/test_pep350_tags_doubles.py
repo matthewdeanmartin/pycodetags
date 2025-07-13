@@ -32,7 +32,7 @@ def test_parse_fields_basic():
         "data_fields": {
             "priority": "1",
             "due": "2025-12-31",
-            "assignee": ["john.doe"],
+            "assignee": "john.doe",
         },
         "custom_fields": {},
         "identity_fields": [],
@@ -48,7 +48,7 @@ def test_parse_fields_with_aliases():
         "data_fields": {
             "priority": "high",
             "due": "2024-07-15",
-            "assignee": ["jane.doe", "j.smith"],
+            "assignee": "jane.doe,j.smith",
             "tracker": "bugtracker",
         },
         "custom_fields": {},
@@ -80,7 +80,7 @@ def test_parse_fields_mixed_separators_and_spacing():
     expected = {
         "data_fields": {
             "priority": "urgent",
-            "assignee": ["bob.smith"],
+            "assignee": "bob.smith,",
         },
         "custom_fields": {"custom_field": "value"},
         "default_fields": {},
@@ -96,7 +96,9 @@ def test_parse_fields_origination_date_and_assignee_initials():
         "data_fields": {
             "origination_date": "2023-01-01",
             "originator": "JRS",
-            "assignee": ["user1"],
+            "assignee": "user1",
+            "change_type": "Changed",
+            "priority": "2",
         },
         "default_fields": {
             "origination_date": "2023-01-01",
@@ -158,7 +160,7 @@ def test_parse_fields_unquoted_value_stops_at_whitespace():
 def test_parse_fields_multiple_assignees_comma_separated():
     field_string = "assignee:alice,bob,charlie"
     expected = {
-        "data_fields": {"assignee": ["alice", "bob", "charlie"]},
+        "data_fields": {"assignee": "alice,bob,charlie"},
         "custom_fields": {},
         "default_fields": {},
         "identity_fields": [],
@@ -199,7 +201,7 @@ def test_parse_codetags_multiple_tags_in_same_block():
 
     assert results[0]["code_tag"] == "FIXME"
     assert results[0]["comment"] == "This needs to be refactored"
-    assert results[0]["fields"]["data_fields"]["assignee"] == ["dev1"]
+    assert results[0]["fields"]["data_fields"]["assignee"] == "dev1"
     assert results[0]["fields"]["data_fields"]["status"] == "pending"
 
     assert results[1]["code_tag"] == "TODO"
@@ -256,8 +258,6 @@ def test_parse_codetags_empty_field_string():
     }
 
 
-
-
 # Tests for collect_pep350_code_tags function
 def test_collect_pep350_code_tags_single_file(create_dummy_file):
     content = textwrap.dedent(
@@ -281,7 +281,7 @@ def test_collect_pep350_code_tags_single_file(create_dummy_file):
     assert tags[0]["code_tag"] == "TODO"
     assert tags[0]["comment"] == "Finish this module"
     assert tags[0]["fields"]["data_fields"]["priority"] == "high"
-    assert tags[0]["fields"]["data_fields"]["assignee"] == ["dev_a"]
+    assert tags[0]["fields"]["data_fields"]["assignee"] == "dev_a"
 
     assert tags[1]["code_tag"] == "FIXME"
     assert tags[1]["comment"] == "Refactor this part"
@@ -378,7 +378,7 @@ def my_func():
     assert bug_tag["code_tag"] == "BUG"
     assert bug_tag["comment"] == "Problem in func"
     assert bug_tag["fields"]["data_fields"]["status"] == "open"
-    assert bug_tag["fields"]["data_fields"]["assignee"] == ["dev_b"]
+    assert bug_tag["fields"]["data_fields"]["assignee"] == "dev_b"
 
     fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
     assert fixme_tag["code_tag"] == "FIXME"

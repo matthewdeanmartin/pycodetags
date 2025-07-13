@@ -1,4 +1,3 @@
-
 #
 # from pycodetags_issue_tracker.converters import convert_folk_tag_to_TODO
 #

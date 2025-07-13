@@ -2,6 +2,8 @@
 
 `pycodetags` can work with pre-existing comment based code tags, both the folk-schema style and the PEP-350 style.
 
+These examples show the `pycodetags-issue-tracker` scenarios, which are more intuitive than pure data tags.
+
 Ways to track a TODO item
 
 - PEP-350 code tags, e.g. `# TODO: implement game <due=2025-06-01>`

@@ -7,23 +7,31 @@ application. Compatible with all versions of python that have ever existed.
 
 To get the reports, validation, etc, install pycodetags globally either standalone...
 
-`pipx install pycodetags`
+```bash
+pipx install pycodetags
+```
 
 ... or with plugins
 
-`pipx install pycodetags pypcodetags-issue-tracker`
+```bash
+pipx install pycodetags pypcodetags-issue-tracker
+```
 
 To later add more plugins, use the inject keyword in `pipx`
 
-`pipx inject pycodetags pypcodetags-issue-tracker`
+```bash
+pipx inject pycodetags pypcodetags-issue-tracker
+```
 
 ## Advanced. Live TODOs with behaviors
 
 For code tag decorators, objects, exceptions, context managers with run-time behavior:
 
-`pip install pycodetags`
+```bash
+pip install pycodetags
+```
 
-Requires python 3.8+. 3.7 will probably work.
+Requires python 3.8+, but 3.7 will probably work.
 
-The only dependencies are `pluggy` and `ast-comments` and backports of python standard libraries to support old versions
+The only dependencies are `pluggy` and `ast-comments` and `jmespath` and backports of python standard libraries to support old versions
 of python.
