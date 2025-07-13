@@ -328,9 +328,12 @@ valid_categories = [
     "testing",           # if you add test tags
     "documentation",      # if documenting tags
     "validation",        # if validating tags
+    "build", "ast", "changelog", "meta", "git", "reports", "catdogs","base", "parsing"
+
 ]
 # Only displayed
 valid_priorities = [
+    "1","2","3",
     "high",
     "medium",
     "low",
@@ -342,9 +345,10 @@ valid_priorities = [
 closed_status = ["done", "closed", "fixed", "nobug", "wontfix"]
 # Empty list means no restrictions
 valid_releases = [
-    "0.3.0",  # current
+    "0.3.0",
     "0.4.0",
     "0.5.0",
+    "0.6.0", # current
     "1.0.0",
     "2.0.0",
     "3.0.0"

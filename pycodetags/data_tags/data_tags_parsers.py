@@ -94,9 +94,11 @@ def iterate_comments(
                     valid_tags=schema["matching_tags"],
                 )
                 for found_folk_tag in found_folk_tags:
+                    # BUG: Offsets here are buggy. <matth 2025-07-04 category:config priority:high status:development release:1.0.0>
                     a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
                     new_offset = _start_line + a, _start_char + b, _end_line + c, _end_char + d
                     found_folk_tag["offsets"] = new_offset
+
 
                 if found_folk_tags:
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
@@ -201,7 +203,7 @@ def parse_fields(
         # Assign the parsed value to the appropriate field
         if key_lower in field_aliases:
             normalized_key: str = field_aliases[key_lower]
-            # TODO: handle assignee/ str|list[str] catdogs in a more general fashion
+            # TODO: handle assignee/ str|list[str] catdogs in a more general fashion <matth 2025-07-13 status=inprogress category=catdogs priority=high release=1.0.0>
             # if normalized_key == "assignee":
             #     # Assignees can be comma-separated in unquoted values
             #     if "assignee" in fields["data_fields"]:

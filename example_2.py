@@ -87,7 +87,7 @@ def build_meta_object(module_or_file_name: str | None = None, pyproject_path: st
 
     project_version = get_project_version_from_toml(pyproject_path)
 
-    # TODO: move user meta to issue tracker plugin <matth 2025-07-13 status=inprogress category=meta priority=high release=1.0.0>
+    # TODO: move to issue tracker plugin <matth 2025-07-13 status=inprogress category=meta priority=high release=1.0.0>
     meta = {
 
 
@@ -102,7 +102,7 @@ def build_meta_object(module_or_file_name: str | None = None, pyproject_path: st
             "version": project_version,
         },
         "module": simple_module_name,
-        # TODO: also move priority_map to issue tracker plugin  <matth 2025-07-13 status=inprogress category=meta priority=high release=1.0.0>
+        # TODO: move to issue tracker plugin  <matth 2025-07-13 status=inprogress category=meta priority=high release=1.0.0>
         # This map is used by the 'priority' field's JMESPath expression
         # to set a default priority based on the code tag type.
         "priority_map": {

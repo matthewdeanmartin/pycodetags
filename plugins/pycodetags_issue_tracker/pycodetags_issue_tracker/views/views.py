@@ -26,6 +26,7 @@ def print_validate(found: list[TODO]) -> bool:
     """
     print("TODOs")
     found_problems = False
+    total = 0
     for item in sorted(found, key=lambda x: x.code_tag or ""):
         validations = item.validate()
         if validations:
@@ -38,6 +39,8 @@ def print_validate(found: list[TODO]) -> bool:
             print(f"Original Text {item.original_text}")
             # print(item)
             print()
+        total+= len(validations)
+    print(f"Found {total} issues.")
     return found_problems
 
 

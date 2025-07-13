@@ -21,40 +21,40 @@ Code Tag TODOs.
 #   - DONE (for data).
 #   - Need for Issues
 
-# TODO: `pycodetags issues fill-in-defaults` command to speed up data entry <matth 2025-07-06 category=cli
-#  priority=high>
+# TODO: `pycodetags issues fill-in-defaults` command to speed up data entry <matth 2025-07-06 status=inprogress category=cli
+#  priority=high release=1.0.0>
 
-# TODO:  Need concept of default value for recognized fields. The copy paste and clutter cost is too high now.
+# TODO:  Need concept of default value for recognized fields. The copy paste and clutter cost is too high now. <matth 2025-07-06 status=inprogress category=base priority=high release=1.0.0>
 
-# TODO: Need to be able to edit, maybe restrict to code blocks with one `<>` and only edit those fields
+# TODO: Need to be able to edit. <matth 2025-07-06 status=inprogress category=base priority=high release=1.0.0>
 
-# TODO: Folk tag need help: Need offsets for locating Folk Tags in source code. Needs testing <matth 2025-07-06 category=parsing
-#  priority=high status=done iteration=1>
+# TODO: Folk tag need help: Need offsets for locating Folk Tags in source code. Needs testing <matth 2025-07-06 closed_date=2025-07-13 assignee=matth  category=parsing
+#  priority=high status=done iteration=1  release=0.6.0>
 
 # TODO: Need offsets for second, third tags within a comment block.<matth 2025-07-06 category=cli
-#   priority=high status=development iteration=1>
+#   priority=high status=development iteration=1  release=1.0.0>
 
-# TODO: Move all issues into python source (EASY) <matth 2025-07-06 category=build priority=high status=development iteration=1>
+# TODO: Move all issues into python source (EASY) <matth 2025-07-06 category=build priority=high status=development iteration=1  release=1.0.0>
 
-# TODO: Add validate to build (make check) <matth 2025-07-06 category=build priority=high status=development iteration=1>
+# TODO: Add validate to build (make check) <matth 2025-07-06 category=build priority=high status=development iteration=1  release=1.0.0>
 
-# TODO: Add Generate issue_site and publish with gha <matth 2025-07-06 category=build priority=high status=development iteration=1>
+# TODO: Add Generate issue_site and publish with gha <matth 2025-07-06 category=build priority=high status=development iteration=1  release=1.0.0>
 
-# TODO: Add Generate changelog <matth 2025-07-06 category=build priority=high status=development iteration=1>
+# TODO: Add Generate changelog <matth 2025-07-06 category=build priority=high status=development iteration=1  release=1.0.0>
 
-# TODO: Before release pipx install and exercise it! <matth 2025-07-06 category=build priority=high status=development iteration=1>
+# TODO: Before release pipx install and exercise it! <matth 2025-07-06 category=build priority=high status=development iteration=1  release=1.0.0>
 
 # TODO: Add Identity feature (HARD) Enables git features (find originator, find origination date, find close date)
-# <matth 2025-07-06 category=base priority=high status=development iteration=1>
+# <matth 2025-07-06 category=base priority=high status=development iteration=1 release=1.0.0>
 
 # TODO: Revisit "Todo Objects" Raise an TODOException, e.g. `raise TODOException("Work on this")`
-#   <matth 2025-07-06 category=core priority=1 status=development iteration=1>
+#   <matth 2025-07-06 category=core priority=1 status=development iteration=1  release=1.0.0>
 
-# TODO: Add a TODOSkipTest decorator <matth 2025-07-06 category=core priority=low status=development iteration=1>
+# TODO: Add a TODOSkipTest decorator <matth 2025-07-06 category=core priority=low status=development iteration=1  release=1.0.0>
 
-# TODO: assignee value is a mini csv format, delegate to python eval? csv parser? <matth 2025-07-06 category=core priority=medium status=development iteration=1>
+# TODO: assignee value is a mini csv format, delegate to python eval? csv parser? <matth 2025-07-06 category=core priority=medium status=development iteration=1 release=1.0.0>
 
-# TODO: Create a python list of TODO() objects.  <matth 2025-07-06 category=core priority=low status=development iteration=1>
+# TODO: Create a python list of TODO() objects.  <matth 2025-07-06 category=core priority=low status=development iteration=1  release=1.0.0>
 
 
 # ## REFACTOR TO DOMAIN NEUTRAL TAGS
@@ -96,10 +96,11 @@ Code Tag TODOs.
 # ## Other big things
 # - TRICKY: Need identity code, Add Identity logic (% identical and configurable threshold)- PARTIAL
 
-# TODO: Object TODOs. Probably need AST version of TODO() finder because crawling the object graph of a module is missing a lot.
+# TODO: Object TODOs. Probably need AST version of TODO() finder because crawling the object graph of a module is
+#  missing a lot. <matth 2025-07-13 status=inprogress category=ast priority=medium  release=1.0.0>
 
-# TODO: future releases for keepachangelog for versions/releases (Future releases/unreleased is biggest holdup)
-# TODO: Use changelog release schema for display/sorting
+# TODO: future releases for keepachangelog for versions/releases (Future releases/unreleased is biggest holdup) <matth 2025-07-13 status=inprogress category=changelog priority=medium release=1.0.0>
+# TODO: Use changelog release schema for display/sorting <matth 2025-07-13 status=inprogress category=changelog priority=medium  release=1.0.0>
 
 # - BIG: Need git integration (as plugin?)
 # - Basic git integration
@@ -114,16 +115,16 @@ Code Tag TODOs.
 #
 # Ironically, the library isn't ready to track its own TODO
 #
-# TODO: TODOFixTest: implement it!
-# TODO: Some sort of GIT integration
-# TODO: Write to file. Piping to stdout is picking up too much cruft. - Partial implmentation?
+# TODO: TODOFixTest: implement it!  <matth 2025-07-13 status=inprogress category=ast priority=high release=1.0.0>
+# TODO: Some sort of GIT integration  <matth 2025-07-13 status=inprogress category=git priority=high release=1.0.0>
+# TODO: Write to file. Piping to stdout is picking up too much cruft. - Partial implementation?   <matth 2025-07-13 status=inprogress category=reports priority=high release=1.0.0>
 
 
-# TODO: Report by responsible user (stand up report)
-# TODO: Report by version/iteration/release (road map)
-# TODO: Done (changelog)
-# TODO: Report by tag (e.g. "bug", "feature", "enhancement")
-# TODO: Metrics: time to close, overdue
+# TODO: Report by responsible user (stand up report) <matth 2025-07-13 status=inprogress category=reports priority=high release=1.0.0>
+# TODO: Report by version/iteration/release (road map)  <matth 2025-07-13 status=inprogress category=reports priority=high release=1.0.0>
+# TODO: Done report (changelog)  <matth 2025-07-13 status=inprogress category=changelog priority=high release=1.0.0>
+# TODO: Report by tag (e.g. "bug", "feature", "enhancement")  <matth 2025-07-13 status=inprogress category=reports priority=high release=1.0.0>
+# TODO: Metrics: time to close, overdue  <matth 2025-07-13 status=inprogress category=reports priority=high release=1.0.0>
 
 # TODO: validate that everything with a file has meta fields (file, line, original text, original schema)<matth 2025-07-06 status=development category=core priority=high release=1.0.0 iteration=1>
 # TODO: views switch more to jina2 <matth 2025-07-06 status=development category=core priority=high release=1.0.0 iteration=1>

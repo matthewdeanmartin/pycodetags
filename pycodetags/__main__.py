@@ -177,6 +177,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if len(found) == 0:
                 raise CommentNotFoundError("No data to validate.")
             found_problems = print_validate(found)
+            print(f"{len(found)} validation problems.")
             if found_problems:
                 return 100
         else:

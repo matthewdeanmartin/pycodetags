@@ -49,11 +49,14 @@ def aggregate_all_kinds_multiple_input(
     collected_DATA: list[DATA] = []
     collected: list[DataTag | FolkTag] = []
     found_in_modules: list[DATA] = []
+
+    # AST Tags
     for module_name in module_names:
         found_tags, found_in_modules = aggregate_all_kinds(module_name, "", schema)
         collected.extend(found_tags)
         logger.debug(f"Found {len(found_in_modules)} by looking at imported module: {module_name}")
 
+    # Source Tags
     for source_path in source_paths:
         found_tags, found_in_modules = aggregate_all_kinds("", source_path, schema)
         collected.extend(found_tags)

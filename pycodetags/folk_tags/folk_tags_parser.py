@@ -129,6 +129,8 @@ def extract_first_url(text: str) -> str | None:
     match = re.search(pattern, text)
     return match.group(0) if match else None
 
+def probably_pep350(text:str)->bool:
+    return ":" in text and "#" in text and "<" in text
 
 def process_text(
     text: str,
@@ -138,6 +140,11 @@ def process_text(
     file_path: str,
     valid_tags: list[str],
 ) -> None:
+    if probably_pep350(text):
+        # This will miss a folk tag in a block with a pep350 tag.
+        # Without this guard, pep350 tags spread across 2 lines are interpreted as folk tags.
+        return
+
     if "\r\n" in text:
         lines = text.split("\r\n")
     else:
