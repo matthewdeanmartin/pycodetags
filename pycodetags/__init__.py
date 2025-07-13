@@ -31,8 +31,18 @@ __all__ = [
 ]
 
 from pycodetags.app_config import CodeTagsConfig
-from pycodetags.common_interfaces import dump, dump_all, dumps, dumps_all, load, load_all, loads, loads_all, \
-    inspect_file, list_available_schemas
+from pycodetags.common_interfaces import (
+    dump,
+    dump_all,
+    dumps,
+    dumps_all,
+    inspect_file,
+    list_available_schemas,
+    load,
+    load_all,
+    loads,
+    loads_all,
+)
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema
 from pycodetags.plugin_specs import CodeTagsSpec
 from pycodetags.pure_data_schema import PureDataSchema

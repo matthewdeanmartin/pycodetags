@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
 
-
 from pycodetags.common_interfaces import string_to_data_tag_typed_dicts
 from pycodetags.data_tags.data_tags_methods import upgrade_to_specific_schema
 from pycodetags.data_tags.data_tags_parsers import parse_codetags, parse_fields, promote_fields

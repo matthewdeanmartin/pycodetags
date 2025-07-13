@@ -5,15 +5,15 @@ Registry of plugin hooks. These are exported via "entrypoints".
 from __future__ import annotations
 
 import argparse
-from typing import Callable
 from collections.abc import Sequence
+from collections.abc import Callable
 
 import pluggy
 from pluggy import HookimplMarker
 from pycodetags_issue_tracker import cli
 from pycodetags_issue_tracker.converters import convert_data_to_TODO
-from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
 from pycodetags_issue_tracker.plugin_manager import set_plugin_manager
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
 
 from pycodetags import DATA, DataTagSchema
 from pycodetags.app_config.config import CodeTagsConfig

@@ -10,10 +10,7 @@ import logging
 import logging.config
 import pathlib
 
-
-from pycodetags.pure_data_schema import PureDataSchema
 from pycodetags.app_config import get_code_tags_config
-from pycodetags.python.collect import collect_all_data
 from pycodetags.data_tags import (
     DATA,
     DataTag,
@@ -23,7 +20,8 @@ from pycodetags.data_tags import (
 )
 from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.folk_tags import FolkTag
-
+from pycodetags.pure_data_schema import PureDataSchema
+from pycodetags.python.collect import collect_all_data
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +124,7 @@ def aggregate_all_kinds(
                 src_found += 1
             else:
                 from pycodetags.plugin_manager import get_plugin_manager
+
                 pm = get_plugin_manager()
                 # Collect folk tags from plugins
                 plugin_results = pm.hook.find_source_tags(

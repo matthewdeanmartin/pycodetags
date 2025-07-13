@@ -13,7 +13,6 @@ __all__ = [
     "DOCUMENT",
 ]
 
-from pycodetags_issue_tracker.schema.issue_tracker_classes import TODO
 from pycodetags_issue_tracker.schema.issue_tracker_aliases import (
     ALERT,
     BUG,
@@ -27,3 +26,4 @@ from pycodetags_issue_tracker.schema.issue_tracker_aliases import (
     REQUIREMENT,
     STORY,
 )
+from pycodetags_issue_tracker.schema.issue_tracker_classes import TODO

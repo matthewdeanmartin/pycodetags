@@ -6,7 +6,7 @@ from __future__ import annotations
 
 # pylint: disable=unused-argument
 import argparse
-from typing import Callable
+from typing import Callable # noqa
 
 import pluggy
 
@@ -62,11 +62,11 @@ class CodeTagsSpec:
 
     @hookspec
     def run_cli_command(
-            self,
-            command_name: str,
-            args: argparse.Namespace,
-            found_data: Callable[[DataTagSchema], list[DATA]],
-            config: CodeTagsConfig,
+        self,
+        command_name: str,
+        args: argparse.Namespace,
+        found_data: Callable[[DataTagSchema], list[DATA]],
+        config: CodeTagsConfig,
     ) -> bool:
         """
         Allows plugins to handle the execution of their registered CLI commands.

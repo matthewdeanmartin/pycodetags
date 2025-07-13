@@ -10,10 +10,7 @@ import logging
 import logging.config
 import pathlib
 
-
-from pycodetags.pure_data_schema import PureDataSchema
 from pycodetags.app_config import get_code_tags_config
-from pycodetags.python.collect import collect_all_data
 from pycodetags.data_tags import (
     DATA,
     DataTag,
@@ -23,7 +20,8 @@ from pycodetags.data_tags import (
 )
 from pycodetags.exceptions import FileParsingError, ModuleImportError
 from pycodetags.folk_tags import FolkTag
-
+from pycodetags.pure_data_schema import PureDataSchema
+from pycodetags.python.collect import collect_all_data
 
 logger = logging.getLogger(__name__)
 
@@ -547,7 +545,7 @@ from __future__ import annotations
 
 
 import argparse
-from collections.abc import Callable
+from typing import Callable
 
 import pluggy
 
@@ -642,7 +640,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __keywords__ = [
@@ -690,12 +688,12 @@ from pycodetags.common_interfaces import (
     dump_all,
     dumps,
     dumps_all,
+    inspect_file,
+    list_available_schemas,
     load,
     load_all,
     loads,
     loads_all,
-    inspect_file,
-    list_available_schemas,
 )
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema
 from pycodetags.plugin_specs import CodeTagsSpec
@@ -1878,7 +1876,6 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
-from pycodetags.python.comment_finder import find_comment_blocks_from_string
 from pycodetags.data_tags.data_tags_methods import (
     DataTag,
     merge_two_dicts,
@@ -1887,6 +1884,7 @@ from pycodetags.data_tags.data_tags_methods import (
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
 from pycodetags.folk_tags import FolkTag, folk_tags_parser
+from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
 try:
     from typing import TypedDict
@@ -2924,10 +2922,9 @@ import pickle  ##
 
 import shutil
 import time
-from collections.abc import Callable
 from functools import wraps
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, Callable, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -3355,12 +3352,12 @@ __all__ = [
 ]
 
 from pycodetags.views.views import (
+    print_data_md,
     print_html,
     print_json,
     print_summary,
     print_text,
     print_validate,
-    print_data_md,
 )
 
 ```

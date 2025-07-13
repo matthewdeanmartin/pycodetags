@@ -6,13 +6,17 @@ from collections.abc import Sequence
 from typing import cast
 
 from pycodetags_issue_tracker import TODO
-
+from pycodetags_issue_tracker.views import views_templated
+from pycodetags_issue_tracker.views.views import (
+    print_changelog,
+    print_done_file,
+    print_text,
+    print_todo_md,
+    print_validate,
+)
 
 from pycodetags import DATA
 from pycodetags.app_config.config import CodeTagsConfig
-from pycodetags_issue_tracker.views import views_templated
-from pycodetags_issue_tracker.views.views import print_done_file, print_changelog, print_text, print_todo_md, \
-    print_validate
 
 
 def handle_cli(subparsers: argparse._SubParsersAction):

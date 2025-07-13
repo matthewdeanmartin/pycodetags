@@ -9,8 +9,8 @@ import pluggy
 from pluggy import HookimplMarker
 from pycodetags_chat.chat_schema import DiscussionTagSchema
 
-from pycodetags.data_tags import DATA, DataTagSchema
 from pycodetags.app_config.config import CodeTagsConfig
+from pycodetags.data_tags import DATA, DataTagSchema
 
 hookimpl = HookimplMarker("pycodetags")
 

@@ -8,7 +8,6 @@ def test_no_plugins_loaded(capsys):
     pm.get_plugins = Mock()
     pm.get_plugins.return_value = []
 
-
     pd.plugin_currently_loaded(pm)
 
     out = capsys.readouterr().out

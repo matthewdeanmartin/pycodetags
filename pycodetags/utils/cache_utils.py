@@ -29,7 +29,8 @@ import shutil
 import time
 from functools import wraps
 from pathlib import Path
-from typing import Any, TypeVar,Callable
+from typing import Any, TypeVar
+from typing import Callable # noqa
 
 logger = logging.getLogger(__name__)
 

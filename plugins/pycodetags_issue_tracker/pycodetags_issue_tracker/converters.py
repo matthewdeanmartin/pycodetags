@@ -8,13 +8,12 @@ import logging
 from collections.abc import Iterable
 from typing import Any
 
-
 from pycodetags_issue_tracker.schema.issue_tracker_classes import TODO
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema, data_fields_as_list
 
 from pycodetags import DATA
 from pycodetags.data_tags import DataTag
 from pycodetags.folk_tags import FolkTag
-from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema, data_fields_as_list
 
 logger = logging.getLogger(__name__)
 

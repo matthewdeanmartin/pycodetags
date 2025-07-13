@@ -148,7 +148,6 @@ def loads_all(
     return string_to_data(s, file_path, schema, include_folk_tags)
 
 
-
 def inspect_file(
     file_path: str | Path, schema: DataTagSchema | None = None, include_folk_tags: bool = False
 ) -> list[DATA]:
