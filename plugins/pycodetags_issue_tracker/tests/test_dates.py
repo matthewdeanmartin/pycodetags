@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-from pycodetags_issue_tracker.schema.todo_tag_types import parse_due_date
+from pycodetags_issue_tracker.schema.issue_tracker_classes import parse_due_date
 
 
 def test_parse_due_date_valid():

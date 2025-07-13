@@ -1,13 +1,21 @@
 # PYCODETAGS PEP 004 — Catdogs
 
-**Title**: Catdogs – Unified List/Scalar Hybrid Types
-**Author**: PyCodeTags Core Team
-**Status**: Draft
-**Created**: 2025-07-12
-**Target Version**: ≥ 0.6.0
-**PEP Dependencies**: [PEP 350](https://peps.python.org/pep-0350/)
-**Abstract**:
-This PEP introduces the `Catdog` family of types: hybrid scalar-list objects that allow seamless support for `str | list[str]`, `int | list[int]`, and `float | list[float]` fields in data tags. These hybrid types conform to PEP 350’s design while avoiding lossy behavior.
+| PEP:             | 004                                                                               |
+|------------------|-----------------------------------------------------------------------------------|
+| Title:           | Catdogs – Unified List/Scalar Hybrid Types                                        |
+| Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com) |
+| Author:          | ChatGPT (gpt-4-turbo, OpenAI)                                                     |
+| Status:          | Draft                                                                             |
+| Type:            | Standards Track                                                                   |
+| Created:         | 2025-07-12                                                                        |
+| License:         | MIT                                                                               |
+| Intended Version | ≥ 0.6.0                                                                           |
+
+## Abstract
+
+This PEP introduces the `Catdog` family of types: hybrid scalar-list objects that allow seamless support for
+`str | list[str]`, `int | list[int]`, and `float | list[float]` fields in data tags. These hybrid types conform to PEP
+350’s design while avoiding lossy behavior.
 
 ---
 
@@ -20,13 +28,15 @@ PEP 350 defines code tags where fields may be written as:
 # TODO: Implement caching <assignee:alice,bob>
 ```
 
-In the first case, `assignee` is a scalar string. In the second, it’s a list. However, internally treating these as `str | list[str]` leads to:
+In the first case, `assignee` is a scalar string. In the second, it’s a list. However, internally treating these as
+`str | list[str]` leads to:
 
 * Complicated downstream code (`isinstance(x, str)`, `if not isinstance(x, list)`, etc.)
 * Risk of *lossy conversion* when simplifying to string
 * Inconsistent semantics across fields
 
-To solve this, we introduce the **Catdog** — a list-backed type that behaves like both a list and a scalar, *without discarding data*.
+To solve this, we introduce the **Catdog** — a list-backed type that behaves like both a list and a scalar, *without
+discarding data*.
 
 ---
 
@@ -75,7 +85,7 @@ Same semantics as `CatdogInt`, but for floats.
 ## Behavior Matrix
 
 | Operation         | Returns / Affects  | Notes                                 |
-| ----------------- | ------------------ | ------------------------------------- |
+|-------------------|--------------------|---------------------------------------|
 | `__getitem__`     | Item from list     | List-like                             |
 | `__str__`         | Comma-joined str   | Non-lossy                             |
 | `__len__`         | List length        |                                       |
@@ -127,7 +137,11 @@ Then:
 
 ```python
 class CatdogStr(CatdogBase): ...
+
+
 class CatdogInt(CatdogBase): ...
+
+
 class CatdogFloat(CatdogBase): ...
 ```
 
@@ -148,11 +162,9 @@ Each subclass enforces type constraints on contents.
 ## Open Questions
 
 * Should `CatdogStr("a,b")` parse to `["a", "b"]` or preserve `"a,b"` as a single item?
-
-  * **Proposed**: Always explicit — split only on `<...>` parsing, not during instantiation.
+    * **Proposed**: Always explicit — split only on `<...>` parsing, not during instantiation.
 * Should JSON serialization output list or scalar?
-
-  * **Proposed**: Always list in JSON for predictability.
+    * **Proposed**: Always list in JSON for predictability.
 
 ---
 
@@ -168,20 +180,20 @@ Each subclass enforces type constraints on contents.
 
 * Using `Union[str, list[str]]` directly
 
-  * Verbose and unsafe downstream
+    * Verbose and unsafe downstream
 * Always treating as list
 
-  * Breaks compatibility with PEP350-style single-line fields
+    * Breaks compatibility with PEP350-style single-line fields
 * External libraries like `pydantic`'s smart coercion
 
-  * Violates PyCodeTags’ **pure Python** philosophy
+    * Violates PyCodeTags’ **pure Python** philosophy
 
 ---
 
 ## Summary
 
-The Catdog types enable clean, lossless support for scalar-or-list fields without complicating downstream logic or requiring external tools. These hybrid types are both developer-friendly and conformant with the spirit of PEP 350.
-
+The Catdog types enable clean, lossless support for scalar-or-list fields without complicating downstream logic or
+requiring external tools. These hybrid types are both developer-friendly and conformant with the spirit of PEP 350.
 
 ## Reference Impementation
 
@@ -284,3 +296,7 @@ class CatdogFloat(CatdogBase[float]):
 
 
 ```
+
+## Copyright
+
+This document is licensed under the MIT License.

@@ -4,7 +4,7 @@ Aliases for TODO
 
 from __future__ import annotations
 
-from pycodetags_issue_tracker.schema.todo_tag_types import TODO
+from pycodetags_issue_tracker.schema.issue_tracker_classes import TODO
 
 
 def REQUIREMENT(

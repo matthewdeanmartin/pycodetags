@@ -1,4 +1,4 @@
-from pycodetags_issue_tracker.schema.todo_tag_types_aliases import (
+from pycodetags_issue_tracker.schema.issue_tracker_aliases import (
     ALERT,
     BUG,
     CLEVER,

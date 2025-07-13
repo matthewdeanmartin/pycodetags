@@ -6,7 +6,6 @@ dependencies = [
     "pycodetags>=0.5.0",
     "jinja2",
     "pluggy",
-
      # backwards compatibility
     "toml; python_version < '3.11'",
     "importlib-resources; python_version < '3.9'",

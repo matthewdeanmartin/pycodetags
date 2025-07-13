@@ -1,16 +1,19 @@
-Here is the proposal document for **PYCODETAGS PEP 005 – Optional Quotes on Data Fields**:
-
----
-
 # PYCODETAGS PEP 005 — Optional Quotes on Data Fields
 
-**Title**: Optional Quotes on Data Fields
-**Author**: PyCodeTags Core Team
-**Status**: Draft
-**Created**: 2025-07-12
-**Target Version**: ≥ 0.6.0
-**PEP Dependencies**: PEP 350, PEP 004
-**Abstract**:
+
+| PEP:             | 005                                                                               |
+|------------------|-----------------------------------------------------------------------------------|
+| Title:           | Optional Quotes on Data Fields                                                    |
+| Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com) |
+| Author:          | ChatGPT (gpt-4-turbo, OpenAI)                                                     |
+| Status:          | Draft                                                                             |
+| Type:            | Standards Track                                                                   |
+| Created:         | 2025-07-12                                                                        |
+| License:         | MIT                                                                               |
+| Intended Version | ≥ 0.6.0                                                                           |
+
+
+## Abstract
 This PEP proposes relaxing the requirement for quoted values in code tag field syntax. By enforcing an ordering constraint—default/anonymous fields must appear before named fields—we can safely allow spaces in named field values without requiring quotes.
 
 ---
@@ -93,7 +96,7 @@ We propose an update to the parser that removes this ambiguity by requiring **de
 
 Is parsed as:
 
-```toml
+```json
 {
   "default_fields": [],
   "data_fields": {
@@ -227,3 +230,6 @@ def parse_fields(field_string: str, schema: DataTagSchema, strict: bool) -> Data
     return fields
 
 ```
+## Copyright
+
+This document is licensed under the MIT License.

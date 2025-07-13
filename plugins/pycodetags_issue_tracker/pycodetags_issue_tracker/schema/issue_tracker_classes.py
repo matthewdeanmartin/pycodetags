@@ -13,8 +13,7 @@ from functools import wraps
 from typing import Any, Callable, cast  # noqa
 
 from pycodetags_issue_tracker.config.issue_tracker_config import get_issue_tracker_config
-from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
-from pycodetags_issue_tracker.schema.todo_object_schema import TODO_KEYWORDS
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema, data_fields_as_list
 
 from pycodetags.app_config.config import get_code_tags_config
 from pycodetags.data_tags.data_tags_classes import DATA
@@ -341,7 +340,7 @@ class TODO(DATA):
                 self.default_fields[name] = value
 
         # data_fields
-        for name in TODO_KEYWORDS:
+        for name in data_fields_as_list(IssueTrackerSchema):
             value = getattr(self, name)
             if value is not None:
                 self.data_fields[name] = value

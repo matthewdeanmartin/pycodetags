@@ -8,12 +8,13 @@ import logging
 from collections.abc import Iterable
 from typing import Any
 
-from pycodetags_issue_tracker.schema.todo_object_schema import TODO_KEYWORDS
-from pycodetags_issue_tracker.schema.todo_tag_types import TODO
+
+from pycodetags_issue_tracker.schema.issue_tracker_classes import TODO
 
 from pycodetags import DATA
 from pycodetags.data_tags import DataTag
 from pycodetags.folk_tags import FolkTag
+from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema, data_fields_as_list
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +102,7 @@ def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
         "offsets": folk_tag.get("offsets"),
     }
     custom_fields = folk_tag.get("custom_fields", {})
-    for keyword in TODO_KEYWORDS:
+    for keyword in data_fields_as_list(IssueTrackerSchema):
         for field_key, field_value in custom_fields.items():
             # Promote custom fields to kwargs if they match the keyword
             # and the keyword is not already in kwargs
@@ -147,7 +148,7 @@ def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
     }
 
     custom_fields = pep350_tag["fields"].get("custom_fields", {})
-    for keyword in TODO_KEYWORDS:
+    for keyword in data_fields_as_list(IssueTrackerSchema):
         for field_key, field_value in custom_fields.items():
             # Promote custom fields to kwargs if they match the keyword
             # and the keyword is not already in kwargs

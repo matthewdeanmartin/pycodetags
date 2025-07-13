@@ -1,4 +1,15 @@
-Pycodetags Enhancement Proposal, PEP: 001 Title: Default Initializers for Data Tag Fields Author: Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com), ChatGPT (gpt-4-turbo, OpenAI) [https://chatgpt.com/share/68728893-3324-8007-bcd1-164a8338beda](https://chatgpt.com/share/68728893-3324-8007-bcd1-164a8338beda) Status: Draft Type: Standards Track Created: 2025-07-12
+# PYCODETAGS PEP: 001 – Pycodetags Enhancement Proposal 
+
+| PEP:             | 001                                                                                             |
+|------------------|-------------------------------------------------------------------------------------------------|
+| Title:           | Default Initializers for Data Tag Fields                                                        |
+| Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com)               |
+| Author:          | [ChatGPT (gpt-4-turbo, OpenAI)](https://chatgpt.com/share/68728893-3324-8007-bcd1-164a8338beda) |
+| Status:          | Draft                                                                                           |
+| Type:            | Standards Track                                                                                 |
+| Created:         | 2025-07-12                                                                                      |
+| License:         | MIT                                                                                             |
+| Intended Version | ≥ 0.6.0                                                                                         |
 
 ## Abstract
 
@@ -133,7 +144,8 @@ value_on_delete = "'archived'"
 
 ## Copyright
 
-License is MIT.
+This document is licensed under the MIT License.
+
 
 Authoritative source URL: [https://chatgpt.com/share/68728893-3324-8007-bcd1-164a8338beda](https://chatgpt.com/share/68728893-3324-8007-bcd1-164a8338beda)
 

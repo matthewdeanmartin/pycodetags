@@ -181,3 +181,6 @@ IssueTrackerSchema: DataTagSchema = {
         ),
     },
 }
+
+def data_fields_as_list(schema:IssueTrackerSchema):
+    return list(schema["data_fields"].keys())

@@ -63,33 +63,3 @@ def parse_authors_file(file_path: str) -> list[dict[str, str | Any]]:
     return authors
 
 
-# --- Example Usage ---
-if __name__ == "__main__":
-
-    def example() -> None:
-        """
-        Example function to demonstrate how to use the parse_authors_file function.
-        """
-        # Create a dummy AUTHORS file for testing
-        dummy_authors_content = """
-# Project Contributors
-
-John Doe <john.doe@example.com>
-Jane Smith
-Alice Wonderland <alice@wonderland.org>
-Bob The Builder (Maintenance Lead)
-    # A comment line
-Charlie Chaplin
-    """
-        with open("AUTHORS_test.txt", "w", encoding="utf-8") as f:
-            f.write(dummy_authors_content.strip())
-
-        parsed_authors = parse_authors_file("AUTHORS_test.txt")
-
-        print("Parsed Authors:")
-        for author in parsed_authors:
-            print(author)
-
-        os.remove("AUTHORS_test.txt")
-
-    example()

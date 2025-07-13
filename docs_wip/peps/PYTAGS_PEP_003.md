@@ -1,10 +1,23 @@
 # PYCODETAGS PEP 003 — Performance and Caching
 
+
+| PEP:             | 003                                                                               |
+|------------------|-----------------------------------------------------------------------------------|
+| Title:           | Standardizing and Expanding the Plugin Architecture in PyCodeTags                 |
+| Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com) |
+| Author:          | ChatGPT (gpt-4-turbo, OpenAI)                                                     |
+| Status:          | Draft                                                                             |
+| Type:            | Standards Track                                                                   |
+| Created:         | 2025-07-12                                                                        |
+| License:         | MIT                                                                               |
+| Intended Version | ≥ 0.6.0                                                                           |
+
 **Author**: PyCodeTags Core Team
 **Status**: Draft
 **Created**: 2025-07-12
 **Intended Version**: ≥ 0.6.0
-**Abstract**:
+
+## Abstract
 This PEP outlines strategies and implementation details for improving the performance of PyCodeTags via persistent caching, organized storage, and systematic benchmarking, while remaining entirely within the standard Python ecosystem.
 
 ---
@@ -175,3 +188,7 @@ No breaking changes are introduced:
 * [PEP 350](https://peps.python.org/pep-0350/) – Code Tags for Python
 * [Jupyter’s caching techniques](https://github.com/ipython/ipython/issues/10092)
 * Internal memoization decorators in `functools` and `lru_cache`
+
+## Copyright
+
+This document is licensed under the MIT License.

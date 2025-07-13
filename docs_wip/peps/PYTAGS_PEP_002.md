@@ -1,18 +1,15 @@
-Certainly! Here's **PEP 002** written in the style of a Python Enhancement Proposal (PEP), tailored for the `pycodetags` project and its plugin system.
+# PYCODETAGS PEP 002 – Plugin System Standardization and Expansion
 
----
-
-# PEP 002 – Plugin System Standardization and Expansion
-
-| PEP:      | 002                                                               |
-| --------- | ----------------------------------------------------------------- |
-| Title:    | Standardizing and Expanding the Plugin Architecture in PyCodeTags |
-| Author:   | PyCodeTags Team                                                   |
-| Status:   | Draft                                                             |
-| Type:     | Standards Track                                                   |
-| Created:  | 2025-07-12                                                        |
-| Requires: | PEP 000                                                           |
-| License:  | MIT                                                               |
+| PEP:             | 002                                                                               |
+|------------------|-----------------------------------------------------------------------------------|
+| Title:           | Standardizing and Expanding the Plugin Architecture in PyCodeTags                 |
+| Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com) |
+| Author:          | ChatGPT (gpt-4-turbo, OpenAI)                                                     |
+| Status:          | Draft                                                                             |
+| Type:            | Standards Track                                                                   |
+| Created:         | 2025-07-12                                                                        |
+| License:         | MIT                                                                               |
+| Intended Version | ≥ 0.6.0                                                                           |
 
 ## Abstract
 
@@ -56,6 +53,9 @@ This PEP proposes the following *new* or improved hook specifications (in additi
 #### `preprocess_source`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
+
 @hookspec
 def preprocess_source(source_code: str, file_path: str | None, config: CodeTagsConfig) -> str:
     """Optionally modify or transform source code before comment/tag extraction."""
@@ -64,6 +64,9 @@ def preprocess_source(source_code: str, file_path: str | None, config: CodeTagsC
 #### `parse_custom_tags`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
+
 @hookspec
 def parse_custom_tags(source_code: str, file_path: str, config: CodeTagsConfig) -> list[DataTag | FolkTag]:
     """Allow plugins to extract tags from source code using custom logic (e.g., regex, LLMs)."""
@@ -72,6 +75,8 @@ def parse_custom_tags(source_code: str, file_path: str, config: CodeTagsConfig) 
 #### `postprocess_data`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
 @hookspec
 def postprocess_data(data: list[DATA], config: CodeTagsConfig) -> list[DATA]:
     """Modify or enrich collected DATA items after aggregation."""
@@ -80,6 +85,8 @@ def postprocess_data(data: list[DATA], config: CodeTagsConfig) -> list[DATA]:
 #### `contribute_runtime_actions`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
 @hookspec
 def contribute_runtime_actions(data: DATA, config: CodeTagsConfig) -> None:
     """Allow plugins to define new runtime behaviors when a DATA tag is invoked at runtime."""
@@ -88,6 +95,8 @@ def contribute_runtime_actions(data: DATA, config: CodeTagsConfig) -> None:
 #### `decorate_validation`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
 @hookspec
 def decorate_validation(data: DATA, errors: list[str], config: CodeTagsConfig) -> list[str]:
     """Enhance or suppress validation errors dynamically."""
@@ -96,6 +105,8 @@ def decorate_validation(data: DATA, errors: list[str], config: CodeTagsConfig) -
 #### `contribute_serializers`
 
 ```python
+import pluggy
+hookspec = pluggy.HookspecMarker("pycodetags")
 @hookspec
 def contribute_serializers(data: DATA, config: CodeTagsConfig) -> dict[str, str]:
     """Provide custom serialization formats (e.g., markdown, YAML, org-mode)."""
@@ -133,7 +144,3 @@ Allowing plugins to preprocess or execute runtime logic increases the potential 
 ## Copyright
 
 This document is licensed under the MIT License.
-
----
-
-Let me know if you'd like a version as a `.md` file or included in the source tree as a proposed `PEP002.md`.
