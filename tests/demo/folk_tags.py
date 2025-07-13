@@ -32,10 +32,3 @@ def credit():
 # TODO(field=1, field2=value): Implement debit system
 def super_debit():
     pass
-
-
-if __name__ == "__main__":
-    import pycodetags.folk_tags_parser as folk
-
-    for tag in folk.find_source_tags(__file__):
-        print(tag)
