@@ -1,6 +1,8 @@
 """
 Finds all folk schema tags in source files.
 
+Folk tags are data tags with a non-PEP350 serialization strategy
+
 Folk tags roughly follow
 
 # TODO: comment
@@ -23,7 +25,7 @@ from __future__ import annotations
 import logging
 import re
 
-from pycodetags.folk_tags.folk_tags_schema import DefaultFieldMeaning, FolkTag
+from pycodetags.data_tags.data_tags_methods import DataTag
 
 try:
     from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
@@ -51,14 +53,16 @@ def extract_first_url(text: str) -> str | None:
     match = re.search(pattern, text)
     return match.group(0) if match else None
 
-def probably_pep350(text:str)->bool:
+
+def probably_pep350(text: str) -> bool:
     return ":" in text and "#" in text and "<" in text
+
 
 def process_text(
     text: str,
     allow_multiline: bool,
-    default_field_meaning: DefaultFieldMeaning,
-    found_tags: list[FolkTag],
+    default_field_meaning: str,
+    found_tags: list[DataTag],
     file_path: str,
     valid_tags: list[str],
 ) -> None:
@@ -94,12 +98,12 @@ def process_text(
 
 def process_line(
     file_path: str,
-    found_tags: list[FolkTag],
+    found_tags: list[DataTag],
     lines: list[str],
     start_idx: int,
     valid_tags: list[str],
     allow_multiline: bool,
-    default_field_meaning: DefaultFieldMeaning,
+    default_field_meaning: str,
 ) -> int:
     current_line = lines[start_idx]
 
@@ -166,22 +170,28 @@ def process_line(
             default_field = id_match.group(1)
             comment = id_match.group(2).strip()
 
-    found_tag: FolkTag = {
+    found_tag: DataTag = {
         "file_path": file_path,
         "code_tag": code_tag_candidate,
-        "default_field": default_field,
-        "custom_fields": custom_fields,
+        "fields": {
+            "unprocessed_defaults": [],
+            "default_fields": {},
+            "data_fields": {},
+            "custom_fields": custom_fields,
+            "identity_fields": [],
+        },
         "comment": comment,
+        "original_schema": "folk",
         "original_text": content,
         "offsets": (start_line, start_char, end_line, end_char),
     }
 
     if default_field and default_field_meaning:
-        found_tag[default_field_meaning] = default_field
+        found_tag["fields"]["default_fields"][default_field_meaning] = [default_field]
 
     url = extract_first_url(comment)
     if url:
-        found_tag["tracker"] = url
+        found_tag["fields"]["custom_fields"]["tracker"] = url
 
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)

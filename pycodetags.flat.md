@@ -19,7 +19,6 @@ from pycodetags.data_tags import (
     iterate_comments_from_file,
 )
 from pycodetags.exceptions import FileParsingError, ModuleImportError
-from pycodetags.folk_tags import FolkTag
 from pycodetags.pure_data_schema import PureDataSchema
 from pycodetags.python.collect import collect_all_data
 
@@ -39,8 +38,9 @@ def aggregate_all_kinds_multiple_input(
         f"aggregate_all_kinds_multiple_input: module_names={module_names}, source_paths={source_paths}"
     )
     collected_DATA: list[DATA] = []
-    collected: list[DataTag | FolkTag] = []
+    collected: list[DataTag] = []
     found_in_modules: list[DATA] = []
+
     for module_name in module_names:
         found_tags, found_in_modules = aggregate_all_kinds(module_name, "", schema)
         collected.extend(found_tags)
@@ -54,14 +54,8 @@ def aggregate_all_kinds_multiple_input(
         logger.debug(f"Found {len(found_tags)} by looking at src folder {source_path}")
 
     for found_tag in collected:
-        if "fields" in found_tag.keys():
-            item = convert_data_tag_to_data_object(found_tag, schema)  ##
-
-            collected_DATA.append(item)
-        else:
-            item = convert_folk_tag_to_DATA(found_tag, schema)  ##
-
-            collected_DATA.append(item)
+        item = convert_data_tag_to_data_object(found_tag, schema)
+        collected_DATA.append(item)
     collected_DATA.extend(found_in_modules)
 
     return collected_DATA
@@ -69,7 +63,7 @@ def aggregate_all_kinds_multiple_input(
 
 def aggregate_all_kinds(
     module_name: str, source_path: str, schema: DataTagSchema
-) -> tuple[list[DataTag | FolkTag], list[DATA]]:
+) -> tuple[list[DataTag], list[DATA]]:
     config = get_code_tags_config()
 
     active_schemas = config.active_schemas()
@@ -89,7 +83,7 @@ def aggregate_all_kinds(
                 f"Error: Could not import module(s) '{module_name}'"
             ) from ie
 
-    found_tags: list[DataTag | FolkTag] = []
+    found_tags: list[DataTag] = []
     schemas: list[DataTagSchema] = [schema]
 
     if source_path:
@@ -130,20 +124,6 @@ def aggregate_all_kinds(
 
     return found_tags, found_in_modules
 
-
-def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA:  ##
-
-    kwargs = {
-        "code_tag": folk_tag.get("code_tag"),
-        "custom_fields": folk_tag.get("custom_fields"),
-        "comment": folk_tag["comment"],  ##
-        "file_path": folk_tag.get("file_path"),
-        "original_text": folk_tag.get("original_text"),
-        "original_schema": "folk",
-        "offsets": folk_tag.get("offsets"),
-    }
-    return DATA(**kwargs)  ##
-
 ```
 
 ## File: common_interfaces.py
@@ -158,7 +138,6 @@ from io import StringIO, TextIOWrapper
 from pathlib import Path
 from typing import TextIO, Union, cast
 
-from pycodetags.aggregate import convert_folk_tag_to_DATA
 from pycodetags.data_tags import (
     DATA,
     DataTag,
@@ -166,7 +145,6 @@ from pycodetags.data_tags import (
     convert_data_tag_to_data_object,
     iterate_comments,
 )
-from pycodetags.folk_tags import FolkTag
 from pycodetags.pure_data_schema import PureDataSchema
 
 IOInput = Union[str, os.PathLike, TextIO]  ##
@@ -189,10 +167,7 @@ def string_to_data(
         schemas=[schema],
         include_folk_tags=include_folk_tags,
     ):
-        if "fields" in tag:
-            tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
-        else:
-            tags.append(convert_folk_tag_to_DATA(cast(FolkTag, tag), schema))
+        tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
     return tags
 
 
@@ -201,20 +176,17 @@ def string_to_data_tag_typed_dicts(
     file_path: Path | None = None,
     schema: DataTagSchema | None = None,
     include_folk_tags: bool = False,
-) -> Iterable[DataTag | FolkTag]:
+) -> Iterable[DataTag]:
     if schema is None:
         schema = PureDataSchema
-    tags: list[DataTag | FolkTag] = []
+    tags: list[DataTag] = []
     for tag in iterate_comments(
         value,
         source_file=file_path,
         schemas=[schema],
         include_folk_tags=include_folk_tags,
     ):
-        if "fields" in tag:
-            tags.append(cast(DataTag, tag))
-        else:
-            tags.append(cast(FolkTag, tag))
+        tags.append(cast(DataTag, tag))
     return tags
 
 
@@ -392,6 +364,51 @@ class InvalidActionError(ConfigError):
 
 ```
 
+## File: filters.py
+
+```python
+import logging
+from typing import Any, Callable, List
+
+import jmespath
+
+from pycodetags.data_tags.data_tags_classes import DATA
+
+logger = logging.getLogger(__name__)
+
+
+class InvalidJMESPathFilter(Exception):
+    pass
+
+
+def compile_jmes_filter(expression: str) -> Callable[[dict], bool]:
+    try:
+        compiled = jmespath.compile(expression)
+    except jmespath.exceptions.JMESPathError as e:
+        raise InvalidJMESPathFilter(f"Invalid JMESPath expression: {e}") from e
+
+    def predicate(flat_dict: dict[str, Any]) -> bool:
+        try:
+            result = compiled.search(flat_dict)
+            return bool(result)
+        except Exception as e:
+            logger.warning(f"Failed to evaluate JMESPath expression: {e}")
+            return False
+
+    return predicate
+
+
+def filter_data_by_expression(data_list: List[DATA], expression: str) -> List[DATA]:
+
+    pred = compile_jmes_filter(expression)
+    return [
+        item
+        for item in data_list
+        if pred(item.to_flat_dict(include_comment_and_tag=True))
+    ]
+
+```
+
 ## File: logging_config.py
 
 ```python
@@ -545,13 +562,13 @@ from __future__ import annotations
 
 
 import argparse
-from typing import Callable
+from typing import Callable  ##
+
 
 import pluggy
 
 from pycodetags.app_config import CodeTagsConfig
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema
-from pycodetags.folk_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 
@@ -589,7 +606,7 @@ class CodeTagsSpec:
         return []
 
     @hookspec
-    def find_source_tags(self, already_processed: bool, file_path: str, config: CodeTagsConfig) -> list[FolkTag]:
+    def find_source_tags(self, already_processed: bool, file_path: str, config: CodeTagsConfig) -> list[DataTag]:
         return []
 
     @hookspec
@@ -722,6 +739,7 @@ from pycodetags.app_config.config_init import init_pycodetags_config
 from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
 from pycodetags.exceptions import CommentNotFoundError
+from pycodetags.filters import InvalidJMESPathFilter, filter_data_by_expression
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_manager import get_plugin_manager, plugin_currently_loaded
 from pycodetags.utils import load_dotenv
@@ -770,6 +788,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     base_parser.add_argument(
         "--validate", action="store_true", help="Validate all the items found"
     )
+
+    base_parser.add_argument("--filter", help="JMESPath filter expression")
 
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
@@ -821,6 +841,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         new_subparser.add_argument(
             "--validate", action="store_true", help="Validate all the items found"
         )
+        new_subparser.add_argument("--filter", help="JMESPath filter")
 
     args = parser.parse_args(args=argv)
 
@@ -872,6 +893,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                 modules, src, pure_data_schema.PureDataSchema
             )
 
+            if args.filter:
+                try:
+                    found = filter_data_by_expression(found, args.filter)
+                except InvalidJMESPathFilter as e:
+                    print(f"Filter error: {e}", file=sys.stderr)
+                    return 200
+
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
             return 1
@@ -880,6 +908,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             if len(found) == 0:
                 raise CommentNotFoundError("No data to validate.")
             found_problems = print_validate(found)
+            print(f"{len(found)} validation problems.")
             if found_problems:
                 return 100
         else:
@@ -913,7 +942,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             src = code_tags_config.source_folders_to_scan()
 
         def found_data_for_plugins_callback(schema: DataTagSchema) -> list[DATA]:
-            return source_and_modules_searcher(args.command, modules, src, schema)
+            try:
+                return source_and_modules_searcher(
+                    args.command, modules, src, schema, args.filter
+                )
+            except InvalidJMESPathFilter as e:
+                print(f"Filter error: {e}", file=sys.stderr)
+                sys.exit(200)
 
         handled_by_plugin = pm.hook.run_cli_command(
             command_name=args.command,
@@ -928,7 +963,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def source_and_modules_searcher(
-    command: str, modules: list[str], src: list[str], schema: DataTagSchema
+    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter: str
 ) -> list[DATA]:
     try:
         all_found: list[DATA] = []
@@ -937,7 +972,12 @@ def source_and_modules_searcher(
             all_found.extend(found_tags)
         more_found = aggregate_all_kinds_multiple_input(modules, [], schema)
         all_found.extend(more_found)
+
+        if filter:
+            all_found = filter_data_by_expression(all_found, filter)
+
         found_data_for_plugins = all_found
+
     except ImportError:
         logging.warning(
             f"Could not aggregate data for command {command}, proceeding without it."
@@ -1614,7 +1654,12 @@ def upgrade_to_specific_schema(
     tag_value: DataTag, schema: DataTagSchema, flat: bool = True
 ) -> dict[str, Any]:
 
-    data_fields = tag_value["fields"]["data_fields"]
+    try:
+        print(tag_value)
+        data_fields = tag_value["fields"]["data_fields"]
+    except KeyError:
+        print(tag_value)
+        raise
     custom_fields = tag_value["fields"]["custom_fields"]
     final_data = {}
     final_custom = {}
@@ -1883,7 +1928,7 @@ from pycodetags.data_tags.data_tags_methods import (
 )
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.folk_tags import FolkTag, folk_tags_parser
+from pycodetags.data_tags import folk_tags_parser
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
 try:
@@ -1891,17 +1936,14 @@ try:
 except ImportError:
     from typing_extensions import TypedDict  ##
 
-
 logger = logging.getLogger(__name__)
-
 
 __all__ = ["iterate_comments_from_file", "iterate_comments"]
 
 
 def iterate_comments_from_file(
-    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
-) -> Generator[DataTag | FolkTag]:
-
+        file: str, schemas: list[DataTagSchema], include_folk_tags: bool
+) -> Generator[DataTag]:
     logger.info(f"iterate_comments: processing {file}")
     yield from iterate_comments(
         Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags
@@ -1909,23 +1951,22 @@ def iterate_comments_from_file(
 
 
 def iterate_comments(
-    source: str,
-    source_file: Path | None,
-    schemas: list[DataTagSchema],
-    include_folk_tags: bool,
-) -> Generator[DataTag | FolkTag]:
-
+        source: str,
+        source_file: Path | None,
+        schemas: list[DataTagSchema],
+        include_folk_tags: bool,
+) -> Generator[DataTag]:
     if not schemas and not include_folk_tags:
         raise SchemaError(
             "No active schemas, not looking for folk tags. Won't find anything."
         )
-    things: list[DataTag | FolkTag] = []
+    things: list[DataTag] = []
     for (
-        _start_line,
-        _start_char,
-        _end_line,
-        _end_char,
-        final_comment,
+            _start_line,
+            _start_char,
+            _end_line,
+            _end_char,
+            final_comment,
     ) in find_comment_blocks_from_string(source):
 
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
@@ -1948,7 +1989,7 @@ def iterate_comments(
         for schema in schemas:
             if not found_data_tags and include_folk_tags and schema["matching_tags"]:
 
-                found_folk_tags: list[FolkTag] = []
+                found_folk_tags: list[DataTag] = []
 
                 folk_tags_parser.process_text(
                     final_comment,
@@ -1978,16 +2019,14 @@ def iterate_comments(
 
 
 def is_int(s: str) -> bool:
-
     if len(s) and s[0] in ("-", "+"):
         return s[1:].isdigit()
     return s.isdigit()
 
 
 def parse_fields(
-    field_string: str, schema: DataTagSchema, strict: bool  ##
+        field_string: str, schema: DataTagSchema, strict: bool  ##
 ) -> DataTagFields:
-
     legit_names = {}
     for key in schema["data_fields"]:
         legit_names[key] = key
@@ -2019,7 +2058,6 @@ def parse_fields(
     key_value_matches = []
 
     for match in key_value_pattern.finditer(field_string):
-
         key_value_matches.append((match.span(), match.group(1), match.group(2)))
 
     for (_start_idx, _end_idx), key, value_raw in key_value_matches:
@@ -2111,9 +2149,8 @@ def parse_fields(
 
 
 def parse_codetags(
-    text_block: str, data_tag_schema: DataTagSchema, strict: bool
+        text_block: str, data_tag_schema: DataTagSchema, strict: bool
 ) -> list[DataTag]:
-
     results: list[DataTag] = []
     code_tag_regex = re.compile(
         r"""
@@ -2246,6 +2283,10 @@ def merge_schemas(base: DataTagSchema, override: DataTagSchema) -> DataTagSchema
 
     return merged
 
+
+def data_fields_as_list(schema: DataTagSchema):
+    return list(schema["data_fields"].keys())
+
 ```
 
 ## File: data_tags\__init__.py
@@ -2258,6 +2299,7 @@ __all__ = [
     "convert_data_tag_to_data_object",
     "iterate_comments",
     "iterate_comments_from_file",
+    "data_fields_as_list",
 ]
 
 from pycodetags.data_tags.data_tags_classes import DATA
@@ -2269,7 +2311,7 @@ from pycodetags.data_tags.data_tags_parsers import (
     iterate_comments,
     iterate_comments_from_file,
 )
-from pycodetags.data_tags.data_tags_schema import DataTagSchema
+from pycodetags.data_tags.data_tags_schema import DataTagSchema, data_fields_as_list
 
 ```
 
@@ -2281,7 +2323,7 @@ from __future__ import annotations
 import logging
 import re
 
-from pycodetags.folk_tags.folk_tags_schema import DefaultFieldMeaning, FolkTag
+from pycodetags.data_tags.data_tags_methods import DataTag
 
 try:
     from typing import Literal, TypedDict  ##
@@ -2305,14 +2347,22 @@ def extract_first_url(text: str) -> str | None:
     return match.group(0) if match else None
 
 
+def probably_pep350(text: str) -> bool:
+    return ":" in text and "#" in text and "<" in text
+
+
 def process_text(
     text: str,
     allow_multiline: bool,
-    default_field_meaning: DefaultFieldMeaning,
-    found_tags: list[FolkTag],
+    default_field_meaning: str,
+    found_tags: list[DataTag],
     file_path: str,
     valid_tags: list[str],
 ) -> None:
+    if probably_pep350(text):
+
+        return
+
     if "\r\n" in text:
         lines = text.split("\r\n")
     else:
@@ -2340,12 +2390,12 @@ def process_text(
 
 def process_line(
     file_path: str,
-    found_tags: list[FolkTag],
+    found_tags: list[DataTag],
     lines: list[str],
     start_idx: int,
     valid_tags: list[str],
     allow_multiline: bool,
-    default_field_meaning: DefaultFieldMeaning,
+    default_field_meaning: str,
 ) -> int:
     current_line = lines[start_idx]
 
@@ -2414,22 +2464,28 @@ def process_line(
             default_field = id_match.group(1)
             comment = id_match.group(2).strip()
 
-    found_tag: FolkTag = {
+    found_tag: DataTag = {
         "file_path": file_path,
         "code_tag": code_tag_candidate,
-        "default_field": default_field,
-        "custom_fields": custom_fields,
+        "fields": {
+            "unprocessed_defaults": [],
+            "default_fields": {},
+            "data_fields": {},
+            "custom_fields": custom_fields,
+            "identity_fields": [],
+        },
         "comment": comment,
+        "original_schema": "folk",
         "original_text": content,
         "offsets": (start_line, start_char, end_line, end_char),
     }
 
     if default_field and default_field_meaning:
-        found_tag[default_field_meaning] = default_field
+        found_tag["fields"]["default_fields"][default_field_meaning] = [default_field]
 
     url = extract_first_url(comment)
     if url:
-        found_tag["tracker"] = url
+        found_tag["fields"]["custom_fields"]["tracker"] = url
 
     if len(code_tag_candidate) > 1:
         found_tags.append(found_tag)
@@ -2452,51 +2508,6 @@ except ImportError:
 
     from typing_extensions import TypedDict  ##
 
-
-DefaultFieldMeaning = Literal[
-    "person",  ##
-    "assignee",
-    "originator",  ##
-    "tracker",
-]
-
-
-class FolkTag(TypedDict, total=False):
-
-    code_tag: str
-    comment: str
-    default_field: str | None
-    custom_fields: dict[str, str]
-
-    file_path: str
-    offsets: tuple[int, int, int, int] | None
-    original_text: str
-
-    tracker: str
-    assignee: str
-    originator: str
-    person: str
-
-
-def folk_tag_to_comment(tag: FolkTag) -> str:
-
-    people_text = ""
-    custom_field_text = ""
-    if tag.get("assignee") or tag.get("originator"):
-        people = ",".join(
-            _ for _ in (tag.get("assignee", ""), tag.get("originator", "")) if _
-        )
-        people.strip(", ")
-        if people:
-            people_text = f"({people.strip()})"
-    if tag["custom_fields"]:
-
-        for key, value in tag["custom_fields"].items():
-            custom_field_text += f"{key}={value.strip()} "
-        custom_field_text = f"({custom_field_text.strip()}) "
-
-    return f"# {tag['code_tag'].upper()}{people_text}: {custom_field_text}{tag['comment'].strip()}".strip()
-
 ```
 
 ## File: folk_tags\__init__.py
@@ -2504,11 +2515,9 @@ def folk_tag_to_comment(tag: FolkTag) -> str:
 ```python
 __all__ = [
     "process_text",
-    "FolkTag",
 ]
 
-from pycodetags.folk_tags.folk_tags_parser import process_text
-from pycodetags.folk_tags.folk_tags_schema import FolkTag
+from pycodetags.data_tags.folk_tags_parser import process_text
 
 ```
 
@@ -2924,7 +2933,10 @@ import shutil
 import time
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, TypeVar
+from typing import Callable  ##
+
+
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -3254,6 +3266,7 @@ def print_text(found: list[DATA]) -> None:
             print(f"--- {tag.upper()} ---")
             for todo in items:
                 print(todo.as_data_comment())
+                print(todo.terminal_link())
                 print()
     else:
         print("No Code Tags found.")

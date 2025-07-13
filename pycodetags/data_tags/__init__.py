@@ -5,7 +5,7 @@ __all__ = [
     "convert_data_tag_to_data_object",
     "iterate_comments",
     "iterate_comments_from_file",
-    "data_fields_as_list"
+    "data_fields_as_list",
 ]
 
 from pycodetags.data_tags.data_tags_classes import DATA

@@ -1,6 +1,9 @@
 import logging
+from typing import Any
+from collections.abc import Callable
+
 import jmespath
-from typing import Any, Callable, List
+
 from pycodetags.data_tags.data_tags_classes import DATA
 
 logger = logging.getLogger(__name__)
@@ -27,12 +30,9 @@ def compile_jmes_filter(expression: str) -> Callable[[dict], bool]:
     return predicate
 
 
-def filter_data_by_expression(data_list: List[DATA], expression: str) -> List[DATA]:
+def filter_data_by_expression(data_list: list[DATA], expression: str) -> list[DATA]:
     # print([
     #     item.to_flat_dict(include_comment_and_tag=True) for item in data_list
     # ])
     pred = compile_jmes_filter(expression)
-    return [
-        item for item in data_list
-        if pred(item.to_flat_dict(include_comment_and_tag=True))
-    ]
+    return [item for item in data_list if pred(item.to_flat_dict(include_comment_and_tag=True))]

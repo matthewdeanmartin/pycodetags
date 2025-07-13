@@ -20,7 +20,7 @@ from pycodetags.app_config.config_init import init_pycodetags_config
 from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
 from pycodetags.exceptions import CommentNotFoundError
-from pycodetags.filters import filter_data_by_expression, InvalidJMESPathFilter
+from pycodetags.filters import InvalidJMESPathFilter, filter_data_by_expression
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_manager import get_plugin_manager, plugin_currently_loaded
 from pycodetags.utils import load_dotenv
@@ -81,7 +81,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     # validate switch
     base_parser.add_argument("--validate", action="store_true", help="Validate all the items found")
 
-    base_parser.add_argument("--filter",  help="JMESPath filter expression")
+    base_parser.add_argument("--filter", help="JMESPath filter expression")
 
     # Create subparsers for commands
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -179,7 +179,6 @@ def main(argv: Sequence[str] | None = None) -> int:
                     print(f"Filter error: {e}", file=sys.stderr)
                     return 200
 
-
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
             return 1
@@ -236,8 +235,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 
-def source_and_modules_searcher(command: str, modules: list[str], src: list[str],
-                                schema: DataTagSchema, filter:str) -> list[DATA]:
+def source_and_modules_searcher(
+    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter: str
+) -> list[DATA]:
     try:
         all_found: list[DATA] = []
         for source in src:
@@ -245,7 +245,6 @@ def source_and_modules_searcher(command: str, modules: list[str], src: list[str]
             all_found.extend(found_tags)
         more_found = aggregate_all_kinds_multiple_input(modules, [], schema)
         all_found.extend(more_found)
-
 
         if filter:
             all_found = filter_data_by_expression(all_found, filter)
@@ -267,4 +266,3 @@ def common_switches(parser: argparse.ArgumentParser) -> None:
 
 if __name__ == "__main__":
     sys.exit(main())
-

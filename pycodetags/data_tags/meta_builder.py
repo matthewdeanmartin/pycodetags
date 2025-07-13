@@ -89,8 +89,6 @@ def build_meta_object(module_or_file_name: str | None = None, pyproject_path: st
 
     # TODO: move user meta to issue tracker plugin <matth 2025-07-13 status=inprogress category=meta priority=high release=1.0.0>
     meta = {
-
-
         # "user": {
         #     "name": config.current_user(),
         # },

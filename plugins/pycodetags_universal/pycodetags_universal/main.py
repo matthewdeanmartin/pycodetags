@@ -2,8 +2,8 @@ import re
 
 from pluggy import HookimplMarker
 
+from pycodetags import DataTag
 from pycodetags.app_config.config import CodeTagsConfig
-from pycodetags.folk_tags.folk_tags_parser import FolkTag
 
 hookimpl = HookimplMarker("pycodetags")
 
@@ -11,15 +11,15 @@ hookimpl = HookimplMarker("pycodetags")
 class JavascriptFolkTagPlugin:
     @hookimpl
     def find_source_tags(
-        self,
-        file_path: str,
-        # pylint: disable=unused-argument
-        config: CodeTagsConfig,
-    ) -> list[FolkTag]:
+            self,
+            file_path: str,
+            # pylint: disable=unused-argument
+            config: CodeTagsConfig,
+    ) -> list[DataTag]:
         if not file_path.endswith((".js", ".ts", ".jsx", ".tsx")):
             return []
 
-        found: list[FolkTag] = []
+        found: list[DataTag] = []
 
         try:
             with open(file_path, encoding="utf-8", errors="ignore") as f:
@@ -30,16 +30,22 @@ class JavascriptFolkTagPlugin:
                         raw_person = match.group(3)
                         comment = match.group(4).strip()
 
-                        folk: FolkTag = {
+                        folk: DataTag = {
                             "file_path": file_path,
-                            "line_number": idx + 1,
                             "code_tag": tag,
                             "comment": comment,
-                            "custom_fields": {},
+                            "fields": {
+                                "custom_fields": {},
+                                "unprocessed_defaults": [],
+                                "default_fields": {},
+                                "data_fields": {},
+                                "identity_fields": []
+                            },
                             "original_text": line.strip(),
+                            "offsets": (idx + 1, 1, 0, 0)
                         }
                         if raw_person:
-                            folk["assignee"] = raw_person.strip()
+                            folk["fields"]["custom_fields"]["assignee"] = raw_person.strip()
 
                         found.append(folk)
         except PermissionError as pe:

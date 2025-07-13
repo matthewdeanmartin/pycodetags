@@ -45,10 +45,12 @@ nav:
       - "005 Optional Quotes" : "peps/PYTAGS_PEP_005_optional_quotes.md"
       - "006 Scrum" : "peps/PYTAGS_PEP_006_scrum.md"
       - "007 Solo" : "peps/PYTAGS_PEP_007_solo.md"
-      - "008 Solo" :  "peps/PYTAGS_PEP_008_oss.md"
+      - "008 Open Source" :  "peps/PYTAGS_PEP_008_oss.md"
   - "FAQ": "FAQ.md"
   - "Glossary": "glossary.md"
-  - "Prior Art": "PRIOR_ART.md"
+  - "Prior Art":
+      - "Code Tags": "PRIOR_ART.md"
+      - "TODO Objects": "PRIOR_ART_TODO_OBJECTS.md"
   - "Change Log": "CHANGELOG.md"
   - "Contributing": "CONTRIBUTING.md"
 

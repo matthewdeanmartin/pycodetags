@@ -12,7 +12,7 @@ from pathlib import Path
 from pycodetags.data_tags.data_tags_methods import DataTag, merge_two_dicts, promote_fields
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.folk_tags import FolkTag, folk_tags_parser
+from pycodetags.folk_tags import folk_tags_parser
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
 try:
@@ -26,9 +26,7 @@ logger = logging.getLogger(__name__)
 __all__ = ["iterate_comments_from_file", "iterate_comments"]
 
 
-def iterate_comments_from_file(
-    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
-) -> Generator[DataTag | FolkTag]:
+def iterate_comments_from_file(file: str, schemas: list[DataTagSchema], include_folk_tags: bool) -> Generator[DataTag]:
     """
     Collect PEP-350 style code tags from a given file.
 
@@ -46,7 +44,7 @@ def iterate_comments_from_file(
 
 def iterate_comments(
     source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
-) -> Generator[DataTag | FolkTag]:
+) -> Generator[DataTag]:
     """
     Collect PEP-350 style code tags from a given file.
 
@@ -61,7 +59,7 @@ def iterate_comments(
     """
     if not schemas and not include_folk_tags:
         raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
-    things: list[DataTag | FolkTag] = []
+    things: list[DataTag] = []
     for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
         # Can only be one comment block now!
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
@@ -83,7 +81,7 @@ def iterate_comments(
             if not found_data_tags and include_folk_tags and schema["matching_tags"]:
                 # BUG: fails if there are two in the same. Blank out consumed text, reconsume bock <matth 2025-07-04
                 #  category:parser priority:high status:development release:1.0.0 iteration:1>
-                found_folk_tags: list[FolkTag] = []
+                found_folk_tags: list[DataTag] = []
                 # TODO: support config of folk schema.<matth 2025-07-04 category:config priority:high status:development release:1.0.0 iteration:1>
                 folk_tags_parser.process_text(
                     final_comment,
@@ -98,7 +96,6 @@ def iterate_comments(
                     a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
                     new_offset = _start_line + a, _start_char + b, _end_line + c, _end_char + d
                     found_folk_tag["offsets"] = new_offset
-
 
                 if found_folk_tags:
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")

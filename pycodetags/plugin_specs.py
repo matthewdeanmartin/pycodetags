@@ -6,13 +6,12 @@ from __future__ import annotations
 
 # pylint: disable=unused-argument
 import argparse
-from typing import Callable # noqa
+from typing import Callable  # noqa
 
 import pluggy
 
 from pycodetags.app_config import CodeTagsConfig
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema
-from pycodetags.folk_tags import FolkTag
 
 hookspec = pluggy.HookspecMarker("pycodetags")
 
@@ -97,7 +96,7 @@ class CodeTagsSpec:
         return []
 
     @hookspec
-    def find_source_tags(self, already_processed: bool, file_path: str, config: CodeTagsConfig) -> list[FolkTag]:
+    def find_source_tags(self, already_processed: bool, file_path: str, config: CodeTagsConfig) -> list[DataTag]:
         """
         Allows plugins to provide folk-style code tag parsing for non-Python source files.
 

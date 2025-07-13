@@ -13,7 +13,6 @@ from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSch
 
 from pycodetags import DATA
 from pycodetags.data_tags import DataTag
-from pycodetags.folk_tags import FolkTag
 
 logger = logging.getLogger(__name__)
 
@@ -79,37 +78,37 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
     )
 
 
-def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
-    """
-    Convert a FolkTag to a TODO object.
-
-    Args:
-        folk_tag (FolkTag): The FolkTag to convert.
-    """
-    kwargs = {
-        "code_tag": folk_tag.get("code_tag"),
-        "file_path": folk_tag.get("file_path"),
-        # folk_tag.get("default_field"),
-        "custom_fields": folk_tag.get("custom_fields"),
-        "comment": folk_tag["comment"],  # required
-        "tracker": folk_tag.get("tracker"),
-        "assignee": blank_to_null(folk_tag.get("assignee")),
-        "originator": blank_to_null(folk_tag.get("originator")),
-        # person=folk_tag.get("person")
-        "original_text": folk_tag.get("original_text"),
-        "original_schema": "folk",
-        "offsets": folk_tag.get("offsets"),
-    }
-    custom_fields = folk_tag.get("custom_fields", {})
-    for keyword in data_fields_as_list(IssueTrackerSchema):
-        for field_key, field_value in custom_fields.items():
-            # Promote custom fields to kwargs if they match the keyword
-            # and the keyword is not already in kwargs
-            if keyword == field_key and keyword not in kwargs:
-                kwargs[keyword] = field_value
-            if keyword == field_key and keyword not in kwargs:
-                logger.warning("Duplicate keyword found in custom fields: %s", keyword)
-    return TODO(**kwargs)  # type: ignore[arg-type]
+# def convert_folk_tag_to_TODO(folk_tag: FolkTag) -> TODO:
+#     """
+#     Convert a FolkTag to a TODO object.
+#
+#     Args:
+#         folk_tag (FolkTag): The FolkTag to convert.
+#     """
+#     kwargs = {
+#         "code_tag": folk_tag.get("code_tag"),
+#         "file_path": folk_tag.get("file_path"),
+#         # folk_tag.get("default_field"),
+#         "custom_fields": folk_tag.get("custom_fields"),
+#         "comment": folk_tag["comment"],  # required
+#         "tracker": folk_tag.get("tracker"),
+#         "assignee": blank_to_null(folk_tag.get("assignee")),
+#         "originator": blank_to_null(folk_tag.get("originator")),
+#         # person=folk_tag.get("person")
+#         "original_text": folk_tag.get("original_text"),
+#         "original_schema": "folk",
+#         "offsets": folk_tag.get("offsets"),
+#     }
+#     custom_fields = folk_tag.get("custom_fields", {})
+#     for keyword in data_fields_as_list(IssueTrackerSchema):
+#         for field_key, field_value in custom_fields.items():
+#             # Promote custom fields to kwargs if they match the keyword
+#             # and the keyword is not already in kwargs
+#             if keyword == field_key and keyword not in kwargs:
+#                 kwargs[keyword] = field_value
+#             if keyword == field_key and keyword not in kwargs:
+#                 logger.warning("Duplicate keyword found in custom fields: %s", keyword)
+#     return TODO(**kwargs)  # type: ignore[arg-type]
 
 
 def convert_pep350_tag_to_TODO(pep350_tag: DataTag) -> TODO:
