@@ -26,16 +26,16 @@ nav:
       - "Usage": "usage.md"
   - "Data Tags":
       - "Overview": "data_tags.md"
-      - "Universal Plugin" : "plugin_universal.md"
-      - "Sqlite Plugin" : "plugin_sqlite.md"
+      - "Universal Plugin" : "plugins/plugin_universal.md"
+      - "Sqlite Plugin" : "plugins/plugin_sqlite.md"
   # - "API": "api.md"
   - "Plugins for Software Development":
-    - "Issue Tracker Plugin": "plugin_issue_tracker.md"
-    - "Discussion Plugin": "plugin_discussion.md"
-    - "Code Review Plugin": "plugin_code_review.md"
+    - "Issue Tracker Plugin": "plugins/plugin_issue_tracker.md"
+    - "Discussion Plugin": "plugins/plugin_discussion.md"
+    - "Code Review Plugin": "plugins/plugin_code_review.md"
   - "Plugins":
-      - "Plugin Directory": "plugin_list.md"
-      - "Making a plugin": "plugin_how_to.md"
+      - "Plugin Directory": "plugins/plugin_list.md"
+      - "Making a plugin": "plugins/plugin_how_to.md"
   - "API": "API.md"
   - "FAQ": "FAQ.md"
   - "Glossary": "glossary.md"
