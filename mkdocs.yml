@@ -28,7 +28,7 @@ nav:
       - "Overview": "data_tags.md"
       - "Universal Plugin" : "plugins/plugin_universal.md"
       - "Sqlite Plugin" : "plugins/plugin_sqlite.md"
-  # - "API": "api.md"
+
   - "Plugins for Software Development":
     - "Issue Tracker Plugin": "plugins/plugin_issue_tracker.md"
     - "Discussion Plugin": "plugins/plugin_discussion.md"
@@ -37,6 +37,15 @@ nav:
       - "Plugin Directory": "plugins/plugin_list.md"
       - "Making a plugin": "plugins/plugin_how_to.md"
   - "API": "API.md"
+  - "Design":
+      - "001 Initializers" : "peps/PYTAGS_PEP_001_initializers.md"
+      - "002 Performance" : "peps/PYTAGS_PEP_002_performance.md"
+      - "003 Plugins" : "peps/PYTAGS_PEP_003_plugins.md"
+      - "004 Catdogs" :  "peps/PYTAGS_PEP_004_catdogs.md"
+      - "005 Optional Quotes" : "peps/PYTAGS_PEP_005_optional_quotes.md"
+      - "006 Scrum" : "peps/PYTAGS_PEP_006_scrum.md"
+      - "007 Solo" : "peps/PYTAGS_PEP_007_solo.md"
+      - "008 Solo" :  "peps/PYTAGS_PEP_008_oss.md"
   - "FAQ": "FAQ.md"
   - "Glossary": "glossary.md"
   - "Prior Art": "PRIOR_ART.md"

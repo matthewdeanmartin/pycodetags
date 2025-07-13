@@ -395,7 +395,7 @@ use_dot_env = true
 
 # default CLI arguments
 modules = [] # "demo","pycodetags"]
-src = ["demo"]# , "pycodetags", "tests", "plugins"]
+src = ["pycodetags", "tests", "plugins"]
 active_schemas = ["todo", "folk", "data"]
 
 [tool.pycodetags.synonyms]

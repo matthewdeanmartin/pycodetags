@@ -3108,7 +3108,7 @@ requires-dist = [
 
 [[package]]
 name = "pycodetags-issue-tracker"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "plugins/pycodetags_issue_tracker" }
 dependencies = [
     { name = "importlib-resources", version = "5.12.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.8'" },

@@ -23,7 +23,7 @@ black:
 	$(VENV) isort .
 	$(VENV) black pycodetags_issue_tracker # --exclude .venv
 	$(VENV) black tests # --exclude .venv
-	$(VENV) coderoller-flatten-repo pycodetags_issue_tracker
+	$(VENV) ./make_prompt.sh
 
 .PHONY: bandit
 bandit:

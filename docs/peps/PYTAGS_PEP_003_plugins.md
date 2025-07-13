@@ -1,9 +1,8 @@
 # PYCODETAGS PEP 003 — Performance and Caching
 
-
 | PEP:             | 003                                                                               |
 |------------------|-----------------------------------------------------------------------------------|
-| Title:           | Standardizing and Expanding the Plugin Architecture in PyCodeTags                 |
+| Title:           | Performance and Caching                                                           |
 | Author:          | Matthew Martin [matthewdeanmartin@gmail.com](mailto\:matthewdeanmartin@gmail.com) |
 | Author:          | ChatGPT (gpt-4-turbo, OpenAI)                                                     |
 | Status:          | Draft                                                                             |
@@ -12,19 +11,17 @@
 | License:         | MIT                                                                               |
 | Intended Version | ≥ 0.6.0                                                                           |
 
-**Author**: PyCodeTags Core Team
-**Status**: Draft
-**Created**: 2025-07-12
-**Intended Version**: ≥ 0.6.0
-
 ## Abstract
-This PEP outlines strategies and implementation details for improving the performance of PyCodeTags via persistent caching, organized storage, and systematic benchmarking, while remaining entirely within the standard Python ecosystem.
+
+This PEP outlines strategies and implementation details for improving the performance of PyCodeTags via persistent
+caching, organized storage, and systematic benchmarking, while remaining entirely within the standard Python ecosystem.
 
 ---
 
 ## Motivation
 
-PyCodeTags performs source inspection, comment parsing, plugin hook execution, and JMESPath evaluation. While powerful, these operations incur performance costs on large repositories. This PEP addresses:
+PyCodeTags performs source inspection, comment parsing, plugin hook execution, and JMESPath evaluation. While powerful,
+these operations incur performance costs on large repositories. This PEP addresses:
 
 * Long-running scans for large codebases.
 * Inefficient cache invalidation.
@@ -64,7 +61,8 @@ This layout supports:
 
 ### 2. Version-Aware Cache Namespacing
 
-The outermost folder (`{version}`) ensures that each PyCodeTags release maintains isolated caches. When a new version is installed, old caches will not be reused — avoiding subtle bugs from schema or parser changes.
+The outermost folder (`{version}`) ensures that each PyCodeTags release maintains isolated caches. When a new version is
+installed, old caches will not be reused — avoiding subtle bugs from schema or parser changes.
 
 On startup, PyCodeTags will optionally clean up non-matching version directories if desired (`--clean-old-caches`).
 
@@ -105,7 +103,7 @@ def find_comment_blocks_from_string(...):
 A minimal benchmark suite will be added under `tests/performance/`:
 
 | Benchmark                 | Description                                                   |
-| ------------------------- | ------------------------------------------------------------- |
+|---------------------------|---------------------------------------------------------------|
 | `bench_collect_stdlib.py` | Measures time to collect data from a large module like `http` |
 | `bench_inspect_repo.py`   | Measures full scan time on a mid-size repo                    |
 | `bench_comment_finder.py` | Measures speed of comment extraction from large files         |

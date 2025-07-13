@@ -40,7 +40,7 @@ class IssueTrackerApp:
     @hookimpl
     def add_cli_subcommands(self, subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
         """Register all commands the plugin supports into the argparser"""
-        cli.handle_cli(subparsers)
+        return cli.handle_cli(subparsers)
 
     @hookimpl
     def run_cli_command(

@@ -74,6 +74,7 @@ def print_text(found: list[DATA]) -> None:
             print(f"--- {tag.upper()} ---")
             for todo in items:
                 print(todo.as_data_comment())
+                print(todo.terminal_link())
                 print()
     else:
         print("No Code Tags found.")
