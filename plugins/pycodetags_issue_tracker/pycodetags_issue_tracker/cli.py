@@ -48,7 +48,7 @@ def common_switches(parser) -> None:
     parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
     parser.add_argument("--info", default=False, action="store_true", help="info level logging output")
     parser.add_argument("--bug-trail", default=False, action="store_true", help="enable bug trail, local logging")
-    parser.add_argument("--filter",  help="JMESPath filter")
+    parser.add_argument("--filter", help="JMESPath filter")
 
 
 def run_cli_command(

@@ -39,7 +39,7 @@ def print_validate(found: list[TODO]) -> bool:
             print(f"Original Text {item.original_text}")
             # print(item)
             print()
-        total+= len(validations)
+        total += len(validations)
     print(f"Found {total} issues.")
     return found_problems
 

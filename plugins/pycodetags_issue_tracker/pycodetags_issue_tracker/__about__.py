@@ -17,7 +17,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags-issue-tracker"
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 __description__ = "Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME", "pycodetags"]

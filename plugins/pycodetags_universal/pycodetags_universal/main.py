@@ -11,10 +11,10 @@ hookimpl = HookimplMarker("pycodetags")
 class JavascriptFolkTagPlugin:
     @hookimpl
     def find_source_tags(
-            self,
-            file_path: str,
-            # pylint: disable=unused-argument
-            config: CodeTagsConfig,
+        self,
+        file_path: str,
+        # pylint: disable=unused-argument
+        config: CodeTagsConfig,
     ) -> list[DataTag]:
         if not file_path.endswith((".js", ".ts", ".jsx", ".tsx")):
             return []
@@ -39,10 +39,10 @@ class JavascriptFolkTagPlugin:
                                 "unprocessed_defaults": [],
                                 "default_fields": {},
                                 "data_fields": {},
-                                "identity_fields": []
+                                "identity_fields": [],
                             },
                             "original_text": line.strip(),
-                            "offsets": (idx + 1, 1, 0, 0)
+                            "offsets": (idx + 1, 1, 0, 0),
                         }
                         if raw_person:
                             folk["fields"]["custom_fields"]["assignee"] = raw_person.strip()

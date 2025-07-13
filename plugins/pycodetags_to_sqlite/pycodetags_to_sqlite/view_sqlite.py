@@ -154,7 +154,7 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
                 item.code_tag,
                 item.comment,
                 item.file_path,
-                item.line_number,
+                offsets[0],
                 item.original_text,
                 item.original_schema,
                 offsets[0],

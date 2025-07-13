@@ -36,4 +36,5 @@ DiscussionTagSchema: DataTagSchema = {
         "l": "language",
         "ik": "idempotency_key",
     },
+    "field_infos": {},
 }

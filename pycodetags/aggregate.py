@@ -134,24 +134,3 @@ def aggregate_all_kinds(module_name: str, source_path: str, schema: DataTagSchem
             raise FileParsingError(f"Can't find any files in source folder {source_path}")
 
     return found_tags, found_in_modules
-
-
-# def convert_folk_tag_to_DATA(folk_tag: FolkTag, schema: DataTagSchema) -> DATA:  # pylint: disable=unused-argument
-#     """
-#     Convert a FolkTag to a DATA object. A DATA object does not attempt to
-#     convert domain specific fields to strongly typed properties/fields
-#
-#     Args:
-#         folk_tag (FolkTag): The FolkTag to convert.
-#         schema (DataTagSchema): Which schema to force the folk tag into
-#     """
-#     kwargs = {
-#         "code_tag": folk_tag.get("code_tag"),
-#         "custom_fields": folk_tag.get("custom_fields"),
-#         "comment": folk_tag["comment"],  # required
-#         "file_path": folk_tag.get("file_path"),
-#         "original_text": folk_tag.get("original_text"),
-#         "original_schema": "folk",
-#         "offsets": folk_tag.get("offsets"),
-#     }
-#     return DATA(**kwargs)  # type: ignore[arg-type]
