@@ -46,6 +46,7 @@ nav:
       - "006 Scrum" : "peps/PYTAGS_PEP_006_scrum.md"
       - "007 Solo" : "peps/PYTAGS_PEP_007_solo.md"
       - "008 Open Source" :  "peps/PYTAGS_PEP_008_oss.md"
+      - "009 Updates": "peps/PYTAGS_PEP_009_updates.md"
   - "FAQ": "FAQ.md"
   - "Glossary": "glossary.md"
   - "Prior Art":

@@ -11,7 +11,7 @@
 | Type:            | Standards Track                                                                   |
 | Created:         | 2025-07-12                                                                        |
 | License:         | MIT                                                                               |
-| Intended Version | ≥ 0.6.0                                                                           |
+| Intended Version | ≥ 0.7.0                                                                           |
 
 
 

@@ -67,7 +67,7 @@ These values are injected at runtime by the resolver engine.
 ### Example JMESPath Expressions
 
 | Use Case                                  | Expression                                                                                                        |   |                  |
-| ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | - | ---------------- |
+|-------------------------------------------|-------------------------------------------------------------------------------------------------------------------|---|------------------|
 | Use git blame or fallback to current user | \`meta.git\_blame                                                                                                 |   | meta.git\_user\` |
 | Infer module name from path               | `tag.file_path.split('/')[1]`                                                                                     |   |                  |
 | Tag classifier by comment                 | `contains(tag.comment, 'refactor') ? 'technical_debt' : 'feature'`                                                |   |                  |
