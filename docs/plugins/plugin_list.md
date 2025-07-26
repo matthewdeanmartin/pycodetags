@@ -23,14 +23,14 @@ This list contains 1 plugins.
 
 | name                     | summary                                                                  | last_release   | status   | requires          |
 |--------------------------|--------------------------------------------------------------------------|----------------|----------|-------------------|
-| pycodetags-issue-tracker | Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code | Jul 07, 2025   | 4 - Beta | pycodetags>=0.5.0 |
+| pycodetags-issue-tracker | Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code | Jul 13, 2025   | 4 - Beta | pycodetags>=0.6.0 |
 
 
 ## [pycodetags-issue-tracker](https://pypi.org/project/pycodetags-issue-tracker/)
 
-- **Last release**: Jul 07, 2025
+- **Last release**: Jul 13, 2025
 - **Status**: 4 - Beta
-- **Requires**: pycodetags>=0.5.0
+- **Requires**: pycodetags>=0.6.0
 - ** [Safety and Health](https://snyk.io/advisor/python/pycodetags-issue-tracker)**
 
 Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code
