@@ -1,25 +1,22 @@
 # AGENTS
 
-This repository holds the core `pycodetags` library. Follow these guidelines when modifying files in this repo.
-
-## Scope
-- Focus on the main library in `pycodetags/` and its tests in `tests/`.
-- Do **not** modify files inside `plugins/` unless explicitly requested.
+This repository holds the core `pycodetags` library. Work in the `pycodetags/` package and its tests in `tests/`; plugin code in `plugins/` is out of scope unless explicitly requested.
 
 ## Style
-- Target Python 3.7+ and keep code compatible with the lowest supported version.
+- Target Python 3.7+ (tests run on 3.8 and 3.13) and keep code compatible with the lowest supported version.
 - Format Python code with `black` (line length 120) and organize imports with `isort`.
-- Keep commits focused and use conventional commit-style messages when possible.
+- Keep commits focused and write clear commit messages.
 
 ## Quality checks
 Before committing:
-1. Run formatting and linting:
+1. Run formatting and linting for modified files:
    ```bash
-   just pre-commit
+   pre-commit run --files <files>
    ```
-2. Run the test suite with coverage:
+2. Run the test suite on Python 3.8 and 3.13:
    ```bash
-   just test
+   tox -e py38
+   tox -e py313
    ```
 
 ## Documentation

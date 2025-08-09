@@ -41,4 +41,19 @@ Not Good
 TBD!
 
 
+## Development workflow
+
+- Focus on the core library in `pycodetags/` and its tests in `tests/`; avoid modifying `plugins/` unless asked.
+- Format code with `black` (line length 120) and organize imports with `isort`.
+- Run pre-commit for modified files:
+  ```bash
+  pre-commit run --files <files>
+  ```
+- Test changes on Python 3.8 and 3.13:
+  ```bash
+  tox -e py38
+  tox -e py313
+  ```
+- Write clear commit messages.
+
 
