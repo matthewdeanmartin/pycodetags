@@ -76,6 +76,7 @@ dev = [
     "mkdocs; python_version >= '3.12'",
     "mdformat",
     "detect-test-pollution",
+    "coderoller",
     # plugin finder
     "packaging; python_version >= '3.8'",
     "requests; python_version >= '3.8'",
