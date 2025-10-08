@@ -1,4 +1,4 @@
-# Changelog
+[# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -11,6 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed for now removed features.
 - Fixed for any bug fixes.
 - Security in case of vulnerabilities.
+
+## [0.7.0] - 2025-08-03
+
+### Added
+
+- Data tag mutation API added for adding, removing, changing data tags in a source file.
+
 
 ## [0.6.0] - 2025-07-13
 
@@ -101,3 +108,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changes
 
 - Refactor issue tracker to a plugin to make core library strictly an abstract code tag (data tags)
+]()
