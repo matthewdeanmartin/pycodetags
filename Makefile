@@ -1,7 +1,4 @@
 .EXPORT_ALL_VARIABLES:
-# Get changed files
-
-FILES := $(wildcard **/*.py)
 
 # if you wrap everything in uv run, it runs slower.
 ifeq ($(origin VIRTUAL_ENV),undefined)
@@ -14,20 +11,10 @@ uv.lock: pyproject.toml
 	@echo "Installing dependencies"
 	@uv sync
 
-clean-pyc:
-	@echo "Removing compiled files"
-
-
-clean-test:
-	@echo "Removing coverage data"
-	@rm -f .coverage || true
-	@rm -f .coverage.* || true
-
-clean: clean-pyc clean-test
 
 # tests can't be expected to pass if dependencies aren't installed.
 # tests are often slow and linting is fast, so run tests on linted code.
-test: clean uv.lock install_plugins
+test: uv.lock install_plugins
 	@echo "Running unit tests"
 	$(VENV) pytest --doctest-modules pycodetags
 	# $(VENV) python -m unittest discover
@@ -39,67 +26,40 @@ test: clean uv.lock install_plugins
 #	$(VENV) bash basic_test_with_multiple_sources.sh
 
 
-.build_history:
-	@mkdir -p .build_history
 
-.build_history/isort: .build_history $(FILES)
+isort:
 	@echo "Formatting imports"
 	$(VENV) isort .
-	@touch .build_history/isort
 
-.PHONY: isort
-isort: .build_history/isort
-
-.build_history/black: .build_history .build_history/isort $(FILES)
+black: isort
 	@echo "Formatting code"
 	$(VENV) metametameta pep621
 	$(VENV) black pycodetags # --exclude .venv
 	$(VENV) black tests # --exclude .venv
 	$(VENV) black demo # --exclude .venv
 	$(VENV) black scripts # --exclude .venv
-	@touch .build_history/black
 	$(VENV) ./make_prompt.sh
 
-.PHONY: black
-black: .build_history/black
-
-.build_history/pre-commit: .build_history .build_history/isort .build_history/black
+pre-commit: isort black
 	@echo "Pre-commit checks"
 	$(VENV) pre-commit run --all-files
-	@touch .build_history/pre-commit
 
-.PHONY: pre-commit
-pre-commit: .build_history/pre-commit
 
-.build_history/bandit: .build_history $(FILES)
+bandit:
 	@echo "Security checks"
-	$(VENV)  bandit pycodetags -r
-	@touch .build_history/bandit
+	$(VENV) bandit pycodetags -r
 
-.PHONY: bandit
-bandit: .build_history/bandit
-
-.PHONY: pylint
-.build_history/pylint: .build_history .build_history/isort .build_history/black $(FILES)
+pylint: isort black
 	@echo "Linting with pylint"
 	$(VENV) ruff --fix
 	$(VENV) pylint pycodetags --fail-under 9.8
-	@touch .build_history/pylint
-
-# for when using -j (jobs, run in parallel)
-.NOTPARALLEL: .build_history/isort .build_history/black
 
 check: mypy test pylint bandit pre-commit
 
-#.PHONY: publish_test
-#publish_test:
-#	rm -rf dist && poetry version minor && poetry build && twine upload -r testpypi dist/*
 
-.PHONY: publish
 publish: test
-	rm -rf dist && hatch build
+	rm -rf dist && uv run hatch build
 
-.PHONY: mypy
 mypy:
 	$(VENV) echo $$PYTHONPATH
 	$(VENV) mypy pycodetags --ignore-missing-imports --check-untyped-defs
@@ -131,10 +91,6 @@ check_all_docs: check_docs check_md check_spelling check_changelog
 check_own_ver:
 	# Can it verify itself?
 	$(VENV) ./dog_food.sh
-
-#audit:
-#	# $(VENV) python -m pycodetags audit
-#	$(VENV) tool_audit single pycodetags --version=">=2.0.0"
 
 install_plugins:
 	# right now, only plugins that have no cross dependencies!

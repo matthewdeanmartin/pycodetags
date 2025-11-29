@@ -68,6 +68,7 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "bandit",
     "pyclean; python_version >= '3.12'",
     "strip-docs>=1.0; python_version >= '3.12'",
     "pelican>=4.11.0; python_version >= '3.12'",
