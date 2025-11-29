@@ -12,8 +12,8 @@ and the third lines onward are issue body.
 from __future__ import annotations
 
 import re
-from pathlib import Path
 from collections.abc import Generator
+from pathlib import Path
 
 from pycodetags.data_tags.data_tags_methods import DataTag
 from pycodetags.data_tags.data_tags_parsers import parse_fields

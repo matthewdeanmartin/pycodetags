@@ -136,7 +136,7 @@ import os
 from collections.abc import Iterable
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import TextIO, Union, cast
+from typing import TextIO, Union
 
 from pycodetags.data_tags import (
     DATA,
@@ -497,8 +497,8 @@ def generate_config(
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from pathlib import Path
-from typing import List, Optional, Sequence, Tuple, Union
 
 
 from pycodetags.data_tags import DATA
@@ -516,7 +516,7 @@ def apply_mutations(
     try:
         content = p_file_path.read_text()
     except Exception as e:
-        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
     replacements = []
     for old_tag, new_tag in mutations:
@@ -574,8 +574,8 @@ def apply_mutations(
                 new_text_lines = new_text.splitlines(True)
                 formatted_new_text = "".join(
                     [
-                        f"{indentation}{l.lstrip()}" if i > 0 else l
-                        for i, l in enumerate(new_text_lines)
+                        f"{indentation}{line.lstrip()}" if index > 0 else line
+                        for index, line in enumerate(new_text_lines)
                     ]
                 )
 
@@ -595,7 +595,7 @@ def apply_mutations(
         temp_file_path.write_text(modified_content)
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
-        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
 
 
 def delete_tags(
@@ -633,9 +633,9 @@ def insert_tags(
             lines.append("\n")
 
     except Exception as e:
-        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
-    for line_number, tag_to_insert, _ in insertions:
+    for line_number, _tag_to_insert, _ in insertions:
         if not (1 <= line_number <= len(lines) + 1):
             raise ValueError(
                 f"Invalid line number: {line_number}. File has {len(lines)} lines."
@@ -665,7 +665,7 @@ def insert_tags(
         temp_file_path.write_text(modified_content)
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
-        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
 
 ```
 
@@ -2667,8 +2667,8 @@ def process_line(
 from __future__ import annotations
 
 import re
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from pycodetags.data_tags.data_tags_methods import DataTag
 from pycodetags.data_tags.data_tags_parsers import parse_fields

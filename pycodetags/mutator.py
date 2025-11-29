@@ -6,8 +6,8 @@ by updating, removing, or inserting pycodetags.
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from collections.abc import Sequence
+from pathlib import Path
 
 # Assuming the DATA class is in a reachable path.
 # In a real package, this would be a relative import, e.g., from .data import DATA
@@ -124,7 +124,10 @@ def apply_mutations(
                 # Add indentation to all lines of the new text
                 new_text_lines = new_text.splitlines(True)
                 formatted_new_text = "".join(
-                    [f"{indentation}{line.lstrip()}" if index > 0 else line for index, line in enumerate(new_text_lines)]
+                    [
+                        f"{indentation}{line.lstrip()}" if index > 0 else line
+                        for index, line in enumerate(new_text_lines)
+                    ]
                 )
 
             # Reconstruct the file around the modification

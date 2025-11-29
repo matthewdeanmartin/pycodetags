@@ -51,7 +51,7 @@ bandit:
 
 pylint: isort black
 	@echo "Linting with pylint"
-	$(VENV) ruff --fix
+	$(VENV) ruff check --fix
 	$(VENV) pylint pycodetags --fail-under 9.8
 
 check: mypy test pylint bandit pre-commit
