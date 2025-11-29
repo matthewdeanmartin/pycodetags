@@ -20,16 +20,7 @@ jobs:
 
       - name: Install uv and pipx
         run: |
-          pip install uv && pip install pipx
-
-      - name: Install global dependencies
-        run: |
-          pipx install uv && pipx install "coderoller" && \
-          pipx install isort && pipx install black && pipx install bandit && \
-          pipx install pylint && pipx install pre-commit && pipx install poetry && pipx install hatch
-
-      - name: Install Dependencies
-        run: uv sync
+          pip install uv && pip install pipx && pipx install uv && uv sync
 
       - name: Run make check
         run: chmod +x *.sh && uv run make check

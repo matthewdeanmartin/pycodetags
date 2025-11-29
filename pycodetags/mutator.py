@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from collections.abc import Sequence
 
 # Assuming the DATA class is in a reachable path.
 # In a real package, this would be a relative import, e.g., from .data import DATA
@@ -16,8 +16,8 @@ from pycodetags.exceptions import DataTagError
 
 
 def apply_mutations(
-    file_path: Union[str, os.PathLike],
-    mutations: List[Tuple[DATA, Optional[DATA]]],
+    file_path: str | os.PathLike[str],
+    mutations: Sequence[tuple[DATA, DATA | None]],
 ) -> None:
     """
     Applies multiple updates and/or removals to a single file in one atomic operation.
@@ -49,7 +49,7 @@ def apply_mutations(
     try:
         content = p_file_path.read_text()
     except Exception as e:
-        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
     # --- 2. Validate and prepare replacements ---
     replacements = []
@@ -78,13 +78,13 @@ def apply_mutations(
         else:
             # Multi-line tag
             first_line = lines[start_line][start_char:]
-            middle_lines = "".join(lines[start_line + 1:end_line])
+            middle_lines = "".join(lines[start_line + 1 : end_line])
             last_line = lines[end_line][:end_char]
             original_slice = first_line + middle_lines + last_line
 
         # We must be careful with how original_text was stored.
         # Let's normalize whitespace for a more robust comparison.
-        if ' '.join(original_slice.split()) != ' '.join(old_tag.original_text.split()):
+        if " ".join(original_slice.split()) != " ".join(old_tag.original_text.split()):
             raise DataTagError(
                 f"Tag mismatch for '{old_tag.comment}' at {p_file_path}:{start_line + 1}. "
                 "The file may have been modified since the tag was parsed."
@@ -107,7 +107,7 @@ def apply_mutations(
     # assume for now we can derive it. For this implementation, we will
     # stick to line/char offsets and reconstruct carefully.
 
-    lines = content.splitlines(True) # Keep endings for reconstruction
+    lines = content.splitlines(True)  # Keep endings for reconstruction
     for (start_line, start_char, end_line, end_char), new_text in replacements:
         if start_line == end_line:
             # Single-line modification
@@ -123,7 +123,9 @@ def apply_mutations(
             if new_text:
                 # Add indentation to all lines of the new text
                 new_text_lines = new_text.splitlines(True)
-                formatted_new_text = "".join([f"{indentation}{l.lstrip()}" if i > 0 else l for i, l in enumerate(new_text_lines)])
+                formatted_new_text = "".join(
+                    [f"{indentation}{line.lstrip()}" if index > 0 else line for index, line in enumerate(new_text_lines)]
+                )
 
             # Reconstruct the file around the modification
             first_line_part = lines[start_line][:start_char]
@@ -138,7 +140,6 @@ def apply_mutations(
 
     modified_content = "".join(lines)
 
-
     # --- 5. Atomically write the modified content back to the file ---
     try:
         # Write to a temporary file in the same directory, then rename
@@ -146,12 +147,12 @@ def apply_mutations(
         temp_file_path.write_text(modified_content)
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
-        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
 
 
 def delete_tags(
-    file_path: Union[str, os.PathLike],
-    tags_to_delete: List[DATA],
+    file_path: str | os.PathLike[str],
+    tags_to_delete: list[DATA],
 ) -> None:
     """
     Syntactic sugar to remove a list of code tags from a file.
@@ -167,8 +168,8 @@ def delete_tags(
 
 
 def replace_with_strings(
-    file_path: Union[str, os.PathLike],
-    replacements: List[Tuple[DATA, str]],
+    file_path: str | os.PathLike[str],
+    replacements: list[tuple[DATA, str]],
 ) -> None:
     """
     Syntactic sugar to replace a list of code tags with new string content.
@@ -194,8 +195,8 @@ def replace_with_strings(
 
 
 def insert_tags(
-    file_path: Union[str, os.PathLike],
-    insertions: List[Tuple[int, DATA, int]],
+    file_path: str | os.PathLike[str],
+    insertions: list[tuple[int, DATA, int]],
 ) -> None:
     """
     Inserts new code tags on specified blank lines in a file.
@@ -220,24 +221,20 @@ def insert_tags(
     try:
         lines = p_file_path.read_text().splitlines(True)
         # Ensure we can insert after the last line
-        if not lines or not lines[-1].endswith(('\n', '\r')):
-             lines.append('\n')
+        if not lines or not lines[-1].endswith(("\n", "\r")):
+            lines.append("\n")
 
     except Exception as e:
-        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
     # --- 1. Validate all insertion points before modifying ---
-    for line_number, tag_to_insert, _ in insertions:
+    for line_number, _tag_to_insert, _ in insertions:
         if not (1 <= line_number <= len(lines) + 1):
-            raise ValueError(
-                f"Invalid line number: {line_number}. File has {len(lines)} lines."
-            )
+            raise ValueError(f"Invalid line number: {line_number}. File has {len(lines)} lines.")
         # Check if the target line is blank (only whitespace)
         # Adjust for 0-based index
         if line_number <= len(lines) and lines[line_number - 1].strip():
-            raise ValueError(
-                f"Cannot insert tag at line {line_number}. Line is not blank."
-            )
+            raise ValueError(f"Cannot insert tag at line {line_number}. Line is not blank.")
 
     # --- 2. Sort insertions by line number in descending order ---
     # This ensures that inserting a line doesn't affect the line numbers
@@ -250,9 +247,7 @@ def insert_tags(
         tag_text = tag_to_insert.as_data_comment()
 
         # Indent every line of the generated tag comment
-        indented_tag_text = "\n".join(
-            f"{indentation}{line}" for line in tag_text.splitlines()
-        ) + "\n"
+        indented_tag_text = "\n".join(f"{indentation}{line}" for line in tag_text.splitlines()) + "\n"
 
         # Insert the new text. list.insert is what we need.
         # Use 0-based index.
@@ -266,4 +261,4 @@ def insert_tags(
         temp_file_path.write_text(modified_content)
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
-        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
+        raise OSError(f"Could not write to file '{p_file_path}': {e}") from e

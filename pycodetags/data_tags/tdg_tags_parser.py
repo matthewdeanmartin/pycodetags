@@ -8,20 +8,19 @@ and the third lines onward are issue body.
 # that will be in the "Body" property of the comment
 
 """
+
 from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Generator
+from collections.abc import Generator
 
 from pycodetags.data_tags.data_tags_methods import DataTag
 from pycodetags.data_tags.data_tags_parsers import parse_fields
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 
-def iterate_comments(
-    source: str, source_file: Path | None, schemas: list[DataTagSchema]
-) -> Generator[DataTag]:
+def iterate_comments(source: str, source_file: Path | None, schemas: list[DataTagSchema]) -> Generator[DataTag]:
     """
     Collect TDG style code tags from a given file.
 

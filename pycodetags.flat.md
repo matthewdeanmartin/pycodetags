@@ -167,7 +167,7 @@ def string_to_data(
         schemas=[schema],
         include_folk_tags=include_folk_tags,
     ):
-        tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
+        tags.append(convert_data_tag_to_data_object(tag, schema))
     return tags
 
 
@@ -186,7 +186,7 @@ def string_to_data_tag_typed_dicts(
         schemas=[schema],
         include_folk_tags=include_folk_tags,
     ):
-        tags.append(cast(DataTag, tag))
+        tags.append(tag)
     return tags
 
 
@@ -368,7 +368,8 @@ class InvalidActionError(ConfigError):
 
 ```python
 import logging
-from typing import Any, Callable, List
+from collections.abc import Callable
+from typing import Any
 
 import jmespath
 
@@ -381,7 +382,7 @@ class InvalidJMESPathFilter(Exception):
     pass
 
 
-def compile_jmes_filter(expression: str) -> Callable[[dict], bool]:
+def compile_jmes_filter(expression: str) -> Callable[[dict[str, Any]], bool]:
     try:
         compiled = jmespath.compile(expression)
     except jmespath.exceptions.JMESPathError as e:
@@ -398,7 +399,7 @@ def compile_jmes_filter(expression: str) -> Callable[[dict], bool]:
     return predicate
 
 
-def filter_data_by_expression(data_list: List[DATA], expression: str) -> List[DATA]:
+def filter_data_by_expression(data_list: list[DATA], expression: str) -> list[DATA]:
 
     pred = compile_jmes_filter(expression)
     return [
@@ -487,6 +488,184 @@ def generate_config(
         config["loggers"]["pycodetags"]["handlers"].append("bugtrail")
 
     return config
+
+```
+
+## File: mutator.py
+
+```python
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import List, Optional, Sequence, Tuple, Union
+
+
+from pycodetags.data_tags import DATA
+from pycodetags.exceptions import DataTagError
+
+
+def apply_mutations(
+    file_path: str | os.PathLike[str],
+    mutations: Sequence[tuple[DATA, DATA | None]],
+) -> None:
+    p_file_path = Path(file_path)
+    if not p_file_path.is_file():
+        raise FileNotFoundError(f"No such file: '{p_file_path}'")
+
+    try:
+        content = p_file_path.read_text()
+    except Exception as e:
+        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+
+    replacements = []
+    for old_tag, new_tag in mutations:
+        if not isinstance(old_tag, DATA) or (
+            new_tag is not None and not isinstance(new_tag, DATA)
+        ):
+            raise TypeError("mutations must be a list of (DATA, DATA | None) tuples.")
+
+        if not old_tag.offsets or old_tag.original_text is None:
+            raise DataTagError(
+                "The 'old_tag' must be an object from a parse operation "
+                "with valid 'offsets' and 'original_text' attributes."
+            )
+
+        start_line, start_char, end_line, end_char = old_tag.offsets
+
+        lines = content.splitlines(True)
+        if start_line == end_line:
+            try:
+                original_slice = lines[start_line][start_char:end_char]
+            except IndexError as ie:
+                raise DataTagError("Tag mismatch") from ie
+        else:
+
+            first_line = lines[start_line][start_char:]
+            middle_lines = "".join(lines[start_line + 1 : end_line])
+            last_line = lines[end_line][:end_char]
+            original_slice = first_line + middle_lines + last_line
+
+        if " ".join(original_slice.split()) != " ".join(old_tag.original_text.split()):
+            raise DataTagError(
+                f"Tag mismatch for '{old_tag.comment}' at {p_file_path}:{start_line + 1}. "
+                "The file may have been modified since the tag was parsed."
+            )
+
+        replacement_text = new_tag.as_data_comment() if new_tag else ""
+        replacements.append((old_tag.offsets, replacement_text))
+
+    replacements.sort(key=lambda item: item[0][0], reverse=True)
+
+    lines = content.splitlines(True)  ##
+
+    for (start_line, start_char, end_line, end_char), new_text in replacements:
+        if start_line == end_line:
+
+            line = lines[start_line]
+            lines[start_line] = line[:start_char] + new_text + line[end_char:]
+        else:
+
+            indentation = lines[start_line][:start_char]
+
+            formatted_new_text = new_text
+            if new_text:
+
+                new_text_lines = new_text.splitlines(True)
+                formatted_new_text = "".join(
+                    [
+                        f"{indentation}{l.lstrip()}" if i > 0 else l
+                        for i, l in enumerate(new_text_lines)
+                    ]
+                )
+
+            first_line_part = lines[start_line][:start_char]
+            last_line_part = lines[end_line][end_char:]
+
+            lines[start_line] = first_line_part + formatted_new_text + last_line_part
+
+            for i in range(start_line + 1, end_line + 1):
+                lines[i] = ""
+
+    modified_content = "".join(lines)
+
+    try:
+
+        temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
+        temp_file_path.write_text(modified_content)
+        os.replace(temp_file_path, p_file_path)
+    except Exception as e:
+        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
+
+
+def delete_tags(
+    file_path: str | os.PathLike[str],
+    tags_to_delete: list[DATA],
+) -> None:
+    mutations = [(tag, None) for tag in tags_to_delete]
+    apply_mutations(file_path, mutations)
+
+
+def replace_with_strings(
+    file_path: str | os.PathLike[str],
+    replacements: list[tuple[DATA, str]],
+) -> None:
+    mutations = []
+    for old_tag, new_string in replacements:
+
+        new_tag = DATA(code_tag=old_tag.code_tag, comment=new_string)
+        mutations.append((old_tag, new_tag))
+    apply_mutations(file_path, mutations)
+
+
+def insert_tags(
+    file_path: str | os.PathLike[str],
+    insertions: list[tuple[int, DATA, int]],
+) -> None:
+    p_file_path = Path(file_path)
+    if not p_file_path.is_file():
+        raise FileNotFoundError(f"No such file: '{p_file_path}'")
+
+    try:
+        lines = p_file_path.read_text().splitlines(True)
+
+        if not lines or not lines[-1].endswith(("\n", "\r")):
+            lines.append("\n")
+
+    except Exception as e:
+        raise IOError(f"Could not read file '{p_file_path}': {e}") from e
+
+    for line_number, tag_to_insert, _ in insertions:
+        if not (1 <= line_number <= len(lines) + 1):
+            raise ValueError(
+                f"Invalid line number: {line_number}. File has {len(lines)} lines."
+            )
+
+        if line_number <= len(lines) and lines[line_number - 1].strip():
+            raise ValueError(
+                f"Cannot insert tag at line {line_number}. Line is not blank."
+            )
+
+    insertions.sort(key=lambda item: item[0], reverse=True)
+
+    for line_number, tag_to_insert, indent_level in insertions:
+        indentation = " " * indent_level
+        tag_text = tag_to_insert.as_data_comment()
+
+        indented_tag_text = (
+            "\n".join(f"{indentation}{line}" for line in tag_text.splitlines()) + "\n"
+        )
+
+        lines.insert(line_number - 1, indented_tag_text)
+
+    modified_content = "".join(lines)
+
+    try:
+        temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
+        temp_file_path.write_text(modified_content)
+        os.replace(temp_file_path, p_file_path)
+    except Exception as e:
+        raise IOError(f"Could not write to file '{p_file_path}': {e}") from e
 
 ```
 
@@ -650,6 +829,7 @@ __all__ = [
     "__version__",
     "__description__",
     "__readme__",
+    "__credits__",
     "__keywords__",
     "__license__",
     "__requires_python__",
@@ -660,6 +840,7 @@ __title__ = "pycodetags"
 __version__ = "0.6.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
+__credits__ = [{"name": "Matthew Martin", "email": "matthewdeanmartin@gmail.com"}]
 __keywords__ = [
     "pep350",
     "pep-350",
@@ -1850,15 +2031,17 @@ class ExpressionEvaluationError(Exception):
     pass
 
 
-class CodeTagsCustomFunctions(Functions):
+class CodeTagsCustomFunctions(Functions):  ##
 
-    @jmespath.functions.signature({"types": ["object"]}, {"types": []})
-    def _func_lookup(self, dictionary: dict, key: Any) -> Any:
+    @jmespath.functions.signature({"types": ["object"]}, {"types": []})  ##
+    def _func_lookup(self, dictionary: dict[str, Any], key: Any) -> Any:
 
         return dictionary.get(key)
 
 
-def evaluate_field_expression(expr: str | None, *, tag: DataTag, meta: dict) -> Any:
+def evaluate_field_expression(
+    expr: str | None, *, tag: DataTag, meta: dict[str, Any]
+) -> Any:
 
     if not expr:
         return None
@@ -1883,8 +2066,11 @@ def evaluate_field_expression(expr: str | None, *, tag: DataTag, meta: dict) -> 
 
 
 def initialize_fields_from_schema(
-    tag: DataTag, meta: dict, field_infos: dict[str, FieldInfo], is_new: bool = False
-) -> dict:
+    tag: DataTag,
+    meta: dict[str, Any],
+    field_infos: dict[str, FieldInfo],
+    is_new: bool = False,
+) -> dict[str, Any]:
 
     result_fields = tag["fields"]["data_fields"]
 
@@ -1921,6 +2107,7 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
+from pycodetags.data_tags import folk_tags_parser
 from pycodetags.data_tags.data_tags_methods import (
     DataTag,
     merge_two_dicts,
@@ -1928,7 +2115,6 @@ from pycodetags.data_tags.data_tags_methods import (
 )
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.data_tags import folk_tags_parser
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
 try:
@@ -1936,14 +2122,17 @@ try:
 except ImportError:
     from typing_extensions import TypedDict  ##
 
+
 logger = logging.getLogger(__name__)
+
 
 __all__ = ["iterate_comments_from_file", "iterate_comments"]
 
 
 def iterate_comments_from_file(
-        file: str, schemas: list[DataTagSchema], include_folk_tags: bool
+    file: str, schemas: list[DataTagSchema], include_folk_tags: bool
 ) -> Generator[DataTag]:
+
     logger.info(f"iterate_comments: processing {file}")
     yield from iterate_comments(
         Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags
@@ -1951,22 +2140,23 @@ def iterate_comments_from_file(
 
 
 def iterate_comments(
-        source: str,
-        source_file: Path | None,
-        schemas: list[DataTagSchema],
-        include_folk_tags: bool,
+    source: str,
+    source_file: Path | None,
+    schemas: list[DataTagSchema],
+    include_folk_tags: bool,
 ) -> Generator[DataTag]:
+
     if not schemas and not include_folk_tags:
         raise SchemaError(
             "No active schemas, not looking for folk tags. Won't find anything."
         )
     things: list[DataTag] = []
     for (
-            _start_line,
-            _start_char,
-            _end_line,
-            _end_char,
-            final_comment,
+        _start_line,
+        _start_char,
+        _end_line,
+        _end_char,
+        final_comment,
     ) in find_comment_blocks_from_string(source):
 
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
@@ -2000,6 +2190,7 @@ def iterate_comments(
                     valid_tags=schema["matching_tags"],
                 )
                 for found_folk_tag in found_folk_tags:
+
                     a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
                     new_offset = (
                         _start_line + a,
@@ -2019,14 +2210,16 @@ def iterate_comments(
 
 
 def is_int(s: str) -> bool:
+
     if len(s) and s[0] in ("-", "+"):
         return s[1:].isdigit()
     return s.isdigit()
 
 
 def parse_fields(
-        field_string: str, schema: DataTagSchema, strict: bool  ##
+    field_string: str, schema: DataTagSchema, strict: bool  ##
 ) -> DataTagFields:
+
     legit_names = {}
     for key in schema["data_fields"]:
         legit_names[key] = key
@@ -2058,6 +2251,7 @@ def parse_fields(
     key_value_matches = []
 
     for match in key_value_pattern.finditer(field_string):
+
         key_value_matches.append((match.span(), match.group(1), match.group(2)))
 
     for (_start_idx, _end_idx), key, value_raw in key_value_matches:
@@ -2149,8 +2343,9 @@ def parse_fields(
 
 
 def parse_codetags(
-        text_block: str, data_tag_schema: DataTagSchema, strict: bool
+    text_block: str, data_tag_schema: DataTagSchema, strict: bool
 ) -> list[DataTag]:
+
     results: list[DataTag] = []
     code_tag_regex = re.compile(
         r"""
@@ -2275,47 +2470,19 @@ def merge_schemas(base: DataTagSchema, override: DataTagSchema) -> DataTagSchema
     )
 
     for key in ("default_fields", "data_fields", "data_field_aliases"):
-        base_dict = merged.get(key, {})  ##
-
-        override_dict = override.get(key, {})  ##
-
+        base_dict = merged.get(key, {})
+        override_dict = override.get(key, {})
         merged[key] = {**base_dict, **override_dict}  ##
 
     return merged
 
 
-def data_fields_as_list(schema: DataTagSchema):
+def data_fields_as_list(schema: DataTagSchema) -> list[str]:
     return list(schema["data_fields"].keys())
 
 ```
 
-## File: data_tags\__init__.py
-
-```python
-__all__ = [
-    "DATA",
-    "DataTag",
-    "DataTagSchema",
-    "convert_data_tag_to_data_object",
-    "iterate_comments",
-    "iterate_comments_from_file",
-    "data_fields_as_list",
-]
-
-from pycodetags.data_tags.data_tags_classes import DATA
-from pycodetags.data_tags.data_tags_methods import (
-    DataTag,
-    convert_data_tag_to_data_object,
-)
-from pycodetags.data_tags.data_tags_parsers import (
-    iterate_comments,
-    iterate_comments_from_file,
-)
-from pycodetags.data_tags.data_tags_schema import DataTagSchema, data_fields_as_list
-
-```
-
-## File: folk_tags\folk_tags_parser.py
+## File: data_tags\folk_tags_parser.py
 
 ```python
 from __future__ import annotations
@@ -2494,30 +2661,106 @@ def process_line(
 
 ```
 
-## File: folk_tags\folk_tags_schema.py
+## File: data_tags\tdg_tags_parser.py
 
 ```python
 from __future__ import annotations
 
-try:
-    from typing import Literal, TypedDict  ##
+import re
+from pathlib import Path
+from typing import Generator
+
+from pycodetags.data_tags.data_tags_methods import DataTag
+from pycodetags.data_tags.data_tags_parsers import parse_fields
+from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 
-except ImportError:
-    from typing_extensions import Literal  ##
+def iterate_comments(
+    source: str, source_file: Path | None, schemas: list[DataTagSchema]
+) -> Generator[DataTag]:
 
-    from typing_extensions import TypedDict  ##
+    tdg_regex = re.compile(
+        r"""
+        ^[ \t]*#\s*(?P<code_tag>[A-Z]+):\s*(?P<comment>.*) # Line 1: Tag and Title
+        \n[ \t]*#\s*(?P<field_string>[^\n]*)              # Line 2: Fields
+        (?P<body_lines>(?:\n[ \t]*#\s*.*)*)                # Line 3+: Optional body
+        """,
+        re.MULTILINE | re.VERBOSE,
+    )
+
+    for match in tdg_regex.finditer(source):
+        code_tag = match.group("code_tag").strip()
+        comment = match.group("comment").strip()
+        field_string = match.group("field_string").strip()
+        body_lines_raw = match.group("body_lines")
+
+        active_schema = None
+        for schema in schemas:
+            if code_tag in schema.get("matching_tags", []):
+                active_schema = schema
+                break
+
+        if not active_schema:
+            continue  ##
+
+        fields = parse_fields(field_string, active_schema, strict=False)
+
+        if body_lines_raw:
+            cleaned_body_lines = []
+            for line in body_lines_raw.strip().split("\n"):
+
+                cleaned_line = re.sub(r"^[ \t]*#\s?", "", line)
+                cleaned_body_lines.append(cleaned_line)
+            body = "\n".join(cleaned_body_lines)
+
+            if body:
+                fields["custom_fields"]["body"] = body
+
+        start_char_offset = match.start()
+        end_char_offset = match.end()
+
+        start_line = source.count("\n", 0, start_char_offset)
+        start_col = start_char_offset - source.rfind("\n", 0, start_char_offset) - 1
+        end_line = source.count("\n", 0, end_char_offset)
+        end_col = end_char_offset - source.rfind("\n", 0, end_char_offset) - 1
+
+        data_tag: DataTag = {
+            "code_tag": code_tag,
+            "comment": comment,
+            "fields": fields,
+            "file_path": str(source_file) if source_file else None,
+            "original_text": match.group(0),
+            "original_schema": "TDG",
+            "offsets": (start_line, start_col, end_line, end_col),
+        }
+
+        yield data_tag
 
 ```
 
-## File: folk_tags\__init__.py
+## File: data_tags\__init__.py
 
 ```python
 __all__ = [
-    "process_text",
+    "DATA",
+    "DataTag",
+    "DataTagSchema",
+    "convert_data_tag_to_data_object",
+    "iterate_comments",
+    "iterate_comments_from_file",
+    "data_fields_as_list",
 ]
 
-from pycodetags.data_tags.folk_tags_parser import process_text
+from pycodetags.data_tags.data_tags_classes import DATA
+from pycodetags.data_tags.data_tags_methods import (
+    DataTag,
+    convert_data_tag_to_data_object,
+)
+from pycodetags.data_tags.data_tags_parsers import (
+    iterate_comments,
+    iterate_comments_from_file,
+)
+from pycodetags.data_tags.data_tags_schema import DataTagSchema, data_fields_as_list
 
 ```
 

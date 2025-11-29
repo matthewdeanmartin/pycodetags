@@ -7,7 +7,7 @@ from __future__ import annotations
 import datetime
 import os
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 try:
     import tomllib
@@ -15,7 +15,7 @@ except ModuleNotFoundError:
     try:
         import toml as tomllib  # type: ignore[no-redef]
     except ImportError:
-        tomllib = None  # type: ignore[no-redef,assignment]
+        tomllib = None  # type: ignore[no-redef,assignment,unused-ignore]
 
 # from pycodetags_issue_tracker.issue_tracker_config import get_issue_tracker_config
 __all__ = ["build_meta_object"]
@@ -43,11 +43,11 @@ def get_project_version_from_toml(pyproject_path: str = "pyproject.toml") -> str
 
         # Check for PEP 621 `[project]` table
         if "project" in data and "version" in data["project"]:
-            return data["project"]["version"]
+            return cast(str, data["project"]["version"])
 
         # Check for `[tool.poetry]` table
         if "tool" in data and "poetry" in data["tool"] and "version" in data["tool"]["poetry"]:
-            return data["tool"]["poetry"]["version"]
+            return cast(str, data["tool"]["poetry"]["version"])
 
     except Exception:
         # Gracefully handle parsing errors or missing keys

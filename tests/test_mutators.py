@@ -3,21 +3,17 @@ Unit tests for the pycodetags.mutator module.
 These tests use pytest and do not mock file system operations.
 """
 
-import pytest
 from pathlib import Path
-from typing import List
+
+import pytest
 
 from pycodetags.common_interfaces import string_to_data
-# These imports assume the pycodetags package structure.
-# You may need to adjust them based on your project setup.
-from pycodetags.mutator import (
-    apply_mutations,
-    delete_tags,
-    replace_with_strings,
-    insert_tags,
-)
 from pycodetags.data_tags import DATA
 from pycodetags.exceptions import DataTagError
+
+# These imports assume the pycodetags package structure.
+# You may need to adjust them based on your project setup.
+from pycodetags.mutator import apply_mutations, delete_tags, insert_tags, replace_with_strings
 
 # --- Test Data and Fixtures ---
 
@@ -81,6 +77,7 @@ def blank_lines_file(tmp_path: Path) -> Path:
 
 
 # --- Tests for apply_mutations (Core Logic) ---
+
 
 def test_update_single_tag(source_file: Path):
     """Test updating a single tag to a new state."""
@@ -222,14 +219,13 @@ def test_error_on_externally_modified_file(source_file: Path):
 def test_error_on_nonexistent_file(tmp_path: Path):
     """Test that FileNotFoundError is raised."""
     non_existent_path = tmp_path / "ghost.py"
-    dummy_tag = DATA(
-        original_text="# DUMMY", offsets=(0, 0, 0, 8)
-    )  # Dummy tag for the call
+    dummy_tag = DATA(original_text="# DUMMY", offsets=(0, 0, 0, 8))  # Dummy tag for the call
     with pytest.raises(FileNotFoundError):
         apply_mutations(non_existent_path, [(dummy_tag, None)])
 
 
 # --- Tests for Syntactic Sugar Functions ---
+
 
 def test_delete_tags(source_file: Path):
     """Test the delete_tags convenience function."""
@@ -250,7 +246,8 @@ def broken_function():
 """
     # Use split and join to normalize multiple newlines for robust comparison
     assert "\n".join(s for s in source_file.read_text().split("\n") if s.strip()) == "\n".join(
-        s for s in expected_content.split("\n") if s.strip())
+        s for s in expected_content.split("\n") if s.strip()
+    )
 
 
 def test_replace_with_strings(source_file: Path):
@@ -279,6 +276,7 @@ def broken_function():
 
 
 # --- Tests for insert_tags ---
+
 
 def test_insert_single_tag(blank_lines_file: Path):
     """Test inserting one tag into a blank line."""
@@ -345,4 +343,3 @@ def test_insert_error_on_out_of_bounds_line(blank_lines_file: Path):
     tag = DATA(code_tag="FAIL", comment="This should not work.")
     with pytest.raises(ValueError, match="Invalid line number"):
         insert_tags(blank_lines_file, [(100, tag, 0)])
-

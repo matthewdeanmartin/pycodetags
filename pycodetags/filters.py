@@ -1,6 +1,6 @@
 import logging
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 
 import jmespath
 
@@ -13,7 +13,7 @@ class InvalidJMESPathFilter(Exception):
     pass
 
 
-def compile_jmes_filter(expression: str) -> Callable[[dict], bool]:
+def compile_jmes_filter(expression: str) -> Callable[[dict[str, Any]], bool]:
     try:
         compiled = jmespath.compile(expression)
     except jmespath.exceptions.JMESPathError as e:

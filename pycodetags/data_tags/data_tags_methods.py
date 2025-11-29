@@ -233,11 +233,11 @@ class ExpressionEvaluationError(Exception):
     pass
 
 
-class CodeTagsCustomFunctions(Functions):
+class CodeTagsCustomFunctions(Functions):  # type: ignore[misc]
     """Custom JMESPath functions for pycodetags."""
 
-    @jmespath.functions.signature({"types": ["object"]}, {"types": []})
-    def _func_lookup(self, dictionary: dict, key: Any) -> Any:
+    @jmespath.functions.signature({"types": ["object"]}, {"types": []})  # type: ignore[untyped-decorator]
+    def _func_lookup(self, dictionary: dict[str, Any], key: Any) -> Any:
         """
         Performs a dynamic key lookup in a dictionary.
         Allows expressions like lookup(my.dict, my.key_name).
@@ -245,7 +245,7 @@ class CodeTagsCustomFunctions(Functions):
         return dictionary.get(key)
 
 
-def evaluate_field_expression(expr: str | None, *, tag: DataTag, meta: dict) -> Any:
+def evaluate_field_expression(expr: str | None, *, tag: DataTag, meta: dict[str, Any]) -> Any:
     """
     Evaluate a JMESPath expression using the combined context of the tag and metadata.
 
@@ -279,8 +279,8 @@ def evaluate_field_expression(expr: str | None, *, tag: DataTag, meta: dict) -> 
 
 
 def initialize_fields_from_schema(
-    tag: DataTag, meta: dict, field_infos: dict[str, FieldInfo], is_new: bool = False
-) -> dict:
+    tag: DataTag, meta: dict[str, Any], field_infos: dict[str, FieldInfo], is_new: bool = False
+) -> dict[str, Any]:
     """
     For a given tag and schema, evaluate all missing or blank fields using their expressions.
 

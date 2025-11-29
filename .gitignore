@@ -196,3 +196,10 @@ cython_debug/
 .build_history
 .cli_tool_audit_cache
 /docs_site/output/
+/plugins/pycodetags_chat/pycodetags_chat.flat.md
+/plugins/pycodetags_issue_tracker_gh_sync/pycodetags_github_issues_sync.flat.md
+/plugins/pycodetags_issue_tracker/pycodetags_issue_tracker.flat.md
+/plugins/pycodetags_to_sqlite/pycodetags_to_sqlite.flat.md
+/plugins/pycodetags_universal/pycodetags_universal.flat.md
+/.qlty
+/junit.xml

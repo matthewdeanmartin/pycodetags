@@ -9,10 +9,10 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
+from pycodetags.data_tags import folk_tags_parser
 from pycodetags.data_tags.data_tags_methods import DataTag, merge_two_dicts, promote_fields
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
-from pycodetags.data_tags import folk_tags_parser
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
 try:

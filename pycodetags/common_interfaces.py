@@ -9,7 +9,7 @@ import os
 from collections.abc import Iterable
 from io import StringIO, TextIOWrapper
 from pathlib import Path
-from typing import TextIO, Union, cast
+from typing import TextIO, Union
 
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema, convert_data_tag_to_data_object, iterate_comments
 from pycodetags.pure_data_schema import PureDataSchema
@@ -26,7 +26,7 @@ def string_to_data(
         schema = PureDataSchema
     tags = []
     for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
-        tags.append(convert_data_tag_to_data_object(cast(DataTag, tag), schema))
+        tags.append(convert_data_tag_to_data_object(tag, schema))
     return tags
 
 
@@ -38,7 +38,7 @@ def string_to_data_tag_typed_dicts(
         schema = PureDataSchema
     tags: list[DataTag] = []
     for tag in iterate_comments(value, source_file=file_path, schemas=[schema], include_folk_tags=include_folk_tags):
-        tags.append(cast(DataTag, tag))
+        tags.append(tag)
     return tags
 
 

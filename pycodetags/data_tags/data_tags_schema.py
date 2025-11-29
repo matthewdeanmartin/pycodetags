@@ -122,12 +122,12 @@ def merge_schemas(base: DataTagSchema, override: DataTagSchema) -> DataTagSchema
     merged["matching_tags"] = list(sorted(set(merged.get("matching_tags", []) + override.get("matching_tags", []))))
 
     for key in ("default_fields", "data_fields", "data_field_aliases"):
-        base_dict = merged.get(key, {})  # type: ignore
-        override_dict = override.get(key, {})  # type: ignore
+        base_dict = merged.get(key, {})
+        override_dict = override.get(key, {})
         merged[key] = {**base_dict, **override_dict}  # type: ignore
 
     return merged
 
 
-def data_fields_as_list(schema: DataTagSchema):
+def data_fields_as_list(schema: DataTagSchema) -> list[str]:
     return list(schema["data_fields"].keys())
