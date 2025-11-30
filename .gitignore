@@ -203,3 +203,6 @@ cython_debug/
 /plugins/pycodetags_universal/pycodetags_universal.flat.md
 /.qlty
 /junit.xml
+demo_reports/todo.json
+demo_reports/todo.txt
+demo_reports/default.xt
