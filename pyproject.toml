@@ -68,6 +68,8 @@ packages = [
 
 [dependency-groups]
 dev = [
+    "isort",
+    "black",
     "pre-commit",
     "bandit",
     "pyclean; python_version >= '3.12'",
@@ -76,7 +78,6 @@ dev = [
     "gha-update; python_version >= '3.12'",
     "mkdocstrings[python]",
     "mkdocs; python_version >= '3.12'",
-    "mdformat",
     "detect-test-pollution",
     "coderoller; python_version >= '3.12'",
     # plugin finder
@@ -92,7 +93,7 @@ dev = [
     "types-toml; python_version >= '3.8'",
 
     # reports
-    "jinja2; python_version >= '3.8'",
+    # "jinja2; python_version >= '3.8'",
     "bug-trail-core>=3.1.0; python_version >= '3.9'",
     # build
     "vermin; python_version >= '3.8'",

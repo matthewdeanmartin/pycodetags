@@ -65,10 +65,8 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         dict[str, Any]: A dictionary representation of the DataTag with fields promoted according to the schema.
     """
     try:
-        print(tag_value)
         data_fields = tag_value["fields"]["data_fields"]
     except KeyError:
-        print(tag_value)
         raise
     custom_fields = tag_value["fields"]["custom_fields"]
     final_data = {}

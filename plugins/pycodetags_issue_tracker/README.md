@@ -33,7 +33,7 @@ issues:install_plugins
 	@echo "For best results, fix these issues:"
 	$(VENV) pycodetags issues --src pycodetags --src plugins --format validate
 	@echo "Generating HTML report"
-	$(VENV) pycodetags issues --src pycodetags --src plugins --format html>issues_site/index.html
+	$(VENV) pycodetags issues --src pycodetags --src plugins --format html
 ```
 
 ## Prior Art

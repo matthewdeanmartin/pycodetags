@@ -5,12 +5,6 @@ description = "A github issues sync plugin for pycodetags"
 dependencies = [
         "pycodetags>=0.6.0",
     "pluggy",
-
-     # backwards compatibility
-    "toml; python_version < '3.11'",
-    "importlib-resources; python_version < '3.9'",
-    "typing_extensions ; python_version < '3.8'",
-
 ]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy

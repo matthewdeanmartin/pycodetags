@@ -1,5 +1,9 @@
 # AGENTS
 
+Working on stomping out all variables with names starting with `_`. Do not do any sort of hungarian notation.
+
+_ means unused and prefix with _ means unused. It doesn't mean private. Don't name any method with _ Ever. I'm serious.
+
 This repository holds the core `pycodetags` library. Work in the `pycodetags/` package and its tests in `tests/`; plugin code in `plugins/` is out of scope unless explicitly requested.
 
 ## Style

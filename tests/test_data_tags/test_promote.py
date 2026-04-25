@@ -3,7 +3,7 @@
 import pytest
 
 from pycodetags.data_tags import DataTag
-from pycodetags.data_tags.data_tags_methods import promote_fields
+from pycodetags.data_tags.data_tags_methods import promote_fields, upgrade_to_specific_schema
 
 
 @pytest.fixture
@@ -100,3 +100,26 @@ def test_merge_custom_and_data_field_with_alias_and_conflict(simple_schema):
     assert isinstance(value, list)
     assert "medium" in value and "high" in value
     assert "p" not in tag["fields"]["custom_fields"]
+
+
+def test_upgrade_to_specific_schema_stays_quiet(capsys, simple_schema):
+    tag: DataTag = {
+        "code_tag": "TODO",
+        "comment": "Stay quiet",
+        "fields": {
+            "unprocessed_defaults": [],
+            "default_fields": {"originator": "JD"},
+            "data_fields": {"priority": "medium"},
+            "custom_fields": {"extra": "value"},
+        },
+        "file_path": "example.py",
+        "original_text": "# TODO: Stay quiet <originator:JD priority:medium extra:value>",
+        "original_schema": "pep350",
+    }
+
+    upgraded = upgrade_to_specific_schema(tag, simple_schema)
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert upgraded["data_fields"] == {"priority": "medium"}
+    assert upgraded["custom_fields"] == {"extra": "value"}

@@ -114,5 +114,5 @@ issues:
 	@echo "For best results, fix these issues:"
 	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format validate
 	@echo "Generating HTML report"
-	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format html>issues_site/index.html
+	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format html
 	$(VENV) pycodetags issues --src pycodetags --src plugins/pycodetags_issue_tracker/pycodetags_issue_tracker --format changelog>CHANGELOG_DRAFT.md
