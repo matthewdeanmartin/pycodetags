@@ -8,3 +8,4 @@ mkdocstrings[python]
 mkdocs-material
 mkdocs-material-extensions
 pymdown-extensions>=10.16.1 # not directly required, pinned by Snyk to avoid a vulnerability
+idna>=3.15 # not directly required, pinned by Snyk to avoid a vulnerability
