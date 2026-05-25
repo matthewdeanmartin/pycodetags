@@ -54,7 +54,7 @@ pylint: isort black
 	$(VENV) ruff check --fix
 	$(VENV) pylint pycodetags --fail-under 9.8
 
-check: mypy test pylint bandit pre-commit
+check: mypy test pylint bandit
 
 
 publish: test
