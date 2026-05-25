@@ -127,6 +127,7 @@ dev = [
 
 [tool.uv]
 default-groups = "all"
+universal = true
 
 [tool.uv.sources]
 pycodetags = { workspace = true }
