@@ -127,7 +127,6 @@ dev = [
 
 [tool.uv]
 default-groups = "all"
-universal = true
 
 [tool.uv.sources]
 pycodetags = { workspace = true }
@@ -143,6 +142,8 @@ members = ["./",
     "plugins/pycodetags_to_sqlite"
 ]
 
+[tool.uv.pip]
+universal = true
 [project.scripts]
 # These are all aliases.
 code_tags = "pycodetags.__main__:main"
