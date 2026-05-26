@@ -30,11 +30,8 @@ print("no more comment block")
 # Comment block continues""",
         )
     ]
-    assert (
-        extract_comment_text(content, (1, 0, 2, 25))
-        == """# Start of a comment
+    assert extract_comment_text(content, (1, 0, 2, 25)) == """# Start of a comment
 # Comment block continues"""
-    )
 
 
 def test_three_comment_blocks():

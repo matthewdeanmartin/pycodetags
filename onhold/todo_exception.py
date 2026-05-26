@@ -9,9 +9,9 @@ import logging
 from typing import Any, Callable, cast  # noqa
 
 try:
-    from typing import Literal  # type:ignore[assignment,unused-ignore]
+    from typing import Literal  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing_extensions import Literal  # type:ignore[assignment,unused-ignore] # noqa
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
 
 
 logger = logging.getLogger(__name__)

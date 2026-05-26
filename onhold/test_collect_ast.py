@@ -51,6 +51,7 @@ def test_no_raises(tmp_path):
     coll = TodoExceptionCollector()
     assert not coll.collect_from_source_analysis(mod)
 
+
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
 def test_single_todo_raise_full_args(tmp_path):
     # include assignee, due, message
@@ -68,6 +69,7 @@ def test_single_todo_raise_full_args(tmp_path):
     assert exc.assignee == "alice"
     assert exc.due == "2025-12-31"
     assert exc.message == "fix this"
+
 
 @pytest.mark.skipif(sys.version_info < (3, 8), reason="Requires Python > 3.7")
 def test_partial_args(tmp_path):

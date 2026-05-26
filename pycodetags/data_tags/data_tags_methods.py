@@ -95,11 +95,11 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         "offsets": tag_value.get("offsets"),
     }
     if flat:
-        kwargs["default_fields"] = tag_value["fields"]["default_fields"]  # type:ignore[typeddict-unknown-key]
-        kwargs["data_fields"] = final_data  # type:ignore[typeddict-unknown-key]
-        kwargs["custom_fields"] = final_custom  # type:ignore[typeddict-unknown-key]
+        kwargs["default_fields"] = tag_value["fields"]["default_fields"]  # type: ignore[typeddict-unknown-key]
+        kwargs["data_fields"] = final_data  # type: ignore[typeddict-unknown-key]
+        kwargs["custom_fields"] = final_custom  # type: ignore[typeddict-unknown-key]
         ud = tag_value["fields"]["unprocessed_defaults"]
-        kwargs["unprocessed_defaults"] = ud  # type:ignore[typeddict-unknown-key]
+        kwargs["unprocessed_defaults"] = ud  # type: ignore[typeddict-unknown-key]
         # kwargs["identity_fields"]=tag_value["fields"].get("identity_fields", {})  # type:ignore[typeddict-unknown-key]
     else:
         kwargs["fields"] = {

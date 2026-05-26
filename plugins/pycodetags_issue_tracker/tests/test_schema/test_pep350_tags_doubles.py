@@ -260,16 +260,14 @@ def test_parse_codetags_empty_field_string():
 
 # Tests for collect_pep350_code_tags function
 def test_collect_pep350_code_tags_single_file(create_dummy_file):
-    content = textwrap.dedent(
-        """
+    content = textwrap.dedent("""
         # TODO: Finish this module <priority:high assignee:dev_a>
         # A regular comment
         # FIXME: Refactor this part <due:2025-06-30>
         def some_function():
             # BUG: This might cause an error in production <status:open c:critical>
             pass
-        """
-    )
+        """)
     filename = create_dummy_file("test_single_file.py", content)
     tags = list(
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
@@ -294,12 +292,10 @@ def test_collect_pep350_code_tags_single_file(create_dummy_file):
 
 
 def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
-    content = textwrap.dedent(
-        """
+    content = textwrap.dedent("""
         # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
         # BUG: Issue <s:new>
-        """
-    )
+        """)
     filename = create_dummy_file("test_multiple_tags_same_line.py", content)
     tags = list(
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
@@ -322,14 +318,12 @@ def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
 
 
 def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
-    content = textwrap.dedent(
-        """
+    content = textwrap.dedent("""
         # This is a normal comment.
         # Another normal comment.
         def nothing_special():
             pass
-        """
-    )
+        """)
     filename = create_dummy_file("test_no_tags.py", content)
     tags = list(
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
@@ -348,8 +342,7 @@ def test_collect_pep350_code_tags_empty_file(create_dummy_file):
 
 
 def test_collect_pep350_code_tags_with_mixed_content(create_dummy_file):
-    content = textwrap.dedent(
-        """
+    content = textwrap.dedent("""
 # Initial comment
 # TODO: First task <p:high>
 import os
@@ -359,8 +352,7 @@ def my_func():
     print("hello")
 # Another block
 # FIXME: Final fix <d:2026-01-01>
-"""
-    )
+""")
     filename = create_dummy_file("test_mixed_content.py", content)
     tags = list(
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)

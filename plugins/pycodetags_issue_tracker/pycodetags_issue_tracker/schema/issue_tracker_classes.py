@@ -19,9 +19,9 @@ from pycodetags.app_config.config import get_code_tags_config
 from pycodetags.data_tags.data_tags_classes import DATA
 
 try:
-    from typing import Literal  # type:ignore[assignment,unused-ignore]
+    from typing import Literal  # type: ignore[assignment,unused-ignore]
 except ImportError:
-    from typing_extensions import Literal  # type:ignore[assignment,unused-ignore] # noqa
+    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
 
 
 logger = logging.getLogger(__name__)

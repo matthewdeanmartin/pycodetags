@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
+
 # I could use git library but that also uses shell
 import subprocess  # nosec
 from functools import lru_cache

@@ -144,8 +144,7 @@ def iter_plugins() -> Iterator[PluginInfo]:
 
 def plugin_definitions(plugins: Iterable[PluginInfo]) -> Iterator[str]:
     for plugin in plugins:
-        yield dedent(
-            f"""
+        yield dedent(f"""
             ## [{plugin['name']}](https://pypi.org/project/{plugin['name']}/)
 
             - **Last release**: {plugin['last_release']}
@@ -154,8 +153,7 @@ def plugin_definitions(plugins: Iterable[PluginInfo]) -> Iterator[str]:
             - ** [Safety and Health](https://snyk.io/advisor/python/{plugin['name']})**
 
             {plugin['summary']}
-            """
-        )
+            """)
 
 
 def main() -> None:

@@ -79,8 +79,7 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
 
     # Create tables
     logger.debug("Creating normalized tables.")
-    cursor.execute(
-        """
+    cursor.execute("""
         CREATE TABLE tags (
             id INTEGER PRIMARY KEY,
             code_tag TEXT,
@@ -94,10 +93,8 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             offsets_end_line INTEGER,
             offsets_end_char INTEGER
         )
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
         CREATE TABLE data_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -105,10 +102,8 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
         CREATE TABLE custom_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -116,10 +111,8 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
         CREATE TABLE default_fields (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
@@ -127,18 +120,15 @@ def _create_and_populate_normalized_tables(cursor: sqlite3.Cursor, found: list[D
             field_value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """
-    )
-    cursor.execute(
-        """
+    """)
+    cursor.execute("""
         CREATE TABLE unprocessed_defaults (
             id INTEGER PRIMARY KEY,
             tag_id INTEGER,
             value TEXT,
             FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE
         )
-    """
-    )
+    """)
     logger.debug("Normalized tables created successfully.")
 
     # Populate tables

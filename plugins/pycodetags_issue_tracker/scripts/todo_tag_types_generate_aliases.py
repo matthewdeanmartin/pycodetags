@@ -48,13 +48,11 @@ def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types
 
     generated_alias_functions = []
     for alias_name, doc_string in aliases.items():
-        func_code = textwrap.dedent(
-            f"""
+        func_code = textwrap.dedent(f"""
         def {alias_name}({params_str}) -> TODO:
             \"\"\"{doc_string}\"\"\"
             return TODO(code_tag="{alias_name}", {args_to_pass})
-        """
-        )
+        """)
         generated_alias_functions.append(func_code)
 
     # --- 4. Assemble the full content of the output file ---
@@ -62,8 +60,7 @@ def generate_code_tags_file(cls: type = TODO, output_filename: str = "main_types
 
     # --- 5. Write the content to the output file ---
     with open(output_filename, "w", encoding="utf-8") as file:
-        file.write(
-            """
+        file.write("""
 \"\"\"
 Aliases for TODO
 \"\"\"
@@ -71,8 +68,7 @@ from __future__ import annotations
 
 from typing import Any
 from pycodetags.main_types import TODO
-"""
-        )
+""")
         file.write("\n\n".join(full_output_content))
 
     print(f"Successfully generated '{output_filename}' with IntelliSense-friendly aliases.")
