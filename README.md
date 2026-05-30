@@ -194,3 +194,10 @@ PEPs and Standard Library Prior Art
 
 - [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)
 
+## Project Links
+
+- [GitHub](https://github.com/matthewdeanmartin/pycodetags)
+- [PyPI](https://pypi.org/project/pycodetags/)
+- [Documentation](https://pycodetags.readthedocs.io/en/latest/)
+- [Bug Tracker](https://github.com/matthewdeanmartin/pycodetags/issues)
+- [Change Log](https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md)
