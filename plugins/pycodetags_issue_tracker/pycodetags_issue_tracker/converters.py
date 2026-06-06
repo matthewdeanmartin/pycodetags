@@ -17,6 +17,42 @@ from pycodetags.data_tags import DataTag
 logger = logging.getLogger(__name__)
 
 
+def parse_estimate(raw: str | float | None) -> float | None:
+    """Parse a TDG ``estimate`` value into hours.
+
+    Trailing ``m`` is minutes (divided by 60), trailing ``h`` is hours, a bare number is hours.
+    Returns None for blank/None/unparseable input.
+
+    Examples:
+        >>> parse_estimate("30m")
+        0.5
+        >>> parse_estimate("2h")
+        2.0
+        >>> parse_estimate("1.5")
+        1.5
+        >>> parse_estimate(None) is None
+        True
+        >>> parse_estimate("soon") is None
+        True
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    text = raw.strip().lower()
+    if not text:
+        return None
+    try:
+        if text.endswith("m"):
+            return float(text[:-1]) / 60.0
+        if text.endswith("h"):
+            return float(text[:-1])
+        return float(text)
+    except ValueError:
+        logger.warning("Could not parse estimate %r as hours", raw)
+        return None
+
+
 def blank_to_null(value: str | None) -> str | None:
     """
     Convert a blank string to None.
@@ -43,7 +79,7 @@ def get_from_custom_or_data(name: str, tag: DATA) -> Any:
     value = (tag.data_fields or {}).get(name)
     if value:
         return value
-    value = (tag.data_fields or {}).get(name)
+    value = (tag.custom_fields or {}).get(name)
     if value:
         return value
     return None
@@ -53,6 +89,13 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
     return TODO(
         code_tag=tag.code_tag,
         comment=tag.comment,
+        # TDG title/body split (DATA attributes, populated by the TDG parser; fall back to dicts).
+        title=tag.title or get_from_custom_or_data("title", tag),
+        body=tag.body or get_from_custom_or_data("body", tag),
+        # Local identity. Comment field name is ``id``; attribute is ``tag_id``.
+        tag_id=tag.tag_id or get_from_custom_or_data("id", tag),
+        estimate=parse_estimate(get_from_custom_or_data("estimate", tag)),
+        issue=get_from_custom_or_data("issue", tag),
         default_fields=tag.default_fields or {},
         data_fields=tag.data_fields or {},
         custom_fields=tag.custom_fields or {},

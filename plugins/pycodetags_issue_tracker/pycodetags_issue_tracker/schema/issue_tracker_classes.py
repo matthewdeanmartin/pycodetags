@@ -93,6 +93,12 @@ class TODO(DATA):
     tracker: str | None = None
     """A URL or Issue as determined by config or URL detection"""
 
+    # TDG fields
+    estimate: float | None = None
+    """Effort estimate in hours (TDG, e.g. 30m -> 0.5)"""
+    issue: str | None = None
+    """External issue number (TDG ``issue=NNN``); tracker identity when present"""
+
     priority: str | None = None
     """User specified meaning, urgency of task"""
     status: str | None = None

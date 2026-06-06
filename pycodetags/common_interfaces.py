@@ -174,3 +174,23 @@ def list_available_schemas() -> list[DataTagSchema]:
             if isinstance(result, list):
                 schemas.extend(result)
     return schemas
+
+
+def get_active_schemas(active_schema_names: list[str]) -> list[DataTagSchema]:
+    """
+    Return plugin-provided schemas whose name matches one of ``active_schema_names``.
+
+    Names are matched case-insensitively against each schema's ``name`` field. ``PureDataSchema``
+    (always first in :func:`list_available_schemas`) is excluded unless explicitly named, since it is
+    the schema-agnostic fallback callers pass directly.
+
+    Args:
+        active_schema_names: Schema names from config (e.g. ``config.active_schemas()``).
+
+    Returns:
+        Matching schema definitions, in discovery order.
+    """
+    wanted = {name.lower() for name in active_schema_names}
+    if not wanted:
+        return []
+    return [s for s in list_available_schemas() if s.get("name", "").lower() in wanted]

@@ -100,8 +100,13 @@ def aggregate_all_kinds(module_name: str, source_path: str, schema: DataTagSchem
 
     found_tags: list[DataTag] = []
     schemas: list[DataTagSchema] = [schema]
-    # TODO: get schemas from plugins.<matth 2025-07-04
-    #   category:plugin priority:2 status:development release:1.0.0 iteration:1>
+    # Add plugin-provided schemas the user activated (e.g. "TDG"), so TDG-format comments are parsed
+    # alongside the primary schema. PureDataSchema / the passed schema are not duplicated.
+    from pycodetags.common_interfaces import get_active_schemas
+
+    for extra in get_active_schemas(active_schemas):
+        if extra.get("name") != schema.get("name"):
+            schemas.append(extra)
 
     if source_path:
         src_found = 0
