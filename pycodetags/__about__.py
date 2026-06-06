@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 __description__ = "TODOs in source code as a first class construct, follows PEP350"
 __readme__ = "README.md"
 __credits__ = [{"name": "Matthew Martin", "email": "matthewdeanmartin@gmail.com"}]
