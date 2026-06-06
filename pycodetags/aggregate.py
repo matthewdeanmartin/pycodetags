@@ -9,6 +9,7 @@ import importlib
 import logging
 import logging.config
 import pathlib
+from typing import Any
 
 from pycodetags.app_config import get_code_tags_config
 from pycodetags.data_tags import (
@@ -66,7 +67,40 @@ def aggregate_all_kinds_multiple_input(
         collected_DATA.append(item)
     collected_DATA.extend(found_in_modules)
 
-    return collected_DATA
+    return dedup_data_objects(collected_DATA)
+
+
+def dedup_data_objects(tags: list[DATA]) -> list[DATA]:
+    """Drop duplicate tags produced when several active schemas match the same comment block.
+
+    When both ``PureDataSchema`` and a plugin schema (e.g. the issue-tracker ``TODO`` schema) recognize
+    the same ``# TODO:`` block, the same physical tag is collected once per schema. They share a file
+    path, offsets, tag name, and comment, so we key on that tuple and keep the first occurrence.
+
+    Tags without source mapping (e.g. live objects collected from modules, which have no offsets) are
+    never deduped against each other -- their identity tuple is unique enough only by object, so they
+    pass through untouched.
+
+    Args:
+        tags: Collected DATA objects, in discovery order.
+
+    Returns:
+        The list with block-level duplicates removed, order preserved.
+    """
+    seen: set[tuple[Any, ...]] = set()
+    out: list[DATA] = []
+    for tag in tags:
+        if tag.offsets is None or tag.file_path is None:
+            # No reliable source key (module-collected tag); keep it.
+            out.append(tag)
+            continue
+        key = (tag.file_path, tag.offsets, tag.code_tag, tag.comment)
+        if key in seen:
+            logger.debug("Deduped tag %s at %s:%s", tag.code_tag, tag.file_path, tag.offsets)
+            continue
+        seen.add(key)
+        out.append(tag)
+    return out
 
 
 def aggregate_all_kinds(module_name: str, source_path: str, schema: DataTagSchema) -> tuple[list[DataTag], list[DATA]]:

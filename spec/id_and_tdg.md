@@ -404,8 +404,8 @@ features that make this genuinely useful rather than a one-way dump.
 Legend: **[S]** = Sonnet-safe (schema/wiring/data-model), **[O]** = Opus (hard parsing), **[S+test]** = Sonnet but
 needs the round-trip tests to land first.
 
-> **Status (branch `feat/identity-and-tdg`): Phases 1, 2, 3 are DONE and green** (172 core + 88 plugin tests).
-> Phases 4, 5, 6 remain. **Notes for whoever picks up Phase 4 (the `id` command):**
+> **Status (branch `feat/identity-and-tdg`): Phases 1, 2, 3, 4 are DONE and green** (338 core + 92 plugin tests).
+> Phases 5, 6 remain. **Phase 4 notes (now implemented; kept for context):**
 > - Identity primitives are ready: `pycodetags.data_tags.identity` (`content_identity`,
 >   `content_identity_for_data`, `resolve_identity`) and `pycodetags.identity_counter.IdCounter`
 >   (`load`/`allocate`/`save`/`record_existing`, atomic write to committed `.pycodetags_ids`).
@@ -440,10 +440,21 @@ needs the round-trip tests to land first.
   to the parser, so land it with Phase 3.
 - Self-contained test file `tests/test_data_tags/test_tdg_parser.py` (table-driven).
 
-### Phase 4 — `id` command **[S+test]**  *(depends on Phase 1; TDG-id support depends on Phase 3's serializer)*
-- `pycodetags id [--dry-run] [--check]` (§2). PEP-350 tags first; TDG tags once §4.4 lands (skip+warn before then).
-- Round-trip safety tests (§2.1).
-- Post-collection dedup (§5).
+### Phase 4 — `id` command **[S+test]** — ✅ DONE  *(depends on Phase 1; TDG-id support depends on Phase 3's serializer)*
+- `pycodetags id [PATHS...] [--dry-run] [--check]` (§2), in core `__main__.py` + `pycodetags/id_command.py`.
+  PEP-350 tags rewrite via `as_data_comment`; TDG-origin tags rewrite via `as_tdg_comment` (gated on the
+  TDG schema being active; skipped+warned otherwise).
+- `mutator.apply_mutations` gained an optional `serializer` hook so TDG tags are not coerced into PEP-350.
+- Round-trip safety tests (§2.1): `tests/test_id_command.py` (PEP-350) and the plugin's
+  `tests/test_tdg_id_assignment.py` (TDG).
+- Post-collection dedup (§5): `aggregate.dedup_data_objects`, applied in `aggregate_all_kinds_multiple_input`
+  and in the `id` command.
+- **Discovered & fixed (Part 7):** two distinct PEP-350 tags can occupy one contiguous comment block.
+  Originally every tag in a block was given the *whole block's* offsets/`original_text`, so the
+  block-replacing mutator clobbered siblings. Phase 4 first shipped a conservative "skip shared-block
+  tags" guard; **Part 7 then gave each tag its own per-tag offsets/`original_text`** (from each regex
+  match's block span), so in-block tags are now each assigned an id safely. The skip guard remains only
+  as a defensive net for the (now unexpected) case of two tags with identical offsets.
 
 ### Phase 5 — GitHub Issues sync **[S]**  *(depends on Phases 2–4)*
 - Implement `github-issues-sync` for real (§6): title/body/labels/assignee mapping, create→write-back `issue=`,
@@ -481,3 +492,89 @@ needs the round-trip tests to land first.
 | Full-scan perf on large repos | §2 | Accepted for now; documented; index on roadmap; counter format index-ready |
 | gh-sync creates duplicate issues | §6 | `issue=` write-back closes the loop; `--apply` gating + dry-run default |
 | Lost/missing `.pycodetags_ids` | Open Qs | Source is source-of-truth; counter reconciles from source on each run |
+| Multiple PEP-350 tags in one comment block share offsets → mutating one clobbers the others | §7 | Per-tag offsets/original_text from each regex match span (§7); mutator validates before writing |
+
+---
+
+## Part 7 — Per-tag offsets in multi-tag comment blocks (THE HARD PARSING ZONE) **[O]**
+
+> Discovered while building the `id` command (Phase 4). This is a **record-boundary** bug: the parser
+> finds the *block* boundary correctly but does not record the *per-tag* boundary, so every tag in a
+> block is told it spans the whole block. That makes per-tag mutation (the `id` command, gh-sync
+> write-back) impossible without corrupting siblings. Fixing it unblocks the conservative "skip
+> shared-block tags" workaround that Phase 4 had to ship.
+
+### 7.1 The problem
+
+`comment_finder.find_comment_blocks_from_string` groups contiguous `#` lines into one **block** and
+returns `(start_line, start_char, end_line, end_char, text)`. `parse_codetags` then runs a regex
+`finditer` over the block text and can return **N tags from one block**. But `iterate_comments`
+assigns **the same block-wide `offsets` and the same whole-block `original_text` to every one of those
+N tags** (`data_tags_parsers.py`, the PEP-350 pass). Concretely, for:
+
+```python
+# FIXME: first thing <category:core>
+# BUG: tracked one <priority:high>
+```
+
+both tags come back with `offsets == (1, 0, 2, 34)` and `original_text` equal to the *entire two-line
+block*. Two distinct records, one address.
+
+Downstream consequences:
+
+- **`mutator.apply_mutations` replaces the whole span at `offsets`.** Rewriting FIXME (to add `id=`)
+  overwrites BUG, and vice-versa. Applying both mutations stacks them at the same offsets, producing
+  garbage like `... id:2>id:1>` and deleting lines. This is the corruption Phase 4 hit.
+- The mutator's `original_text`-vs-slice guard does **not** catch it, because the per-tag `original_text`
+  *is* the full block, so it matches the slice — the write proceeds and clobbers.
+- Any future per-tag operation (gh-sync `issue=` write-back, delete-one-tag) is equally unsafe.
+
+This is the PEP-350 sibling of the folk-parser offset bug already flagged in
+`data_tags_parsers.py:90` and the TDG anchor-boundary work in §4.1.4.
+
+### 7.2 The signal that's being dropped
+
+The boundary information already exists at parse time and is being thrown away: `re.finditer` gives
+each match a **character span within the block string** (`match.span()`). The start of the next tag's
+match *is* the end-of-record signal for the current tag. We must thread that span out of
+`parse_codetags` and convert it to absolute file offsets.
+
+### 7.3 Required behavior (the contract the tests encode)
+
+For each tag parsed from a block, `offsets` and `original_text` must describe **only that tag**, not the
+block:
+
+1. **`original_text`** is the exact source substring that, if replaced, changes only that one tag —
+   from the start of its anchor line's `#` (or the tag's first character) through the closing `>` of its
+   field block.
+2. **`offsets = (start_line, start_char, end_line, end_char)`** are absolute, 0-based, and locate exactly
+   that substring in the file. For a single-line tag `start_line == end_line`.
+3. **A tag that is alone in its block keeps today's behavior** (no regression): its offsets equal the
+   block offsets.
+4. **Mutating tag *k* in a block leaves tags `≠ k` byte-identical.** This is the acceptance test.
+5. The first line of a block string is sliced at the block's `start_char`; later lines are full source
+   lines. The span→absolute conversion must add `start_char` only to positions on the block's first
+   line (the same adjustment the TDG wiring in `iterate_comments` already performs).
+
+Scope notes:
+- **Two tags on one physical line** (`# TODO: a <p:1> FIXME: b <p:2>`) get distinct offsets on the same
+  line (`start_line == end_line` for both, different `start_char`). Mutating both on one line is still
+  end-to-start safe because the mutator sorts descending by start offset.
+- This is pure parsing: no filesystem, no config. Keep it in `parse_codetags` / `iterate_comments`.
+
+### 7.4 Plan
+
+- `parse_codetags` records each match's block-relative `(char_start, char_end)` span on the produced
+  `DataTag` (e.g. a transient `_span` key, consumed by `iterate_comments` and not persisted on `DATA`).
+- `iterate_comments` converts the span to absolute `(start_line, start_char, end_line, end_char)` and
+  sets each tag's `original_text` to the per-tag slice, instead of broadcasting the block values.
+- Relax the Phase-4 "skip shared-block tags" guard in `id_command.py` once offsets are per-tag: it no
+  longer fires for normal multi-tag blocks but is kept as a defensive net for the unexpected case of two
+  distinct tags with identical offsets. The dedup (collapsing the same physical tag seen by multiple
+  schemas) stays. Also sort `mutator.apply_mutations` by `(start_line, start_char)` so two tags on one
+  physical line are still applied end-to-start.
+- Table-driven tests in `tests/test_data_tags/test_multitag_offsets.py` plus a mutator acceptance test.
+
+> **Status: ✅ DONE** — per-tag offsets implemented in `data_tags_parsers.parse_codetags_with_spans` +
+> `_span_to_offsets`; `parse_codetags`'s public shape is unchanged (spans are internal). 347 core + 92
+> plugin tests green.

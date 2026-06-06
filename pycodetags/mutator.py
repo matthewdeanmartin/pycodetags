@@ -6,7 +6,7 @@ by updating, removing, or inserting pycodetags.
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 # Assuming the DATA class is in a reachable path.
@@ -18,6 +18,7 @@ from pycodetags.exceptions import DataTagError
 def apply_mutations(
     file_path: str | os.PathLike[str],
     mutations: Sequence[tuple[DATA, DATA | None]],
+    serializer: Callable[[DATA], str] | None = None,
 ) -> None:
     """
     Applies multiple updates and/or removals to a single file in one atomic operation.
@@ -34,6 +35,10 @@ def apply_mutations(
               been obtained from a previous parse to have accurate offset info.
             - new_tag (Optional[DATA]): The new state of the tag. If None, the
               old_tag will be removed.
+        serializer (Optional[Callable[[DATA], str]]): How to render a ``new_tag``
+            back into comment text. Defaults to ``DATA.as_data_comment`` (PEP-350).
+            Pass a TDG serializer to rewrite TDG-origin tags in their native format
+            instead of converting them to PEP-350.
 
     Raises:
         FileNotFoundError: If the specified file_path does not exist.
@@ -44,6 +49,9 @@ def apply_mutations(
     p_file_path = Path(file_path)
     if not p_file_path.is_file():
         raise FileNotFoundError(f"No such file: '{p_file_path}'")
+
+    if serializer is None:
+        serializer = DATA.as_data_comment
 
     # --- 1. Read the entire file content ---
     try:
@@ -90,14 +98,16 @@ def apply_mutations(
                 "The file may have been modified since the tag was parsed."
             )
 
-        replacement_text = new_tag.as_data_comment() if new_tag else ""
+        replacement_text = serializer(new_tag) if new_tag else ""
         replacements.append((old_tag.offsets, replacement_text))
 
     # --- 3. Sort by start offset in descending order ---
     # This is the critical step to avoid offset invalidation. By processing
     # from the end of the file backwards, the offsets for earlier parts of
     # the file remain valid for each subsequent replacement.
-    replacements.sort(key=lambda item: item[0][0], reverse=True)
+    # Sort by (start_line, start_char) so that multiple tags on the same line are also applied
+    # end-to-start, keeping earlier char offsets valid as later ones are rewritten.
+    replacements.sort(key=lambda item: (item[0][0], item[0][1]), reverse=True)
 
     # --- 4. Apply replacements to the content in memory ---
     # This is a bit tricky with multi-line content. A simpler approach
