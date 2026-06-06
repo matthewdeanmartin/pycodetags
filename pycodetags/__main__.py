@@ -126,9 +126,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         ),
     )
     id_parser.add_argument("paths", nargs="*", help="Files or folders to scan (defaults to config src)")
-    id_parser.add_argument(
-        "--dry-run", action="store_true", help="Show what would be assigned; write nothing"
-    )
+    id_parser.add_argument("--dry-run", action="store_true", help="Show what would be assigned; write nothing")
     id_parser.add_argument(
         "--check",
         action="store_true",

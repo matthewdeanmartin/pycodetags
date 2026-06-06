@@ -130,7 +130,6 @@ def persistent_memoize(
     Returns:
         A decorator that can be applied to a function.
     """
-
     try:
         cache_dir = _get_cache_dir(cache_dir_override)
         cache_dir.mkdir(exist_ok=True)

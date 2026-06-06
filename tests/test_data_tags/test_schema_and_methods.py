@@ -2,15 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 
-from pycodetags.data_tags.data_tags_methods import (
-    DataTag,
-    convert_data_tag_to_data_object,
-    upgrade_to_specific_schema,
-)
+from pycodetags.data_tags.data_tags_methods import DataTag, convert_data_tag_to_data_object, upgrade_to_specific_schema
 from pycodetags.data_tags.data_tags_schema import DataTagSchema, data_fields_as_list, merge_schemas
-
 
 # ---------------------------------------------------------------------------
 # merge_schemas

@@ -40,7 +40,7 @@ black: isort
 	$(VENV) black tests # --exclude .venv
 	$(VENV) black demo # --exclude .venv
 	$(VENV) black scripts # --exclude .venv
-	$(VENV) ./make_prompt.sh
+	# $(VENV) ./make_prompt.sh
 
 pre-commit: isort black
 	@echo "Pre-commit checks"

@@ -7,8 +7,7 @@ import datetime
 import pytest
 
 from pycodetags.data_tags.data_tags_classes import DATA, Serializable
-from pycodetags.exceptions import ValidationError
-
+from pycodetags.exceptions import DataTagError, ValidationError
 
 # ---------------------------------------------------------------------------
 # Serializable.to_dict
@@ -237,7 +236,7 @@ def test_to_flat_dict_raises_on_doubles():
         data_fields={"priority": "high"},
         custom_fields={"priority": "low"},
     )
-    with pytest.raises(Exception):
+    with pytest.raises(DataTagError):
         tag.to_flat_dict(raise_on_doubles=True)
 
 

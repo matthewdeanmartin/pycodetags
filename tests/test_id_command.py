@@ -93,9 +93,7 @@ def test_dry_run_writes_nothing(tmp_path: Path):
     before = f.read_text(encoding="utf-8")
 
     messages: list[str] = []
-    code, result = id_command.run(
-        [str(f)], dry_run=True, counter_root=tmp_path, writer=messages.append
-    )
+    code, result = id_command.run([str(f)], dry_run=True, counter_root=tmp_path, writer=messages.append)
 
     assert code == 0
     assert result.assigned == 1
@@ -151,9 +149,7 @@ def test_does_not_reassign_existing_id(tmp_path: Path):
 
 
 def test_missing_path_is_skipped_gracefully(tmp_path: Path):
-    code, result = id_command.run(
-        [str(tmp_path / "does_not_exist.py")], counter_root=tmp_path, writer=lambda _m: None
-    )
+    code, result = id_command.run([str(tmp_path / "does_not_exist.py")], counter_root=tmp_path, writer=lambda _m: None)
     assert code == 0
     assert result.scanned == 0
     assert result.assigned == 0

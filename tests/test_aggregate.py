@@ -20,11 +20,13 @@ def create_python_file(path: Path, content: str) -> Path:
 
 def test_aggregate_from_source_file(tmp_path):
     # Create a source file with a valid TODO
-    content = textwrap.dedent("""
+    content = textwrap.dedent(
+        """
         # TODO: Fix this bug <originator:JD origination_date:2024-01-01>
         def func():
             pass
-    """)
+    """
+    )
     create_python_file(tmp_path, content)
 
     found_tags, found_data = aggregate_all_kinds(module_name="", source_path=str(tmp_path), schema=PureDataSchema)
@@ -36,11 +38,13 @@ def test_aggregate_from_source_file(tmp_path):
 
 def test_aggregate_all_kinds_multiple_input(tmp_path):
     # Same as above but test aggregate_all_kinds_multiple_input
-    content = textwrap.dedent("""
+    content = textwrap.dedent(
+        """
         # TODO: Another fix <originator:AB origination_date:2024-06-01>
         def example():
             pass
-    """)
+    """
+    )
     create_python_file(tmp_path, content)
 
     results = aggregate_all_kinds_multiple_input(module_names=[], source_paths=[str(tmp_path)], schema=PureDataSchema)
@@ -54,13 +58,15 @@ def test_aggregate_from_module(tmp_path):
     mod_path = tmp_path / "testmod"
     mod_path.mkdir()
     init_file = mod_path / "__init__.py"
-    module_code = textwrap.dedent("""
+    module_code = textwrap.dedent(
+        """
         from pycodetags import DATA
 
         @DATA(comment="Module level item")
         def marked():
             pass
-    """)
+    """
+    )
     init_file.write_text(module_code)
 
     sys.path.insert(0, str(tmp_path))

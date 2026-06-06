@@ -93,9 +93,7 @@ def _matches_a_tag(tag: str, valid_tags: list[str]) -> bool:
     return tag in valid_tags
 
 
-def iterate_comments(
-    source: str, source_file: Path | None, schemas: list[DataTagSchema]
-) -> Generator[DataTag]:
+def iterate_comments(source: str, source_file: Path | None, schemas: list[DataTagSchema]) -> Generator[DataTag]:
     """Yield TDG-style :class:`DataTag` objects found in ``source``.
 
     Args:

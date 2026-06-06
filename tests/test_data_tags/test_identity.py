@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
-from pycodetags.data_tags.identity import (
-    content_identity,
-    content_identity_for_data,
-    resolve_identity,
-)
+from pycodetags.data_tags.identity import content_identity, content_identity_for_data, resolve_identity
 from pycodetags.identity_counter import IdCounter
 
 
@@ -60,7 +56,7 @@ def test_content_identity_changes_with_code_tag():
 
 
 def test_content_identity_ignores_non_identity_fields():
-    """priority is not in identity_fields, so changing it must not change identity."""
+    """Priority is not in identity_fields, so changing it must not change identity."""
     schema = _schema(identity_fields=["originator"])
     a = content_identity(_tag(data_fields={"originator": "matth", "priority": "high"}), schema)
     b = content_identity(_tag(data_fields={"originator": "matth", "priority": "low"}), schema)

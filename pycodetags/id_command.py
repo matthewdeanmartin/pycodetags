@@ -32,8 +32,13 @@ from pycodetags import mutator
 from pycodetags.aggregate import dedup_data_objects
 from pycodetags.app_config import get_code_tags_config
 from pycodetags.common_interfaces import get_active_schemas, list_available_schemas
-from pycodetags.data_tags import DATA, DataTagSchema, convert_data_tag_to_data_object, iterate_comments_from_file
-from pycodetags.data_tags import tdg_tags_parser
+from pycodetags.data_tags import (
+    DATA,
+    DataTagSchema,
+    convert_data_tag_to_data_object,
+    iterate_comments_from_file,
+    tdg_tags_parser,
+)
 from pycodetags.data_tags.identity import content_identity_for_data, resolve_identity
 from pycodetags.identity_counter import IdCounter
 from pycodetags.pure_data_schema import PureDataSchema
@@ -160,9 +165,7 @@ def run(
     missing_for_check: list[DATA] = []
 
     for file in files:
-        raw_tags = list(
-            iterate_comments_from_file(str(file), schemas=schemas, include_folk_tags="folk" in active)
-        )
+        raw_tags = list(iterate_comments_from_file(str(file), schemas=schemas, include_folk_tags="folk" in active))
         converted: list[DATA] = []
         for raw in raw_tags:
             origin = (raw.get("original_schema") or "").upper()
@@ -214,9 +217,7 @@ def run(
             if origin == "TDG" and "TDG" not in schemas_by_name:
                 # TDG tag but the TDG schema/serializer is not available — cannot safely rewrite.
                 result.skipped_unsupported += 1
-                logger.warning(
-                    "Skipping TDG tag (TDG schema not active) at %s: %r", file, tag.comment
-                )
+                logger.warning("Skipping TDG tag (TDG schema not active) at %s: %r", file, tag.comment)
                 continue
 
             new_id = counter.allocate(content_id)

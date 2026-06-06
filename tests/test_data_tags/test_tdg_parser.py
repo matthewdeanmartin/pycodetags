@@ -169,9 +169,7 @@ def test_as_tdg_comment_basic():
 
 
 def test_as_tdg_comment_excludes_title_body_from_properties():
-    out = as_tdg_comment(
-        code_tag="TODO", title="T", properties={"title": "x", "body": "y", "issue": "1"}
-    )
+    out = as_tdg_comment(code_tag="TODO", title="T", properties={"title": "x", "body": "y", "issue": "1"})
     assert "title=" not in out
     assert "body=" not in out
     assert "issue=1" in out

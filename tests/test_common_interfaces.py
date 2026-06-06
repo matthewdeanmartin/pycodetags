@@ -9,7 +9,6 @@ import pytest
 
 from pycodetags.common_interfaces import (
     dump,
-    dump_all,
     dumps,
     dumps_all,
     get_active_schemas,
@@ -25,11 +24,7 @@ from pycodetags.common_interfaces import (
 from pycodetags.data_tags.data_tags_classes import DATA
 
 SOURCE_WITH_ONE_TAG = "# TODO: fix the thing <priority:high status:open>"
-SOURCE_WITH_TWO_TAGS = (
-    "# TODO: first task <priority:high>\n"
-    "def x(): pass\n"
-    "# FIXME: second task <priority:low>"
-)
+SOURCE_WITH_TWO_TAGS = "# TODO: first task <priority:high>\n" "def x(): pass\n" "# FIXME: second task <priority:low>"
 SOURCE_NO_TAGS = "x = 1\ny = 2\n"
 
 

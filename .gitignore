@@ -206,3 +206,4 @@ cython_debug/
 demo_reports/todo.json
 demo_reports/todo.txt
 demo_reports/default.xt
+/demo_reports/default.txt

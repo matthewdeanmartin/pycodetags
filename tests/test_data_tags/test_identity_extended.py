@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import pytest
 
 from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
 from pycodetags.data_tags.identity import (
-    _normalize,
     _hash_parts,
+    _normalize,
     content_identity,
     content_identity_for_data,
     resolve_identity,

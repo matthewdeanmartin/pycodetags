@@ -6,12 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from pycodetags.data_tags.data_tags_parsers import (
-    is_int,
-    iterate_comments,
-    parse_codetags,
-    parse_fields,
-)
+from pycodetags.data_tags.data_tags_parsers import is_int, iterate_comments, parse_codetags, parse_fields
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
 from pycodetags.exceptions import SchemaError
 
@@ -221,13 +216,7 @@ def test_iterate_comments_sets_offsets():
 
 
 def test_iterate_comments_handles_multiple_blocks():
-    src = (
-        "# TODO: first task <priority:high>\n"
-        "\n"
-        "def foo(): pass\n"
-        "\n"
-        "# FIXME: second task <status:open>\n"
-    )
+    src = "# TODO: first task <priority:high>\n" "\n" "def foo(): pass\n" "\n" "# FIXME: second task <status:open>\n"
     tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
     assert len(tags) == 2
     codes = {t["code_tag"] for t in tags}

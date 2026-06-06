@@ -79,7 +79,9 @@ class IdCounter:
         tag_id = str(tag_id)
         existing = self.allocated.get(tag_id)
         if existing is not None and existing != content_id:
-            logger.debug("id %s content changed: %s -> %s (tag text edited since allocation)", tag_id, existing, content_id)
+            logger.debug(
+                "id %s content changed: %s -> %s (tag text edited since allocation)", tag_id, existing, content_id
+            )
         self.allocated[tag_id] = content_id
         if tag_id.isdigit() and int(tag_id) >= self.next_id:
             self.next_id = int(tag_id) + 1

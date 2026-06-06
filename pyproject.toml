@@ -223,7 +223,7 @@ lint.ignore = [
     "E722",
     # only track structural problems with docstrings, not whitespace, nor missing
     "D200", "D212", "D415", "D411", "D205", "D102", "D103", "D100", "D107", "D101", "D104", "D105",
-    "UP007", "UP038", # Not sure if | is well supported in lowever versions of python
+    "UP007",
 ]
 lint.per-file-ignores = { }
 
