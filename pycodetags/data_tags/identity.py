@@ -74,9 +74,9 @@ def content_identity(tag: DataTag, schema: DataTagSchema) -> str:
 
     identity_fields = schema.get("identity_fields") or []
     if identity_fields:
-        fields = tag.get("fields") or {}
-        data_fields = fields.get("data_fields", {}) if fields else {}
-        custom_fields = fields.get("custom_fields", {}) if fields else {}
+        fields: dict[str, Any] = dict(tag.get("fields") or {})
+        data_fields = fields.get("data_fields", {})
+        custom_fields = fields.get("custom_fields", {})
         for name in identity_fields:
             # Identity-bearing tracker fields like ``issue`` are part of identity when present, but
             # a *blank* identity field must not destabilize the hash, so blanks normalize to "".

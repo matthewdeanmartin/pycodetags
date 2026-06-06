@@ -101,6 +101,23 @@ def iterate_comments(
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
                 things.extend(found_folk_tags)
 
+        # TDG pass: only for TDG-named schemas, only when PEP-350 found nothing in this block.
+        # PEP-350 wins; TDG is the fallback. Imported here to avoid an import cycle.
+        if not found_data_tags:
+            from pycodetags.data_tags import tdg_tags_parser
+
+            for schema in schemas:
+                if schema.get("name") != "TDG":
+                    continue
+                for tdg_tag in tdg_tags_parser.iterate_comments(final_comment, source_file, [schema]):
+                    a, b, c, d = tdg_tag["offsets"] or (0, 0, 0, 0)
+                    # The block string's first line is sliced at _start_char, so its in-block char
+                    # offset is relative to that; later lines are full source lines, so their char
+                    # offset is already absolute.
+                    abs_start_char = _start_char + b if a == 0 else b
+                    tdg_tag["offsets"] = (_start_line + a, abs_start_char, _start_line + c, d)
+                    things.append(tdg_tag)
+
     yield from things
 
 

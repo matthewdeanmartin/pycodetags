@@ -91,9 +91,20 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         # Source Mapping
         "file_path": tag_value.get("file_path"),
         "original_text": tag_value.get("original_text"),
-        "original_schema": "pep350",
+        "original_schema": tag_value.get("original_schema") or "pep350",
         "offsets": tag_value.get("offsets"),
     }
+    # Lift TDG title/body and local id onto strongly-typed DATA attributes so callers don't have to
+    # dig through custom_fields. The comment field name is ``id``; the attribute is ``tag_id``.
+    title = final_data.get("title") or final_custom.get("title")
+    body = final_data.get("body") or final_custom.get("body")
+    tag_id = final_data.get("id") or final_custom.get("id")
+    if title is not None:
+        kwargs["title"] = title
+    if body is not None:
+        kwargs["body"] = body
+    if tag_id is not None:
+        kwargs["tag_id"] = tag_id
     if flat:
         kwargs["default_fields"] = tag_value["fields"]["default_fields"]  # type: ignore[typeddict-unknown-key]
         kwargs["data_fields"] = final_data  # type: ignore[typeddict-unknown-key]
