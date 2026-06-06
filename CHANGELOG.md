@@ -10,16 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Identity. Important for any database like behaviors in the future
 - TDG syntax support. Allows for title/description
+- Data tag mutation API added for adding, removing, changing data tags in a source file.
 
 ### Fixed
 - Merging of adjacent tags fixed.
-
-
-## [0.7.0] - 2025-08-03
-
-### Added
-
-- Data tag mutation API added for adding, removing, changing data tags in a source file.
 
 ## [0.6.0] - 2025-07-13
 
