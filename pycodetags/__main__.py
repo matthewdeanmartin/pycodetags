@@ -114,6 +114,27 @@ def main(argv: Sequence[str] | None = None) -> int:
         "plugin-info", parents=[base_parser], help="Display information about loaded plugins"
     )
 
+    # 'id' command: lazily assign stable local ids (id=N) to data tags.
+    id_parser = subparsers.add_parser(
+        "id",
+        parents=[base_parser],
+        help="Assign stable local ids (id=N) to data tags that lack one",
+        description=(
+            "Scan source for data tags and assign a stable local id to any tag that has neither an "
+            "id nor a tracker issue. Ids come from the per-project .pycodetags_ids counter (commit it). "
+            "This is a full O(files) scan; an incremental index is on the roadmap."
+        ),
+    )
+    id_parser.add_argument("paths", nargs="*", help="Files or folders to scan (defaults to config src)")
+    id_parser.add_argument(
+        "--dry-run", action="store_true", help="Show what would be assigned; write nothing"
+    )
+    id_parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Exit nonzero if any tag is missing an id (for CI / pre-commit). Assigns nothing.",
+    )
+
     # Allow plugins to add their own subparsers
     new_subparsers = pm.hook.add_cli_subcommands(subparsers=subparsers)
     # Hack because we don't want plugins to have to wire up the basic stuff
@@ -203,6 +224,18 @@ def main(argv: Sequence[str] | None = None) -> int:
                 # --- NEW: Handle 'plugin-info' command ---
     elif args.command == "plugin-info":
         plugin_currently_loaded(pm)
+    elif args.command == "id":
+        from pycodetags import id_command
+
+        paths = args.paths or code_tags_config.source_folders_to_scan()
+        if not paths:
+            print(
+                "Need to specify one or more source files/folders, or set src in the config file.",
+                file=sys.stderr,
+            )
+            return 1
+        exit_code, _result = id_command.run(paths, dry_run=args.dry_run, check=args.check)
+        return exit_code
     else:
         # Pass control to plugins for other commands
         # Aggregate data if plugins might need it
@@ -236,7 +269,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def source_and_modules_searcher(
-    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter: str
+    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter_expr: str
 ) -> list[DATA]:
     try:
         all_found: list[DATA] = []
@@ -246,8 +279,8 @@ def source_and_modules_searcher(
         more_found = aggregate_all_kinds_multiple_input(modules, [], schema)
         all_found.extend(more_found)
 
-        if filter:
-            all_found = filter_data_by_expression(all_found, filter)
+        if filter_expr:
+            all_found = filter_data_by_expression(all_found, filter_expr)
 
         found_data_for_plugins = all_found
 

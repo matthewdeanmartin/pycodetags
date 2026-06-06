@@ -49,7 +49,7 @@ def get_project_version_from_toml(pyproject_path: str = "pyproject.toml") -> str
         if "tool" in data and "poetry" in data["tool"] and "version" in data["tool"]["poetry"]:
             return cast(str, data["tool"]["poetry"]["version"])
 
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         # Gracefully handle parsing errors or missing keys
         return "0.0.0"
 

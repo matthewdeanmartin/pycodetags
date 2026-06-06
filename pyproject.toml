@@ -68,6 +68,7 @@ packages = [
 [dependency-groups]
 dev = [
     "jiggle-version>=2.1.0; python_version >= '3.8'",
+    "keepachangelog-manager-fork[jiggle,format]; python_version >= '3.9'",
     "troml-dev-status>=0.6.0; python_version >= '3.9'",
     "dont-be-lazy>=0.1.2; python_version >= '3.10'",
     "pydoc-fork>=3.0.0; python_version >= '3.10'",
@@ -265,6 +266,25 @@ version = "literal: pyproject.toml: tool.poetry.version"
 format = "md"
 main_branches = "master, main, develop, dev"
 
+[tool.changelogmanager.versioning]
+scheme = "semver"
+
+[tool.changelogmanager.validation]
+enforce_preamble = true
+format = "auto"
+
+[tool.changelogmanager.defaults]
+error_format = "github"
+
+[[tool.changelogmanager.components]]
+name = "pycodetags-issue-tracker"
+changelog = "plugins/pycodetags_issue_tracker/CHANGELOG.md"
+match = ["plugins/pycodetags_issue_tracker/**"]
+
+[[tool.changelogmanager.components]]
+name = "default"
+changelog = "CHANGELOG.md"
+
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration
@@ -411,5 +431,3 @@ active_schemas = ["todo", "folk", "data"]
 [tool.pycodetags.synonyms]
 REQUIREMENT = ["REQ", "REQS", "REQUIREMENTS"]
 TODO = ["TASK", "ISSUE"]
-
-

@@ -23,7 +23,7 @@ def compile_jmes_filter(expression: str) -> Callable[[dict[str, Any]], bool]:
         try:
             result = compiled.search(flat_dict)
             return bool(result)
-        except Exception as e:
+        except (jmespath.exceptions.JMESPathError, ValueError, TypeError) as e:
             logger.warning(f"Failed to evaluate JMESPath expression: {e}")
             return False
 

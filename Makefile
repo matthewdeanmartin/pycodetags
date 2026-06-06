@@ -7,6 +7,8 @@ else
     VENV :=
 endif
 
+CHANGELOGMANAGER = $(VENV) changelogmanager --config pyproject.toml
+
 uv.lock: pyproject.toml
 	@echo "Installing dependencies"
 	@uv sync
@@ -83,8 +85,17 @@ check_spelling:
 	$(VENV) codespell pycodetags --ignore-words=private_dictionary.txt
 
 check_changelog:
-	# pipx install keepachangelog-manager
-	$(VENV) changelogmanager validate
+	$(CHANGELOGMANAGER) --error-format github validate --all
+
+.PHONY: draft-release
+draft-release:
+	@if [ -z "$(REPOSITORY)" ]; then echo "REPOSITORY must be set, e.g. owner/repo"; exit 1; fi
+	$(CHANGELOGMANAGER) github-release --repository "$(REPOSITORY)"
+
+.PHONY: release-bump
+release-bump:
+	@if [ -z "$(RELEASE_VERSION)" ]; then echo "RELEASE_VERSION must be set, e.g. 0.7.1"; exit 1; fi
+	$(CHANGELOGMANAGER) release --override-version "$(RELEASE_VERSION)" --bump-versions --yes
 
 check_all_docs: check_docs check_md check_spelling check_changelog
 
@@ -128,7 +139,7 @@ dev-status:
 	@uv run troml-dev-status validate .
 
 .PHONY: prerelease-check
-prerelease-check: version-check dev-status
+prerelease-check: version-check dev-status check_changelog
 	@echo "Pre-release checks passed."
 
 .PHONY: dont-be-lazy

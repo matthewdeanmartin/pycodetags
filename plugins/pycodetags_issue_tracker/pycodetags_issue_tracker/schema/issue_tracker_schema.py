@@ -46,6 +46,10 @@ IssueTrackerSchema: DataTagSchema = {
         "r": "release",
         "a": "assignee",
     },
+    # Content identity is code_tag + comment plus these (when present). Originator/origination_date
+    # are the stable "who created this and when" pair; volatile fields (status, priority, ...) are
+    # deliberately excluded so editing them does not change the tag's identity.
+    "identity_fields": ["originator", "origination_date"],
     "field_infos": {
         "assignee": FieldInfo(
             name="assignee",

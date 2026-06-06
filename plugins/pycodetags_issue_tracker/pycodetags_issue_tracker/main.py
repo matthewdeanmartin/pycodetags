@@ -14,6 +14,7 @@ from pycodetags_issue_tracker import cli
 from pycodetags_issue_tracker.converters import convert_data_to_TODO
 from pycodetags_issue_tracker.plugin_manager import set_plugin_manager
 from pycodetags_issue_tracker.schema.issue_tracker_schema import IssueTrackerSchema
+from pycodetags_issue_tracker.schema.tdg_schema import TDGSchema
 
 from pycodetags import DATA, DataTagSchema
 from pycodetags.app_config.config import CodeTagsConfig
@@ -88,7 +89,7 @@ class IssueTrackerApp:
         """
         Return one or more schema definitions provided by this plugin.
         """
-        return [IssueTrackerSchema]
+        return [IssueTrackerSchema, TDGSchema]
 
 
 issue_tracker_app_plugin = IssueTrackerApp()

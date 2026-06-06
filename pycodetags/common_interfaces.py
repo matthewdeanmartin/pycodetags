@@ -46,24 +46,22 @@ def _open_for_read(source: IOInput) -> StringIO | TextIOWrapper | TextIO:
     """Support for multiple ways to specify a file"""
     if isinstance(source, str):
         return io.StringIO(source)
-    elif isinstance(source, os.PathLike) or isinstance(source, str):
+    if isinstance(source, os.PathLike):
         return open(source, encoding="utf-8")
-    elif hasattr(source, "read"):
+    if hasattr(source, "read"):
         return source  # file-like
-    else:
-        raise TypeError(f"Unsupported input type: {type(source)}")
+    raise TypeError(f"Unsupported input type: {type(source)}")
 
 
 def _open_for_write(dest: IOInput) -> StringIO | TextIOWrapper | TextIO:
     """Support for multiple ways to specify a file"""
     if isinstance(dest, io.StringIO):
         return dest  # already writable string buffer
-    elif isinstance(dest, os.PathLike) or isinstance(dest, str):
+    if isinstance(dest, (os.PathLike, str)):
         return open(dest, "w", encoding="utf-8")
-    elif hasattr(dest, "write"):
+    if hasattr(dest, "write"):
         return dest  # file-like
-    else:
-        raise TypeError(f"Unsupported output type: {type(dest)}")
+    raise TypeError(f"Unsupported output type: {type(dest)}")
 
 
 # mypy fails this on no-redef
@@ -174,3 +172,23 @@ def list_available_schemas() -> list[DataTagSchema]:
             if isinstance(result, list):
                 schemas.extend(result)
     return schemas
+
+
+def get_active_schemas(active_schema_names: list[str]) -> list[DataTagSchema]:
+    """
+    Return plugin-provided schemas whose name matches one of ``active_schema_names``.
+
+    Names are matched case-insensitively against each schema's ``name`` field. ``PureDataSchema``
+    (always first in :func:`list_available_schemas`) is excluded unless explicitly named, since it is
+    the schema-agnostic fallback callers pass directly.
+
+    Args:
+        active_schema_names: Schema names from config (e.g. ``config.active_schemas()``).
+
+    Returns:
+        Matching schema definitions, in discovery order.
+    """
+    wanted = {name.lower() for name in active_schema_names}
+    if not wanted:
+        return []
+    return [s for s in list_available_schemas() if s.get("name", "").lower() in wanted]

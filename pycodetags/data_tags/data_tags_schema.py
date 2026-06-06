@@ -38,6 +38,11 @@ try:
 except ImportError:
     from typing_extensions import TypedDict  # noqa
 
+try:
+    from typing import NotRequired  # type: ignore[attr-defined,unused-ignore]
+except ImportError:
+    from typing_extensions import NotRequired  # type: ignore[assignment,unused-ignore] # noqa
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,6 +67,11 @@ class DataTagSchema(TypedDict):
 
     field_infos: dict[str, FieldInfo]
     """ALl info about a field, a field could appear in defaults, data"""
+
+    identity_fields: NotRequired[list[str]]
+    """Ordered data-field names whose values define the tag's content identity.
+
+    Optional; when absent or empty, content identity is code_tag + comment only."""
 
 
 class FieldInfo(TypedDict):

@@ -15,11 +15,6 @@ from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict  # noqa
-
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +35,50 @@ def iterate_comments_from_file(file: str, schemas: list[DataTagSchema], include_
     """
     logger.info(f"iterate_comments: processing {file}")
     yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
+
+
+def _extend_to_comment_prefix(block: str, line_start: int, match_start: int) -> int:
+    """Move ``match_start`` left over a leading ``#``/whitespace prefix on its block line.
+
+    A normal tag is written ``# TODO: ...``; the regex matches from the ``T``, but the text we want to
+    rewrite (and report as ``original_text``) includes the ``# `` prefix. We only extend when the gap
+    between the line start and the match is *only* whitespace and ``#`` characters -- so a second tag
+    sharing a physical line (``... <p:1> FIXME: ...``) is NOT extended over the preceding tag's text.
+    """
+    prefix = block[line_start:match_start]
+    if prefix.strip(" \t#") == "":
+        # The comment line's own indentation/`#` -- include from the first `#`.
+        hash_idx = prefix.find("#")
+        if hash_idx != -1:
+            return line_start + hash_idx
+    return match_start
+
+
+def _span_to_offsets(
+    block: str, span: tuple[int, int], block_start_line: int, block_start_char: int
+) -> tuple[tuple[int, int, int, int], str]:
+    """Convert a block-relative char ``span`` to absolute file offsets + the per-tag substring.
+
+    The block string's first line is sliced at ``block_start_char`` in the source, so a column on that
+    first line must be shifted by ``block_start_char``; later lines are full source lines, so their
+    columns are already absolute (spec/id_and_tdg.md §7.3.5).
+    """
+    raw_start, end = span
+    # Start of the block-line that contains raw_start.
+    line_start = block.rfind("\n", 0, raw_start) + 1  # 0 if no newline before
+    start = _extend_to_comment_prefix(block, line_start, raw_start)
+
+    def to_abs(char_index: int) -> tuple[int, int]:
+        dline = block.count("\n", 0, char_index)
+        cur_line_start = block.rfind("\n", 0, char_index) + 1
+        col = char_index - cur_line_start
+        if dline == 0:
+            col += block_start_char
+        return block_start_line + dline, col
+
+    start_line, start_char = to_abs(start)
+    end_line, end_char = to_abs(end)
+    return (start_line, start_char, end_line, end_char), block[start:end]
 
 
 def iterate_comments(
@@ -65,13 +104,17 @@ def iterate_comments(
         logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
         found_data_tags = []
         for schema in schemas:
-            found_data_tags = parse_codetags(final_comment, schema, strict=False)
+            tags_with_spans = parse_codetags_with_spans(final_comment, schema, strict=False)
+            found_data_tags = [tag for tag, _ in tags_with_spans]
 
-            for found in found_data_tags:
+            for found, span in tags_with_spans:
                 found["file_path"] = str(source_file) if source_file else None
-                found["original_text"] = final_comment
                 found["original_schema"] = "PEP350"
-                found["offsets"] = (_start_line, _start_char, _end_line, _end_char)
+                # Per-tag offsets/original_text from each match's block span, so multiple tags in one
+                # comment block do not all claim the whole block (spec/id_and_tdg.md Part 7).
+                offsets, original_text = _span_to_offsets(final_comment, span, _start_line, _start_char)
+                found["offsets"] = offsets
+                found["original_text"] = original_text
 
             if found_data_tags:
                 logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
@@ -100,6 +143,23 @@ def iterate_comments(
                 if found_folk_tags:
                     logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
                 things.extend(found_folk_tags)
+
+        # TDG pass: only for TDG-named schemas, only when PEP-350 found nothing in this block.
+        # PEP-350 wins; TDG is the fallback. Imported here to avoid an import cycle.
+        if not found_data_tags:
+            from pycodetags.data_tags import tdg_tags_parser
+
+            for schema in schemas:
+                if schema.get("name") != "TDG":
+                    continue
+                for tdg_tag in tdg_tags_parser.iterate_comments(final_comment, source_file, [schema]):
+                    a, b, c, d = tdg_tag["offsets"] or (0, 0, 0, 0)
+                    # The block string's first line is sliced at _start_char, so its in-block char
+                    # offset is relative to that; later lines are full source lines, so their char
+                    # offset is already absolute.
+                    abs_start_char = _start_char + b if a == 0 else b
+                    tdg_tag["offsets"] = (_start_line + a, abs_start_char, _start_line + c, d)
+                    things.append(tdg_tag)
 
     yield from things
 
@@ -284,6 +344,50 @@ def parse_fields(
     return fields
 
 
+_CODE_TAG_REGEX = re.compile(
+    r"""
+    (?P<code_tag>[A-Z\?\!]{3,}) # Code tag (e.g., TODO, FIXME, BUG)
+    \s*:\s* # Colon separator with optional whitespace
+    (?P<comment>.*?)            # Comment text (non-greedy)
+    <                           # Opening angle bracket for fields
+    (?P<field_string>.*?)       # Field string (non-greedy)
+    >                           # Closing angle bracket for fields
+    """,
+    re.DOTALL | re.VERBOSE,  # DOTALL allows . to match newlines, VERBOSE allows comments in regex
+)
+
+
+def parse_codetags_with_spans(
+    text_block: str, data_tag_schema: DataTagSchema, strict: bool
+) -> list[tuple[DataTag, tuple[int, int]]]:
+    """Parse PEP-350 tags and return each with its block-relative ``(start, end)`` char span.
+
+    The span (start of the ``code_tag`` through the closing ``>``) lets callers compute *per-tag*
+    offsets so multiple tags in one comment block do not all claim the whole block
+    (spec/id_and_tdg.md Part 7). This is the internal worker; :func:`parse_codetags` is the public
+    shape and does not expose spans.
+    """
+    results: list[tuple[DataTag, tuple[int, int]]] = []
+    for match in _CODE_TAG_REGEX.finditer(text_block):
+        tag_parts = {
+            "code_tag": match.group("code_tag").strip(),
+            "comment": match.group("comment").strip().rstrip(" \n#"),  # Clean up comment
+            "field_string": match.group("field_string")
+            .strip()
+            .replace("\n", " "),  # Replace newlines in fields with spaces
+        }
+        fields = parse_fields(tag_parts["field_string"], data_tag_schema, strict)
+        tag: DataTag = {
+            "code_tag": tag_parts["code_tag"],
+            "comment": tag_parts["comment"],
+            "fields": fields,
+            "original_text": "N/A",  # Overwritten per-tag by iterate_comments when from a file.
+        }
+        promote_fields(tag, data_tag_schema)
+        results.append((tag, match.span()))
+    return results
+
+
 def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool) -> list[DataTag]:
     """
     Parse PEP-350 style code tags from a block of text.
@@ -296,40 +400,4 @@ def parse_codetags(text_block: str, data_tag_schema: DataTagSchema, strict: bool
     Returns:
         list[PEP350Tag]: A list of PEP-350 style code tags found in the text block.
     """
-    results: list[DataTag] = []
-    code_tag_regex = re.compile(
-        r"""
-        (?P<code_tag>[A-Z\?\!]{3,}) # Code tag (e.g., TODO, FIXME, BUG)
-        \s*:\s* # Colon separator with optional whitespace
-        (?P<comment>.*?)            # Comment text (non-greedy)
-        <                           # Opening angle bracket for fields
-        (?P<field_string>.*?)       # Field string (non-greedy)
-        >                           # Closing angle bracket for fields
-        """,
-        re.DOTALL | re.VERBOSE,  # DOTALL allows . to match newlines, VERBOSE allows comments in regex
-    )
-
-    matches = list(code_tag_regex.finditer(text_block))
-    for match in matches:
-        tag_parts = {
-            "code_tag": match.group("code_tag").strip(),
-            "comment": match.group("comment").strip().rstrip(" \n#"),  # Clean up comment
-            "field_string": match.group("field_string")
-            .strip()
-            .replace("\n", " "),  # Replace newlines in fields with spaces
-        }
-        fields = parse_fields(tag_parts["field_string"], data_tag_schema, strict)
-        results.append(
-            {
-                "code_tag": tag_parts["code_tag"],
-                "comment": tag_parts["comment"],
-                "fields": fields,
-                "original_text": "N/A",  # BUG: Regex doesn't allow for showing this! <matth 2025-07-04
-                # category:parser priority:high status:development release:1.0.0 iteration:1>
-            }
-        )
-
-    # promote standard fields in custom_fields to root, merging if already exist
-    for result in results:
-        promote_fields(result, data_tag_schema)
-    return results
+    return [tag for tag, _span in parse_codetags_with_spans(text_block, data_tag_schema, strict)]

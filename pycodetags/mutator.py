@@ -6,7 +6,7 @@ by updating, removing, or inserting pycodetags.
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 # Assuming the DATA class is in a reachable path.
@@ -18,6 +18,7 @@ from pycodetags.exceptions import DataTagError
 def apply_mutations(
     file_path: str | os.PathLike[str],
     mutations: Sequence[tuple[DATA, DATA | None]],
+    serializer: Callable[[DATA], str] | None = None,
 ) -> None:
     """
     Applies multiple updates and/or removals to a single file in one atomic operation.
@@ -34,6 +35,10 @@ def apply_mutations(
               been obtained from a previous parse to have accurate offset info.
             - new_tag (Optional[DATA]): The new state of the tag. If None, the
               old_tag will be removed.
+        serializer (Optional[Callable[[DATA], str]]): How to render a ``new_tag``
+            back into comment text. Defaults to ``DATA.as_data_comment`` (PEP-350).
+            Pass a TDG serializer to rewrite TDG-origin tags in their native format
+            instead of converting them to PEP-350.
 
     Raises:
         FileNotFoundError: If the specified file_path does not exist.
@@ -45,9 +50,12 @@ def apply_mutations(
     if not p_file_path.is_file():
         raise FileNotFoundError(f"No such file: '{p_file_path}'")
 
+    if serializer is None:
+        serializer = DATA.as_data_comment
+
     # --- 1. Read the entire file content ---
     try:
-        content = p_file_path.read_text()
+        content = p_file_path.read_text(encoding="utf-8")
     except Exception as e:
         raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
@@ -90,14 +98,16 @@ def apply_mutations(
                 "The file may have been modified since the tag was parsed."
             )
 
-        replacement_text = new_tag.as_data_comment() if new_tag else ""
+        replacement_text = serializer(new_tag) if new_tag else ""
         replacements.append((old_tag.offsets, replacement_text))
 
     # --- 3. Sort by start offset in descending order ---
     # This is the critical step to avoid offset invalidation. By processing
     # from the end of the file backwards, the offsets for earlier parts of
     # the file remain valid for each subsequent replacement.
-    replacements.sort(key=lambda item: item[0][0], reverse=True)
+    # Sort by (start_line, start_char) so that multiple tags on the same line are also applied
+    # end-to-start, keeping earlier char offsets valid as later ones are rewritten.
+    replacements.sort(key=lambda item: (item[0][0], item[0][1]), reverse=True)
 
     # --- 4. Apply replacements to the content in memory ---
     # This is a bit tricky with multi-line content. A simpler approach
@@ -147,7 +157,7 @@ def apply_mutations(
     try:
         # Write to a temporary file in the same directory, then rename
         temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
-        temp_file_path.write_text(modified_content)
+        temp_file_path.write_text(modified_content, encoding="utf-8")
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
         raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
@@ -222,7 +232,7 @@ def insert_tags(
         raise FileNotFoundError(f"No such file: '{p_file_path}'")
 
     try:
-        lines = p_file_path.read_text().splitlines(True)
+        lines = p_file_path.read_text(encoding="utf-8").splitlines(True)
         # Ensure we can insert after the last line
         if not lines or not lines[-1].endswith(("\n", "\r")):
             lines.append("\n")
@@ -232,7 +242,7 @@ def insert_tags(
 
     # --- 1. Validate all insertion points before modifying ---
     for line_number, _tag_to_insert, _ in insertions:
-        if not (1 <= line_number <= len(lines) + 1):
+        if not 1 <= line_number <= len(lines) + 1:
             raise ValueError(f"Invalid line number: {line_number}. File has {len(lines)} lines.")
         # Check if the target line is blank (only whitespace)
         # Adjust for 0-based index
@@ -261,7 +271,7 @@ def insert_tags(
     # --- 4. Atomically write the modified content back ---
     try:
         temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
-        temp_file_path.write_text(modified_content)
+        temp_file_path.write_text(modified_content, encoding="utf-8")
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
         raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
