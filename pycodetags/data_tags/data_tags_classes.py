@@ -49,6 +49,18 @@ class DATA(Serializable):
     comment: str | None = None
     """Unstructured text"""
 
+    # Title/body split. For PEP-350 tags these stay None and ``comment`` carries everything.
+    # For TDG tags ``title`` is the first-line text and ``body`` the accumulated description.
+    title: str | None = None
+    """Short issue title (TDG first line). None for PEP-350 tags."""
+    body: str | None = None
+    """Long description (TDG lines after the property line). None for PEP-350 tags."""
+
+    # Local identity. NOT auto-assigned during parsing; filled by a tool. The comment field name is
+    # ``id`` (e.g. ``id=42``); the attribute is ``tag_id`` to avoid shadowing the ``id`` builtin.
+    tag_id: str | None = None
+    """Local identity (``id=N`` in source). Tool-assigned, stable once set."""
+
     # Derived classes will have properties/fields for each data_field.
     # assignee: str
 
@@ -216,6 +228,13 @@ class DATA(Serializable):
             if f.name != "data_meta" and f.name != "type":
                 field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
         return f"{self.__class__.__name__}({', '.join(field_strings)})"
+
+    def content_identity(self, schema: Any) -> str:
+        """Stable short hash of this tag's identity fields. See ``data_tags.identity``."""
+        # Imported lazily to avoid a cycle (identity imports the schema module, not this one).
+        from pycodetags.data_tags.identity import content_identity_for_data
+
+        return content_identity_for_data(self, schema)
 
     def terminal_link(self) -> str:
         """In JetBrains IDE Terminal, will hyperlink to file"""

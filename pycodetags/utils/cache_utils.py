@@ -41,6 +41,30 @@ F = TypeVar("F", bound=Callable[..., Any])
 _CACHE_CLEANUP_PERFORMED: dict[str, bool] = {}
 
 
+def find_project_root(start: Path | None = None) -> Path:
+    """
+    Locate the project root by searching upward for a ``pyproject.toml`` file.
+
+    Args:
+        start: Directory to start searching from. Defaults to the current working directory.
+
+    Returns:
+        The directory containing ``pyproject.toml``.
+
+    Raises:
+        FileNotFoundError: If no ``pyproject.toml`` is found in the directory tree.
+    """
+    current_path = (start or Path.cwd()).resolve()
+    for parent in [current_path] + list(current_path.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent
+
+    raise FileNotFoundError(
+        "Could not find project root. A 'pyproject.toml' file is required to "
+        "determine the project location, or you must provide an explicit path."
+    )
+
+
 def _get_cache_dir(cache_dir_override: Path | None = None) -> Path:
     """
     Determines the correct cache directory path.
@@ -50,16 +74,7 @@ def _get_cache_dir(cache_dir_override: Path | None = None) -> Path:
     if cache_dir_override:
         return cache_dir_override
 
-    current_path = Path.cwd().resolve()
-    for parent in [current_path] + list(current_path.parents):
-        if (parent / "pyproject.toml").is_file():
-            return parent / ".pycodetags_cache"
-
-    raise FileNotFoundError(
-        "Could not find project root. The 'persistent_memoize' decorator requires "
-        "a 'pyproject.toml' file to determine the cache location, or you must "
-        "provide a 'cache_dir_override'."
-    )
+    return find_project_root() / ".pycodetags_cache"
 
 
 def clear_cache(cache_dir_override: Path | None = None) -> None:
