@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
 keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME","pycodetags"]
 license = "MIT"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     # plugin support
     "pluggy",
@@ -27,7 +27,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7", # EOL
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -261,11 +260,6 @@ target-version = "py311"
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.scriv]
-version = "literal: pyproject.toml: tool.poetry.version"
-format = "md"
-main_branches = "master, main, develop, dev"
-
 [tool.changelogmanager.versioning]
 scheme = "semver"
 
@@ -276,10 +270,10 @@ format = "auto"
 [tool.changelogmanager.defaults]
 error_format = "github"
 
-[[tool.changelogmanager.components]]
-name = "pycodetags-issue-tracker"
-changelog = "plugins/pycodetags_issue_tracker/CHANGELOG.md"
-match = ["plugins/pycodetags_issue_tracker/**"]
+#[[tool.changelogmanager.components]]
+#name = "pycodetags-issue-tracker"
+#changelog = "plugins/pycodetags_issue_tracker/CHANGELOG.md"
+#match = ["plugins/pycodetags_issue_tracker/**"]
 
 [[tool.changelogmanager.components]]
 name = "default"
