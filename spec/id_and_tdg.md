@@ -404,20 +404,36 @@ features that make this genuinely useful rather than a one-way dump.
 Legend: **[S]** = Sonnet-safe (schema/wiring/data-model), **[O]** = Opus (hard parsing), **[S+test]** = Sonnet but
 needs the round-trip tests to land first.
 
-### Phase 1 — Identity core (no parsing) **[S]**
+> **Status (branch `feat/identity-and-tdg`): Phases 1, 2, 3 are DONE and green** (172 core + 88 plugin tests).
+> Phases 4, 5, 6 remain. **Notes for whoever picks up Phase 4 (the `id` command):**
+> - Identity primitives are ready: `pycodetags.data_tags.identity` (`content_identity`,
+>   `content_identity_for_data`, `resolve_identity`) and `pycodetags.identity_counter.IdCounter`
+>   (`load`/`allocate`/`save`/`record_existing`, atomic write to committed `.pycodetags_ids`).
+> - The TDG serializer `tdg_tags_parser.as_tdg_comment(...)` exists and round-trips, so §2.1's
+>   "write `id=` into the TDG property line" is unblocked. For PEP-350 tags, `DATA.as_data_comment()`
+>   is the serializer; verify it round-trips with one added field before trusting the `id` command on
+>   PEP-350 tags (this was flagged as the main risk and is NOT yet proven).
+> - `mutator.apply_mutations` validates `original_text` against offsets before writing — TDG/folk tags
+>   currently serialize differently than they parse, so a naive mutate may trip the mismatch guard.
+>   The `id` command should build the new tag's `original_text`/offsets from a fresh serialize, or only
+>   mutate schemas whose serializer is proven.
+> - Gotcha already fixed in Phase 2: `converters.get_from_custom_or_data` used to read `data_fields`
+>   twice (never custom) — it now reads custom too. Keep that in mind if comparing against old behavior.
+
+### Phase 1 — Identity core (no parsing) **[S]** — ✅ DONE
 - `identity.py`: `content_identity`, `resolve_identity`. (§1.1, §1.4)
 - `identity_counter.py`: `IdCounter`, `find_project_root` factored out of `cache_utils`. (§1.3)
 - `DATA.title`, `DATA.body`, `DATA.tag_id`; `IssueTrackerSchema.identity_fields`. (§1.1, §1.2, §3.1)
 - Tests: hashing stability, counter allocate/save/load atomicity.
 - **No behavior change to existing parsing.** Fully backward compatible.
 
-### Phase 2 — TDG schema + data model + converter wiring **[S]**
+### Phase 2 — TDG schema + data model + converter wiring **[S]** — ✅ DONE
 - `TDGSchema`, `provide_schemas` returns it. (§3.2)
 - `TODO` gains `title/body/estimate/issue/tag_id`; converter lifts them; `parse_estimate`. (§3.4)
 - `get_active_schemas`; thread schema list through `aggregate_all_kinds`. (§5)
 - Tests: schema registration, converter lifts fields from `custom_fields`.
 
-### Phase 3 — Hard TDG parser **[O]**  *(can proceed in parallel with Phase 2; only depends on Phase-2 schema shape)*
+### Phase 3 — Hard TDG parser **[O]** — ✅ DONE  *(can proceed in parallel with Phase 2; only depends on Phase-2 schema shape)*
 - Harden `tdg_tags_parser.py` (§4.1, §4.2): property-line heuristic, anchor boundaries, offsets, body cleaning.
 - `as_tdg_comment` serializer + round-trip tests (§4.4).
 - Wire TDG pass into `iterate_comments` gated on `schema["name"] == "TDG"` (§3.3) — the *wiring* is [S] but lives next
