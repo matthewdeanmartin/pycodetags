@@ -107,12 +107,11 @@ def _select_src_folder_interactive(folders: list[str]) -> str | None:
             choice_int = int(choice_str)
             if 1 <= choice_int <= len(folders):
                 return folders[choice_int - 1]
-            elif choice_int == len(folders) + 1:
+            if choice_int == len(folders) + 1:
                 return input("Enter path to your source folder: ")
-            elif choice_int == len(folders) + 2:
+            if choice_int == len(folders) + 2:
                 return None
-            else:
-                print(f"Invalid choice. Please enter a number between 1 and {len(folders)+2}.")
+            print(f"Invalid choice. Please enter a number between 1 and {len(folders)+2}.")
         except (ValueError, IndexError):
             print("Invalid input. Please enter a number from the list.")
 

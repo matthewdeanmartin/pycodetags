@@ -225,7 +225,7 @@ class DATA(Serializable):
     def __repr__(self) -> str:
         field_strings = []
         for f in fields(self):
-            if f.name != "data_meta" and f.name != "type":
+            if f.name not in ("data_meta", "type"):
                 field_strings.append(f"{f.name}={getattr(self, f.name)!r}")
         return f"{self.__class__.__name__}({', '.join(field_strings)})"
 

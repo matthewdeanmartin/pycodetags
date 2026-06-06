@@ -27,12 +27,6 @@ import re
 
 from pycodetags.data_tags.data_tags_methods import DataTag
 
-try:
-    from typing import Literal, TypedDict  # type: ignore[assignment,unused-ignore]
-except ImportError:
-    from typing_extensions import Literal  # type: ignore[assignment,unused-ignore] # noqa
-    from typing_extensions import TypedDict  # noqa
-
 __all__ = ["process_text"]
 
 logger = logging.getLogger(__name__)

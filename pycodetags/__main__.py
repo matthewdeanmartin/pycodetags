@@ -236,7 +236,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
 
 def source_and_modules_searcher(
-    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter: str
+    command: str, modules: list[str], src: list[str], schema: DataTagSchema, filter_expr: str
 ) -> list[DATA]:
     try:
         all_found: list[DATA] = []
@@ -246,8 +246,8 @@ def source_and_modules_searcher(
         more_found = aggregate_all_kinds_multiple_input(modules, [], schema)
         all_found.extend(more_found)
 
-        if filter:
-            all_found = filter_data_by_expression(all_found, filter)
+        if filter_expr:
+            all_found = filter_data_by_expression(all_found, filter_expr)
 
         found_data_for_plugins = all_found
 

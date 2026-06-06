@@ -47,7 +47,7 @@ def apply_mutations(
 
     # --- 1. Read the entire file content ---
     try:
-        content = p_file_path.read_text()
+        content = p_file_path.read_text(encoding="utf-8")
     except Exception as e:
         raise OSError(f"Could not read file '{p_file_path}': {e}") from e
 
@@ -147,7 +147,7 @@ def apply_mutations(
     try:
         # Write to a temporary file in the same directory, then rename
         temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
-        temp_file_path.write_text(modified_content)
+        temp_file_path.write_text(modified_content, encoding="utf-8")
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
         raise OSError(f"Could not write to file '{p_file_path}': {e}") from e
@@ -222,7 +222,7 @@ def insert_tags(
         raise FileNotFoundError(f"No such file: '{p_file_path}'")
 
     try:
-        lines = p_file_path.read_text().splitlines(True)
+        lines = p_file_path.read_text(encoding="utf-8").splitlines(True)
         # Ensure we can insert after the last line
         if not lines or not lines[-1].endswith(("\n", "\r")):
             lines.append("\n")
@@ -232,7 +232,7 @@ def insert_tags(
 
     # --- 1. Validate all insertion points before modifying ---
     for line_number, _tag_to_insert, _ in insertions:
-        if not (1 <= line_number <= len(lines) + 1):
+        if not 1 <= line_number <= len(lines) + 1:
             raise ValueError(f"Invalid line number: {line_number}. File has {len(lines)} lines.")
         # Check if the target line is blank (only whitespace)
         # Adjust for 0-based index
@@ -261,7 +261,7 @@ def insert_tags(
     # --- 4. Atomically write the modified content back ---
     try:
         temp_file_path = p_file_path.with_suffix(f"{p_file_path.suffix}.tmp")
-        temp_file_path.write_text(modified_content)
+        temp_file_path.write_text(modified_content, encoding="utf-8")
         os.replace(temp_file_path, p_file_path)
     except Exception as e:
         raise OSError(f"Could not write to file '{p_file_path}': {e}") from e

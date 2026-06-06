@@ -130,7 +130,6 @@ def persistent_memoize(
     Returns:
         A decorator that can be applied to a function.
     """
-    global _CACHE_CLEANUP_PERFORMED
 
     try:
         cache_dir = _get_cache_dir(cache_dir_override)
@@ -177,7 +176,7 @@ def persistent_memoize(
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 key_data = pickle.dumps((args, sorted(kwargs.items())))
-            except Exception:
+            except (pickle.PickleError, TypeError, AttributeError):
                 return func(*args, **kwargs)
 
             hasher = hashlib.sha256()

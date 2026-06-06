@@ -38,6 +38,18 @@ class DataTag(TypedDict, total=False):
     offsets: tuple[int, int, int, int] | None
     """Start line, start character, end line, end character"""
 
+    # Lifted TDG fields
+    title: str | None
+    body: str | None
+    tag_id: str | None
+
+    # Specific schema fields (when flat=True)
+    default_fields: dict[str, list[Any]]
+    data_fields: dict[str, Any]
+    custom_fields: dict[str, str]
+    unprocessed_defaults: list[str]
+    identity_fields: list[str]
+
 
 def convert_data_tag_to_data_object(tag_value: DataTag, schema: DataTagSchema) -> DATA:
     """
@@ -64,10 +76,7 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
     Returns:
         dict[str, Any]: A dictionary representation of the DataTag with fields promoted according to the schema.
     """
-    try:
-        data_fields = tag_value["fields"]["data_fields"]
-    except KeyError:
-        raise
+    data_fields = tag_value["fields"]["data_fields"]
     custom_fields = tag_value["fields"]["custom_fields"]
     final_data = {}
     final_custom = {}

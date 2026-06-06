@@ -15,11 +15,6 @@ from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
 
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict  # noqa
-
 logger = logging.getLogger(__name__)
 
 
