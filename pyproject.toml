@@ -67,7 +67,7 @@ packages = [
 [dependency-groups]
 dev = [
     "jiggle-version>=2.1.0; python_version >= '3.8'",
-    "keepachangelog-manager-fork[all]>=6.5.0; python_version >= '3.9'",
+    "keepachangelog-manager-fork[all]>=6.6.0; python_version >= '3.9'",
     "troml-dev-status>=0.6.0; python_version >= '3.9'",
     "dont-be-lazy>=0.1.2; python_version >= '3.10'",
     "pydoc-fork>=3.0.0; python_version >= '3.10'",
