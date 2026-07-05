@@ -71,6 +71,6 @@ check_spelling:
 
 check_changelog:
 	# pipx install keepachangelog-manager
-	$(VENV) changelogmanager validate
+	$(VENV) kaclm validate
 
 check_all_docs: check_docs check_md check_spelling check_changelog

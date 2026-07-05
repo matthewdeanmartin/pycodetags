@@ -7,7 +7,7 @@ else
     VENV :=
 endif
 
-CHANGELOGMANAGER = $(VENV) changelogmanager --config pyproject.toml
+CHANGELOGMANAGER = $(VENV) kaclm --config pyproject.toml
 
 uv.lock: pyproject.toml
 	@echo "Installing dependencies"

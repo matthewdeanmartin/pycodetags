@@ -67,7 +67,7 @@ jobs:
             echo "::error::No files changed after release bump"
             exit 1
           fi
-          git commit -m "chore: release ${RELEASE_VERSION}"
+          git commit -m "chore: release ${RELEASE_VERSION} [skip ci]"
           git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPOSITORY}.git"
           REMOTE_SHA="$(git ls-remote --heads origin "${BRANCH}" | awk '{print $1}')"
           if [ -n "${REMOTE_SHA}" ]; then
@@ -86,7 +86,7 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: |
           uv run \
-            changelogmanager \
+            kaclm \
             --config pyproject.toml \
             github-pr \
             --repository "${REPOSITORY}" \
