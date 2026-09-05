@@ -6,6 +6,10 @@ readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
 keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME","pycodetags"]
 license = "MIT"
+# Pin these explicitly: hatchling's default license glob otherwise walks any
+# non-ignored virtualenv in the tree and drags every dependency's LICENSE
+# (and its whole directory) into the sdist.
+license-files = ["LICENSE", "AUTHORS.md"]
 requires-python = ">=3.8"
 dependencies = [
     # plugin support
@@ -32,7 +36,9 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
 ]
 
 [project.urls]
@@ -67,7 +73,13 @@ packages = [
 [dependency-groups]
 dev = [
     "jiggle-version>=2.1.0; python_version >= '3.8'",
-    "keepachangelog-manager-fork[all]>=6.6.0; python_version >= '3.9'",
+    # The [all] extra pulls in google-re2, which has no cp315 wheel and fails to
+    # build from source on 3.15 (missing absl headers). Keep the full extra for
+    # <3.15 exactly as before; on 3.15 install the base package, which is pure
+    # Python and provides every feature this repo actually uses (validate,
+    # release, github-release).
+    "keepachangelog-manager-fork[all]>=6.6.0; python_version >= '3.9' and python_version < '3.15'",
+    "keepachangelog-manager-fork>=6.6.0; python_version >= '3.15'",
     "troml-dev-status>=0.6.0; python_version >= '3.9'",
     "dont-be-lazy>=0.1.2; python_version >= '3.10'",
     "pydoc-fork>=3.0.0; python_version >= '3.10'",

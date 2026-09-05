@@ -56,7 +56,64 @@ pylint: isort black
 	$(VENV) ruff check --fix
 	$(VENV) pylint pycodetags --fail-under 9.8
 
-check: mypy test pylint bandit
+check: mypy test pylint bandit check-dist
+
+# ── Distribution verification ────────────────────────────────────────────────
+
+.PHONY: check-dist
+check-dist:
+	@echo "Verifying distribution contents"
+	@python -c "import shutil; shutil.rmtree('.build/dist-check', ignore_errors=True)"
+	uv build --out-dir .build/dist-check --no-sources
+	$(VENV) python scripts/verify_distribution.py .build/dist-check
+
+# ── Python 3.15 trial run ────────────────────────────────────────────────────
+# Uses a dedicated venv so the normal .venv is never clobbered.
+# See python315.md. Core deps + plugins + dev group all resolve on 3.15.
+
+PY315 := 3.15.0rc2
+VENV315 := .venv315rc2
+PY315_EXE := $(VENV315)/Scripts/python.exe
+
+.PHONY: venv315
+venv315:
+	@echo "Creating Python $(PY315) trial venv at $(VENV315)"
+	@test -x $(PY315_EXE) || uv venv $(VENV315) --python $(PY315)
+	uv pip install -e . --group dev --python $(PY315_EXE)
+	uv pip install -e plugins/pycodetags_issue_tracker --python $(PY315_EXE)
+	uv pip install -e plugins/pycodetags_chat --python $(PY315_EXE)
+	uv pip install -e plugins/pycodetags_issue_tracker_gh_sync --python $(PY315_EXE)
+	uv pip install -e plugins/pycodetags_universal --python $(PY315_EXE)
+	uv pip install -e plugins/pycodetags_to_sqlite --python $(PY315_EXE)
+
+.PHONY: venv315-clean
+venv315-clean:
+	@echo "Recreating Python $(PY315) trial venv from scratch"
+	uv venv $(VENV315) --python $(PY315) --clear
+	@$(MAKE) venv315
+
+.PHONY: test315
+test315: venv315
+	@echo "Running unit tests on Python $(PY315)"
+	$(PY315_EXE) -m pytest --doctest-modules pycodetags
+	$(PY315_EXE) -m pytest tests -vv -n 2 --timeout=180
+	# $(CURDIR) is a Windows-style path (C:/...) under Git Bash make; the drive
+	# colon would split PATH, so convert to a POSIX path inside the shell.
+	bash -c 'PATH="$$(cd $(VENV315)/Scripts && pwd):$$PATH"; export PATH; bash basic_test.sh'
+	bash -c 'PATH="$$(cd $(VENV315)/Scripts && pwd):$$PATH"; export PATH; bash basic_test_with_logging.sh'
+
+.PHONY: test315-plugins
+test315-plugins: venv315
+	@echo "Running plugin test suites on Python $(PY315)"
+	@for p in pycodetags_chat pycodetags_issue_tracker pycodetags_issue_tracker_gh_sync \
+	          pycodetags_to_sqlite pycodetags_universal; do \
+		echo "--- $$p"; \
+		( cd plugins/$$p && $(CURDIR)/$(PY315_EXE) -m pytest tests -q --timeout=180 ) || exit 1; \
+	done
+
+.PHONY: check315
+check315: test315 test315-plugins
+	@echo "Python $(PY315) checks passed."
 
 
 publish: test
