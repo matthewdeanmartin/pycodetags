@@ -73,27 +73,17 @@ def print_changelog(found: list[TODO]) -> None:
     """
     todos = found
 
-    dones_meta = [d.todo_meta for d in todos if d.is_probably_done()]
-
-    # Deal with dodgy data because validation is optional
-    for done in dones_meta:
-        if done and not done.release:
-            done.release = "N/A"
-
-    # BUG: This probably isn't he right way to sort a version <matth 2024-07-04 category:views status:development
-    # priority:low release:1.0.0 iteration:1>
-    dones_meta.sort(
-        key=lambda d: ((d.release if d.release else "N/A", d.closed_date if d.closed_date else "") if d else ("", "")),
-        reverse=True,
-    )
-
+    completed = [task for task in todos if task.is_probably_done()]
+    completed.sort(key=lambda task: (task.release or "N/A", str(task.closed_date or "")), reverse=True)
     changelog: dict[str, Any] = defaultdict(lambda: defaultdict(list))
-
-    versions = sorted(list({d.release or "N/A" for d in dones_meta if d}), reverse=True)
-
-    for done in dones_meta:
-        if done:
-            changelog[done.release or ""][done.change_type or "Add"].append(done)
+    categories = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+    for task in completed:
+        category = next(
+            (name for name in categories if name.lower() == (task.change_type or "").strip().lower()),
+            "Unclassified",
+        )
+        changelog[task.release or "N/A"][category].append(task)
+    versions = sorted(changelog, reverse=True)
 
     print("# Changelog\n")
     print("All notable changes to this project will be documented in this file.\n")
@@ -102,20 +92,23 @@ def print_changelog(found: list[TODO]) -> None:
         first_done = changelog[version][next(iter(changelog[version]))][0]
         if first_done.closed_date and isinstance(first_done.closed_date, (datetime.date, datetime.datetime)):
             version_date = first_done.closed_date.strftime("%Y-%m-%d")
+        elif first_done.closed_date:
+            version_date = str(first_done.closed_date)
         else:
             version_date = "Unknown date"
 
         print(f"## [{version}] - {version_date}\n")
 
-        for change_type in ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]:
+        for change_type in [*categories, "Unclassified"]:
             if change_type in changelog[version]:
                 print(f"### {change_type}")
                 for done in changelog[version][change_type]:
+                    description = done.title if done.title is not None else done.comment
                     if done.tracker:
                         ticket_id = done.tracker.split("/")[-1]
-                        print(f"- {done.comment} ([{ticket_id}]({done.tracker}))")
+                        print(f"- {description} ([{ticket_id}]({done.tracker}))")
                     else:
-                        print(f"- {done.comment}")
+                        print(f"- {description}")
 
                 print()
 
@@ -148,38 +141,33 @@ def print_todo_md(found: list[TODO]) -> None:
 
     config = get_issue_tracker_config()
 
-    custom_status = config.valid_status()
-    closed_status = config.closed_status()
-    if not custom_status:
-        custom_status = ["TODO", "DONE"]
+    groups: dict[str, list[TODO]] = {status: [] for status in config.valid_status()}
+    for task in todos:
+        status = (task.status or "").strip().lower()
+        if not status:
+            status = "done" if task.is_probably_done() else "todo"
+        groups.setdefault(status, []).append(task)
 
-    # HACK: This works poorly when statuses are missing or if they don't sync up with the code tag.<matth 2025-07-04
-    # category:views priority:low status:development release:1.0.0 iteration:1>
-
-    for status in custom_status:
+    for status, tasks in groups.items():
         print(f"### {status.capitalize()}")
-        is_done = False
-        if status in closed_status:
-            done_symbol = "[x]"
-            is_done = True
-        else:
-            done_symbol = "[ ]"
-        for todo in todos:
-            if todo.status == status or (todo.code_tag and todo.code_tag.lower() == status):
-                meta = todo.todo_meta
-                if not meta:
-                    continue
-                task_line = f"- {done_symbol} {meta.comment}"
-                if not is_done:
-                    if meta.due:
-                        task_line += f" ~{meta.due}"
-                    if meta.category:
-                        task_line += f" #{meta.category.lower()}"
-                    if meta.assignee:
-                        task_line += f" @{meta.assignee}"
-                if meta.closed_date and isinstance(meta.closed_date, (datetime.date, datetime.datetime)):
-                    task_line += f" ({meta.closed_date.strftime('%Y-%m-%d')})"
-                print(task_line)
+        for task in tasks:
+            is_done = task.is_probably_done()
+            done_symbol = "[x]" if is_done else "[ ]"
+            description = task.title if task.title is not None else task.comment
+            task_line = f"- {done_symbol} {description}"
+            if not is_done:
+                if task.due:
+                    task_line += f" ~{task.due}"
+                if task.category:
+                    task_line += f" #{task.category.lower()}"
+                if task.assignee:
+                    task_line += f" @{task.assignee}"
+            if task.closed_date:
+                closed_date = task.closed_date
+                if isinstance(closed_date, (datetime.date, datetime.datetime)):
+                    closed_date = closed_date.strftime("%Y-%m-%d")
+                task_line += f" ({closed_date})"
+            print(task_line)
 
 
 def print_done_file(found: list[TODO]) -> None:

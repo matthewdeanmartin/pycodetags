@@ -1,24 +1,66 @@
 # pycodetags
 
-Code tags are structured records stored in Python comments. The core library reads and writes TDG
-and extended PEP-350, with shared titles, bodies, properties, and identities. Neither schema is assumed
-from an unfamiliar source file.
+Store structured data in Python comments, next to the code it describes.
 
-## Installation
+pycodetags grew out of PEP-350 and the many homegrown ways people write TODOs in
+code comments: a label, a description, perhaps an owner or a deadline. It generalizes
+that idea into a library for reading, writing, and querying comment records.
+
+Use it for tasks, requirements, design notes, or metadata that your own tools consume.
+The core handles the records; your application decides what they mean.
+
+```python
+# DATA: Customer export policy
+# owner=analytics retention_days=30
+# Remove generated exports after their retention period.
+def export_customers():
+    pass
+```
+
+That comment contains a tag (`DATA`), a title, named properties, and a body. It stays
+readable in the source file while also being available as data to Python programs.
+
+## Install
 
 ```shell
 pip install pycodetags
 ```
 
-For CLI-only use, `pipx install pycodetags` is also supported. Python 3.9–3.15 is supported; local
-development uses Python 3.14 (`.python-version`). Both comment schemas are built in and need no plugin.
-Core dependencies are pluggy, jmespath, and compatibility packages on older supported Python versions.
-Plugins provide additional domain behavior and integrations; plugin implementations are outside the
-current core sprint plan.
+Supports Python 3.9–3.15. For command-line use in a separate environment:
 
-## Choose a schema
+```shell
+pipx install pycodetags
+```
 
-Choose explicitly in `pyproject.toml`, or pass `schema=` to the library API:
+## Read and write records
+
+This example uses TDG, one of the built-in comment formats:
+
+```python
+from dataclasses import replace
+from pycodetags import loads, dumps
+
+record = loads(
+    "# DATA: Customer export policy\n"
+    "# owner=analytics retention_days=30\n"
+    "# Remove generated exports after their retention period.\n",
+    schema="TDG",
+)
+
+print(record.title)                            # Customer export policy
+print(record.custom_fields["retention_days"])  # "30" (a string)
+
+updated = replace(record, title="Customer export retention policy")
+print(dumps(updated))
+```
+
+Properties are read as strings. The library preserves custom properties; it doesn't
+apply your application's business rules or perform actions described by a comment.
+`loads` reads one record; `loads_all` reads multiple records.
+
+## Work with source files
+
+Choose a schema and the source folders in your project's `pyproject.toml`:
 
 ```toml
 [tool.pycodetags]
@@ -26,249 +68,106 @@ schema = "TDG"
 src = ["src"]
 ```
 
-Use `schema = "PEP350"` for extended PEP-350. Missing or unknown selections raise an actionable error.
-The old `active_schemas`/folk fallback does not select a format. `pycodetags init` asks for a schema and
-will not choose one for you.
-
-Mixed projects can map different files to different schemas:
-
-```toml
-[tool.pycodetags]
-schema = "TDG"
-src = ["src", "legacy"]
-
-[[tool.pycodetags.schema_paths]]
-path = "legacy/*.py"
-schema = "PEP350"
-```
-
-Paths are relative to the configuration file. Rules use case-sensitive, forward-slash `fnmatch`
-patterns (`*` can match slashes). One matching rule overrides the explicitly selected project schema;
-multiple matching rules are an error, even if they name the same schema. With only path rules and no
-project selection, every file must match a rule. A `schema=` API argument overrides configuration.
-Each file has exactly one schema; there is no content-based detection or fallback priority.
-
-## Equivalent records
-
-TDG:
+Replace `src` with your Python source folder. Save the opening example as
+`src/exports.py`, then inspect it from Python:
 
 ```python
-# TODO: Retry failed uploads.
-# id=17 issue=100 tracker=https://github.com/acme/uploader/issues/101
-# Retry transient failures with exponential backoff.
-#
-# Stop after five attempts.
+from pycodetags import inspect_file
+
+for record in inspect_file("src/exports.py"):
+    print(record.code_tag, record.title, record.custom_fields)
 ```
 
-Extended PEP-350:
-
-```python
-# TODO: Retry failed uploads.
-# Retry transient failures with exponential backoff.
-#
-# Stop after five attempts.
-# <id=17 issue=100 tracker=https://github.com/acme/uploader/issues/101>
-```
-
-In both formats, the text after `TAG:` on the first line is the title. Later comment lines form the
-body, excluding metadata. Titles are never wrapped automatically. A title-only tag has an empty body.
-Blank comment lines inside the body and body indentation are preserved. TDG ends at a non-comment
-line, another recognized tag, or EOF; an empty source line separates ordinary comments from its body.
-PEP-350 ends at the closing metadata block, so ordinary comments may follow immediately.
-
-TDG metadata occupies the immediately following line and uses `key=value`. PEP-350 metadata is a
-trailing `<...>` block, which may span comment lines; both `key=value` and `key:value` are accepted.
-PEP-350 always requires a metadata block, even an empty `<>`. Positional PEP-350 author/date shorthand
-is accepted, for example `<alice 2026-09-10>`, and becomes named `author` / `origination_date` properties.
-
-Property values are strings. Quote whitespace, empty values, quotes, and backslashes; serialization
-uses JSON-style double-quoted escapes when necessary. Duplicate properties (including aliases) and
-malformed metadata are errors. Parsing does not evaluate expressions, supply field defaults, or assign
-IDs. `cat` aliases `category`; unknown named properties are retained as custom fields.
-
-A recognized `# TAG:` line begins another record. Put one tag anchor on each comment line. To write a
-literal syntax-like body line, prefix its body text with a backslash: `# \TODO: literal text` or
-`# \issue=100`. A doubled leading backslash represents a literal backslash. Serializers insert these
-escapes when required, including for body lines containing angle brackets. This escape convention is
-part of the pycodetags extension, not a claim of upstream TDG compatibility for those escaped lines.
-In PEP-350 titles, `\<` represents a literal opening angle bracket and `\\` a literal backslash.
-
-## Python API
-
-```python
-from dataclasses import replace
-from pycodetags import DATA, dumps, loads, inspect_file
-
-record = loads("# TODO: Retry uploads.\n# issue=100", schema="TDG")
-updated = replace(record, title="Retry transient upload failures.", body="Stop after five attempts.")
-print(dumps(updated))                    # retains its explicitly selected TDG schema
-print(dumps(updated, schema="PEP350"))   # explicit conversion
-records = inspect_file("src/upload.py")  # uses explicit project/path configuration
-```
-
-Parsed records retain their schema. `title`, `body`, and `tag_id` are the canonical narrative/local-ID
-attributes; parsed `comment` mirrors the title for existing readers. Edit `title` when changing a title.
-`data_fields` and `custom_fields` hold other properties. `to_flat_dict()` includes the canonical fields
-for queries. A newly constructed `DATA` needs `schema=` or explicit project configuration to serialize.
-
-`load`/`load_all` accept source text, `Path` objects, or open streams. `dump`/`dump_all` accept paths or
-streams. Caller-owned streams stay open. File output is prepared before the destination is opened.
-Custom schema definitions must specify `name`, `format`, `matching_tags`, and the field dictionaries;
-copy `TDGSchema` or `PEP350Schema` and customize them. Built-in schema names are reserved.
-
-## Identity and writes
-
-- `id` identifies a tag within a project, independently of title or location changes.
-- `issue` identifies its parent issue. Multiple tags may share a parent.
-- `tracker` is the full URL of the issue representing this particular tag.
-
-`pycodetags id` explicitly assigns missing local IDs, preserving the configured source format. It
-reserves all IDs in the selected files before allocating new ones, rejects duplicates, and refuses to
-reset a corrupt counter. Tracker-linked tags also receive local IDs; multiple tags may share the same tracker URL. Keep
-`.pycodetags_ids` in version control. Rebuilding a missing counter requires selecting all project sources.
+Or collect the project's records as JSON:
 
 ```shell
 pycodetags data --format json
-pycodetags id --dry-run
-pycodetags id --check
-pycodetags id
 ```
 
-Allocation assumes one writer. Reservations are saved before source changes; failures may leave gaps,
-which prevents ID reuse. All assignments in one file use a single validated mutation batch.
+Select the schema in configuration or pass `schema=` to the API. The library does
+not guess which convention an unfamiliar comment uses.
 
-## Update and delete
+## Comment formats
+
+TDG puts properties immediately after the title, followed by the description:
+
+```python
+# TODO: Explain invalid dates
+# assignee=alice priority=high
+# Include the row number in the error message.
+```
+
+Extended PEP-350 puts properties in a closing metadata block:
+
+```python
+# TODO: Explain invalid dates
+# Include the row number in the error message.
+# <assignee=alice priority=high>
+```
+
+Use `schema = "PEP350"` to read the second form. In both formats, the first line
+supplies the title and subsequent description lines supply the body. A PEP-350 tag
+ends at its closing `>`; a TDG tag ends at a non-comment line, another recognized
+tag, or the end of the file.
+
+Both built-in schemas recognize tags such as `TODO`, `BUG`, `NOTE`, `REQ`, and `DATA`.
+You can also define a schema with your own tag names and fields. See the
+[core reference](spec/core_reference.md) for custom schemas, quoting, multiline
+comments, and projects that use different formats in different files.
+
+## Edit records in place
+
+Use records read from a source file to update or delete its comments:
 
 ```python
 from dataclasses import replace
-from pycodetags import inspect_file, apply_mutations
+from pycodetags import inspect_file, update_tags
 
-records = inspect_file("src/upload.py")
-apply_mutations("src/upload.py", [
-    (records[0], replace(records[0], title="Retry transient failures.", body="Try five times.")),
-    (records[1], None),  # delete
-])
+path = "src/exports.py"
+record = inspect_file(path)[0]
+updated = replace(record, title="Customer export retention policy")
+update_tags(path, [(record, updated)])
 ```
 
-`update_tags(path, [(old, new), ...])` and `delete_tags(path, [old, ...])` are public convenience
-functions. A fresh replacement record inherits the old record's explicitly selected schema unless
-it supplies its own. Use `dataclasses.replace` to retain fields you are not changing.
-`replace_with_strings` in `pycodetags.mutator` changes titles while retaining bodies and identities.
+`delete_tags` removes selected records; `apply_mutations` combines updates and deletes
+in one file. Edits preserve surrounding code and reject records read before the file
+changed. Read the file again before making another batch of edits. Writes require
+one writer at a time; they are not transactions across multiple source files.
 
-Every batch validates all source snapshots, spans, overlaps, and rendered comments before writing.
-A change anywhere in the source makes file-parsed records stale; reparse after each successful batch
-or external edit. File loads fingerprint exact bytes. Parsing caller-supplied text fingerprints logical
-text, because the caller may already have normalized line endings; use `inspect_file` or `load(Path)`
-when exact byte-level stale detection matters. Whitespace inside tag text is never ignored.
+## Repeated queries
 
-Mutation preserves source encoding (including Python coding declarations and UTF-8 BOM), permission
-bits, final-newline state, and bytes outside tag spans. Generated continuation comments retain source
-indentation and use the affected line's newline style. Deleting a tag retains the line terminator and
-any prefix, including executable code before an inline tag. It may leave a blank line.
-
-Writes use unique temporary files beside the source, flush the prepared bytes, recheck the source,
-and replace once. Failed preparations clean up their temporary file. Symlinks and multiply linked
-files are rejected. This requires single-writer ownership: the final byte check is not a lock, and an
-external writer can still race the replacement. There is no multi-file transaction or crash-durability
-guarantee. Source files remain authoritative; a persistent index is Sprint 4.
-
-## Snapshot index and scan exclusions
-
-```toml
-[tool.pycodetags]
-schema = "TDG"
-src = ["src", "tests"]
-exclude = ["src/generated", "tests/fixtures/**"]
-```
-
-Exclusions match paths relative to the project/configuration root using case-sensitive POSIX patterns.
-A directory match prunes traversal; a literal directory name excludes its descendants. There are no
-implicit exclusion patterns. Directory symlinks are not followed. These exclusions also apply to core
-aggregation and ID assignment. Reserve IDs across all sources you intend to manage together.
+For repeated lookups, build a SQLite snapshot of the configured source folders:
 
 ```python
 from pathlib import Path
-from pycodetags import TagIndex, update_tags
-from dataclasses import replace
+from pycodetags import TagIndex
 
 index = TagIndex(Path("."))
-work = index.refresh()  # reads current project configuration and source files
-records = index.query_snapshot(tag_id="17")
-linked = index.query_snapshot(tracker="https://github.com/acme/uploader/issues/101")
-in_file = index.query_snapshot(file_path="src/upload.py")
-
-old = records[0]
-update_tags(old.file_path, [(old, replace(old, title="Handle transient failures."))])
-index.refresh()  # update the snapshot after changing source
+index.refresh()
+records = index.query_snapshot(file_path="src/exports.py")
 ```
 
-`TagIndex(root, schema="TDG")` explicitly overrides configured schema selection. Pass `paths=[...]`
-and `exclude=[...]` to `refresh` to override configured scan scope. Each refresh describes the entire
-selected scope: files removed from that scope are removed from the index. An empty existing directory
-is valid; a missing explicit source path fails the refresh.
+Queries read the last refreshed snapshot. Call `refresh()` after changing source
+files. Refresh reads the selected files but reparses only changed files; the source
+remains authoritative. See the [core reference](spec/core_reference.md) for scan
+exclusions, local IDs, and lookups by ID or tracker URL.
 
-`query_snapshot` deliberately reads the **last successful snapshot** without checking source files.
-Call `refresh` when current-source results are required. There is no watcher or hidden refresh.
-Filters combine with AND; duplicate local IDs or tracker URLs return all matching records. Parent
-`issue` values are never treated as local IDs. Returned records retain fingerprints, so the mutation
-API rejects stale source even when the index has not been refreshed.
+## Task reports
 
-Refresh hashes every selected file's bytes, including unchanged files, to detect edits that preserve
-size and timestamps. It reparses only files whose contents, selected schema definition, or parser
-version changed. Deleted and newly excluded files disappear on a successful refresh. Discovery/read/
-parse failures leave the previous snapshot intact. Refresh commits its database changes together,
-but is not a simultaneous filesystem snapshot: keep source writers quiescent when that is required.
-
-The database defaults to `.pycodetags.sqlite3` under the supplied root; `database=Path(...)` selects
-another location. It is disposable and should be gitignored. Delete it and call `refresh` to rebuild.
-Missing, incompatible, corrupt, and foreign databases produce errors rather than empty results or
-silently overwritten data. The index contains source text and schema snapshots, so can be substantially
-larger than the source comments. It uses standard-library SQLite and JSON, with no new dependency.
-
-`RefreshResult` reports files parsed/unchanged/removed, bytes read, tag count, and timings for discovery,
-read/decode/hash, parsing, storage, and the complete refresh. Query indexes accelerate ID/tracker/file
-lookups; returning every tag still costs proportionally to the number of results. Full refresh remains
-linear in selected source bytes plus discovery, schema checks, and changed-file parsing/storage.
-Token extraction has a bounded 32-source process-local cache; persistent parsed records live in SQLite.
-
-See [measured timings and methodology](spec/core_performance.md) and the
-[reproducible benchmark](tests/benchmark_core.py). These are synthetic local measurements, not a
-constant-time or repository-wide latency promise.
-
-## Development
+For task validation and text, HTML, and changelog reports, install the
+[issue-tracker plugin](plugins/pycodetags_issue_tracker/README.md):
 
 ```shell
-uv sync --python 3.14
-pre-commit run --files <changed-files>
-tox -e py39,py310,py311,py312,py313,py314,py315
+pip install pycodetags-issue-tracker
+pycodetags issues --format text
 ```
 
-Use tox's `--discover` option if multiple 3.15 prereleases are installed, to select the current release
-candidate. See the [four-sprint plan and validation results](spec/core_database_sprints.md) and
-[CHANGELOG.md](CHANGELOG.md).
+Plugins can provide schemas and application-specific behavior. The core library
+can be used on its own.
 
+## More information
 
-## Release validation
-
-Core 0.8.0 is paired with issue-tracker 0.4.0, chat 0.2.0, and universal 0.2.0. GitHub-sync and the
-old SQLite-export plugin are unfinished and are excluded from the supported release bundle.
-See [plugin release decisions](plugins/README.md) and [Sprint 5 evidence](spec/release_readiness.md).
-
-```shell
-python scripts/release_candidates.py all
-docker build -t pycodetags-release-check .
-docker build --build-arg PYTHON_VERSION=3.9 -t pycodetags-release-check:py39 .
-```
-
-The artifact checks create disposable environments outside the checkout, install only declared
-runtime dependencies, and exercise core APIs/CLI plus functional plugin discovery and reporting.
-Docker runs the core suite, artifact checks, and plugin suite on Linux. CI additionally gates release
-artifacts on Windows and macOS. The selected source folders and explicitly configured schemas remain
-required in installed environments.
-
-Before tagging a release, commit the version and finalized changelog. Core tags are `v<version>`;
-plugin tags are `<distribution-name>-v<version>`. The release workflows verify those tags against
-committed metadata and publish the exact artifacts that passed their gates. The plugin workflow is
-manual and must run against a tag; publish the required core version before its plugins. Configure
-PyPI trusted publishers for the relevant workflow and package, and retain the `pypi` environment's
-approval policy. No workflow bumps versions after tagging or publishes the unfinished plugins.
+- [Core reference](spec/core_reference.md)
+- [Contributing](docs/CONTRIBUTING.md)
+- [Changelog](CHANGELOG.md)
+- [Report a bug](https://github.com/matthewdeanmartin/pycodetags/issues)

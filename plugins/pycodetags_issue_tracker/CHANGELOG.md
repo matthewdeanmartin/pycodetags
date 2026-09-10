@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Use core schemas, local identity, and Python 3.9–3.15.
 ### Fixed
+- Include source tasks in Markdown and draft changelog reports.
+- Clarify setup and task completion in the README.
 - Preserve source provenance and honor report output paths.
 
 ## [0.3.0] - 2025-07-13
