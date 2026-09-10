@@ -5,13 +5,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Fixed
+- Refocus the README on structured comment data and practical examples.
+
+
+## [0.8.0] - 2026-09-10
 ### Added
 - Rebuildable SQLite snapshots with indexed tag lookups and scan exclusions.
 - Public batch update and delete helpers.
 - Built-in TDG and extended PEP-350 schemas with shared title/body support.
 
 ### Changed
-- Refocus the README on structured comment data and practical examples.
 - Align functional plugins and release validation with the new core.
 - Assign local IDs even when tags share a tracker ticket.
 - Reuse unchanged files during refresh and reduce repeated scan work.
