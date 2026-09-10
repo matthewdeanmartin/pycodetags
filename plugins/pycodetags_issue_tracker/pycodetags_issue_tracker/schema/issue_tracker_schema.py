@@ -4,6 +4,7 @@ from pycodetags.data_tags.data_tags_schema import DataTagSchema, FieldInfo
 
 IssueTrackerSchema: DataTagSchema = {
     "name": "TODO",
+    "format": "PEP350",
     "matching_tags": [
         "TODO",
         "REQUIREMENT",

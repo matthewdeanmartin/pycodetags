@@ -1,10 +1,4 @@
-"""
-Code Tags is a tool and library for working with TODOs into source code.
-
-Only the strongly typed decorators, exceptions and context managers are exported.
-
-Everything else is a plugin.
-"""
+"""Structured code tags: explicit schemas, serialization, and validated source mutations."""
 
 __all__ = [
     # Data tag support
@@ -12,6 +6,8 @@ __all__ = [
     "DataTag",
     "DataTagSchema",
     "PureDataSchema",
+    "TDGSchema",
+    "PEP350Schema",
     # Serialization interfaces
     "dumps",
     "dump",
@@ -25,6 +21,10 @@ __all__ = [
     # Plugin interfaces
     "CodeTagsSpec",
     "CodeTagsConfig",
+    "TagIndex",
+    "apply_mutations",
+    "update_tags",
+    "delete_tags",
     # Interactive use
     "inspect_file",
     "list_available_schemas",
@@ -44,5 +44,8 @@ from pycodetags.common_interfaces import (
     loads_all,
 )
 from pycodetags.data_tags import DATA, DataTag, DataTagSchema
+from pycodetags.index import TagIndex
+from pycodetags.mutator import apply_mutations, delete_tags, update_tags
 from pycodetags.plugin_specs import CodeTagsSpec
 from pycodetags.pure_data_schema import PureDataSchema
+from pycodetags.schemas import PEP350Schema, TDGSchema

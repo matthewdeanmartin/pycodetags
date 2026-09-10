@@ -9,6 +9,8 @@ __all__ = [
     "content_identity",
     "content_identity_for_data",
     "resolve_identity",
+    "TDGSchema",
+    "PEP350Schema",
 ]
 
 from pycodetags.data_tags.data_tags_classes import DATA
@@ -16,3 +18,4 @@ from pycodetags.data_tags.data_tags_methods import DataTag, convert_data_tag_to_
 from pycodetags.data_tags.data_tags_parsers import iterate_comments, iterate_comments_from_file
 from pycodetags.data_tags.data_tags_schema import DataTagSchema, data_fields_as_list
 from pycodetags.data_tags.identity import content_identity, content_identity_for_data, resolve_identity
+from pycodetags.schemas import PEP350Schema, TDGSchema

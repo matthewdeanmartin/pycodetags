@@ -1,245 +1,95 @@
-"""Extended identity tests: _normalize edge cases, _field_value, IdCounter.record_existing."""
+"""Identity contracts for parent issues, local IDs, tracker links, and persisted counters."""
 
-from __future__ import annotations
+import json
+from dataclasses import replace
 
+import pytest
 
 from pycodetags.data_tags.data_tags_classes import DATA
-from pycodetags.data_tags.data_tags_schema import DataTagSchema
-from pycodetags.data_tags.identity import (
-    _hash_parts,
-    _normalize,
-    content_identity,
-    content_identity_for_data,
-    resolve_identity,
+from pycodetags.data_tags.identity import content_identity, content_identity_for_data, resolve_identity
+from pycodetags.exceptions import DataTagError
+from pycodetags.identity_counter import COUNTER_FILENAME, IdCounter
+from pycodetags.pure_data_schema import PureDataSchema
+
+
+@pytest.mark.parametrize("field_set", ["data_fields", "custom_fields"])
+def test_parent_issue_is_not_tracker_identity(field_set):
+    tag = DATA(code_tag="TODO", comment="retry uploads", **{field_set: {"issue": "100"}})
+    assert resolve_identity(tag)[0] == "content"
+    assert resolve_identity(replace(tag, tag_id="17")) == ("id", "17")
+
+
+@pytest.mark.parametrize("field_set", ["data_fields", "custom_fields"])
+def test_local_id_identifies_tag_even_with_shared_tracker_and_parent(field_set):
+    url = "https://github.com/acme/repo/issues/101"
+    tag = DATA(code_tag="TODO", comment="retry", tag_id="17", **{field_set: {"issue": "100", "tracker": url}})
+    assert resolve_identity(tag) == ("id", "17")
+
+
+def test_changing_parent_preserves_content_identity_even_with_old_schema():
+    schema = dict(PureDataSchema, identity_fields=["issue"])
+    first = DATA(code_tag="TODO", comment="retry", data_fields={"issue": "100"})
+    second = replace(first, data_fields={"issue": "200"})
+    assert content_identity_for_data(first, schema) == content_identity_for_data(second, schema)
+    raw = {"code_tag": "TODO", "comment": "retry", "fields": {"data_fields": {"issue": "300"}}}
+    assert content_identity(raw, schema) == content_identity_for_data(first, schema)
+
+
+def test_local_identity_survives_title_and_location_changes():
+    first = DATA(code_tag="TODO", comment="retry", tag_id="17", file_path="a.py")
+    second = replace(first, comment="retry uploads", file_path="b.py")
+    assert resolve_identity(first) == resolve_identity(second) == ("id", "17")
+
+
+def test_unidentified_tags_have_content_hashes_not_unique_primary_keys():
+    first = DATA(code_tag="TODO", comment="retry", file_path="a.py")
+    second = replace(first, file_path="b.py")
+    assert resolve_identity(first) == resolve_identity(second)
+    assert resolve_identity(replace(first, comment="different")) != resolve_identity(first)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        [],
+        {},
+        {"version": 2, "next_id": 1, "allocated": {}},
+        {"version": 1, "next_id": 0, "allocated": {}},
+        {"version": 1, "next_id": True, "allocated": {}},
+        {"version": 1, "next_id": 1, "allocated": []},
+        {"version": 1, "next_id": 1, "allocated": {"01": "hash"}},
+        {"version": 1, "next_id": 1, "allocated": {"x": "hash"}},
+        {"version": 1, "next_id": 1, "allocated": {"1": None}},
+    ],
 )
-from pycodetags.identity_counter import IdCounter
-
-
-def _schema(identity_fields=None) -> DataTagSchema:
-    return {
-        "name": "TEST",
-        "matching_tags": ["TODO"],
-        "default_fields": {},
-        "data_fields": {"issue": "int", "originator": "str"},
-        "data_field_aliases": {},
-        "field_infos": {},
-        "identity_fields": identity_fields or [],
-    }
-
-
-# ---------------------------------------------------------------------------
-# _normalize
-# ---------------------------------------------------------------------------
-
-
-def test_normalize_none_returns_empty_string():
-    assert _normalize(None) == ""
-
-
-def test_normalize_collapses_whitespace():
-    assert _normalize("a  b   c") == "a b c"
-
-
-def test_normalize_strips_leading_trailing():
-    assert _normalize("  hello  ") == "hello"
-
-
-def test_normalize_list_joins_with_comma():
-    assert _normalize(["a", "b", "c"]) == "a,b,c"
-
-
-def test_normalize_nested_list():
-    assert _normalize([["a", "b"], "c"]) == "a,b,c"
-
-
-def test_normalize_tuple_joins_with_comma():
-    assert _normalize(("x", "y")) == "x,y"
-
-
-def test_normalize_integer():
-    assert _normalize(42) == "42"
-
-
-def test_normalize_empty_list():
-    assert _normalize([]) == ""
-
-
-# ---------------------------------------------------------------------------
-# _hash_parts
-# ---------------------------------------------------------------------------
-
-
-def test_hash_parts_same_inputs_same_output():
-    assert _hash_parts(["a", "b"]) == _hash_parts(["a", "b"])
-
-
-def test_hash_parts_order_sensitive():
-    assert _hash_parts(["a", "b"]) != _hash_parts(["b", "a"])
-
-
-def test_hash_parts_no_collision_different_split():
-    # ("a", "bc") must differ from ("ab", "c") – null-byte separator prevents this
-    assert _hash_parts(["a", "bc"]) != _hash_parts(["ab", "c"])
-
-
-def test_hash_parts_returns_12_chars():
-    result = _hash_parts(["foo", "bar"])
-    assert len(result) == 12
-    assert all(c in "0123456789abcdef" for c in result)
-
-
-# ---------------------------------------------------------------------------
-# content_identity (dict-based DataTag)
-# ---------------------------------------------------------------------------
-
-
-def test_content_identity_output_length():
-    schema = _schema()
-    tag = {"code_tag": "TODO", "comment": "hello", "fields": {"data_fields": {}, "custom_fields": {}}}
-    result = content_identity(tag, schema)
-    assert len(result) == 12
-
-
-def test_content_identity_stable_across_calls():
-    schema = _schema(["originator"])
-    tag = {"code_tag": "TODO", "comment": "x", "fields": {"data_fields": {"originator": "alice"}, "custom_fields": {}}}
-    assert content_identity(tag, schema) == content_identity(tag, schema)
-
-
-def test_content_identity_custom_fields_fallback():
-    schema = _schema(["originator"])
-    from_data = content_identity(
-        {"code_tag": "TODO", "comment": "x", "fields": {"data_fields": {"originator": "matth"}, "custom_fields": {}}},
-        schema,
-    )
-    from_custom = content_identity(
-        {"code_tag": "TODO", "comment": "x", "fields": {"data_fields": {}, "custom_fields": {"originator": "matth"}}},
-        schema,
-    )
-    assert from_data == from_custom
-
-
-# ---------------------------------------------------------------------------
-# content_identity_for_data (DATA object)
-# ---------------------------------------------------------------------------
-
-
-def test_content_identity_for_data_stable():
-    schema = _schema()
-    tag = DATA(code_tag="TODO", comment="do thing")
-    assert content_identity_for_data(tag, schema) == content_identity_for_data(tag, schema)
-
-
-def test_content_identity_for_data_attribute_preferred_over_dict():
-    schema = _schema(["issue"])
-    # Put conflicting values: attribute vs dict – attribute wins
-    tag = DATA(code_tag="TODO", comment="x", data_fields={"issue": "99"})
-    # There's no typed attribute for 'issue' on DATA, so it falls back to data_fields
-    result = content_identity_for_data(tag, schema)
-    assert len(result) == 12
-
-
-def test_content_identity_for_data_missing_field_stable():
-    schema = _schema(["nonexistent"])
-    tag = DATA(code_tag="TODO", comment="x")
-    r1 = content_identity_for_data(tag, schema)
-    r2 = content_identity_for_data(DATA(code_tag="TODO", comment="x"), schema)
-    assert r1 == r2
-
-
-# ---------------------------------------------------------------------------
-# resolve_identity – additional edge cases
-# ---------------------------------------------------------------------------
-
-
-def test_resolve_identity_tracker_from_data_fields():
-    tag = DATA(code_tag="TODO", comment="x", data_fields={"issue": "7"})
-    kind, val = resolve_identity(tag)
-    # Without schema, content is the fallback – issue is in data_fields, not attribute
-    # The actual kind depends on whether 'issue' attr resolves; DATA has no 'issue' attribute
-    # so _field_value checks data_fields: it should find "7"
-    assert kind == "tracker"
-    assert val == "7"
-
-
-def test_resolve_identity_no_schema_falls_back_to_content():
-    tag = DATA(code_tag="TODO", comment="y")
-    kind, val = resolve_identity(tag, schema=None)
-    assert kind == "content"
-    assert len(val) == 12
-
-
-def test_resolve_identity_whitespace_only_tracker_is_skipped():
-    tag = DATA(code_tag="TODO", comment="x", data_fields={"issue": "  "})
-    kind, _ = resolve_identity(tag, _schema())
-    assert kind != "tracker"
-
-
-def test_resolve_identity_whitespace_only_local_id_is_skipped():
-    tag = DATA(code_tag="TODO", comment="x", tag_id="  ")
-    kind, _ = resolve_identity(tag, _schema())
-    assert kind == "content"
-
-
-# ---------------------------------------------------------------------------
-# IdCounter – record_existing with content change
-# ---------------------------------------------------------------------------
-
-
-def test_id_counter_record_existing_logs_on_content_change(tmp_path, caplog):
-    import logging
-
-    c = IdCounter(path=tmp_path / ".pycodetags_ids")
-    c.record_existing("5", "original_hash")
-    with caplog.at_level(logging.DEBUG, logger="pycodetags.identity_counter"):
-        c.record_existing("5", "new_hash_different")
-    # The id should still be recorded
-    assert c.allocated["5"] == "new_hash_different"
-
-
-def test_id_counter_record_existing_same_content_no_change(tmp_path):
-    c = IdCounter(path=tmp_path / ".pycodetags_ids")
-    c.record_existing("3", "same_hash")
-    c.record_existing("3", "same_hash")
-    assert c.allocated["3"] == "same_hash"
-
-
-def test_id_counter_record_existing_bumps_next_id(tmp_path):
-    c = IdCounter(path=tmp_path / ".pycodetags_ids")
-    assert c.next_id == 1
-    c.record_existing("10", "hash")
-    assert c.next_id == 11
-
-
-def test_id_counter_allocate_after_record_existing_does_not_collide(tmp_path):
-    c = IdCounter(path=tmp_path / ".pycodetags_ids")
-    c.record_existing("5", "hash_a")
-    new_id = c.allocate("hash_b")
-    assert new_id == "6"
-    assert new_id not in ("5",)
-
-
-def test_id_counter_known_ids_includes_recorded(tmp_path):
-    c = IdCounter(path=tmp_path / ".pycodetags_ids")
-    c.record_existing("7", "h")
-    assert "7" in c.known_ids
-
-
-def test_id_counter_load_corrupt_file_returns_fresh(tmp_path):
-    path = tmp_path / ".pycodetags_ids"
-    path.write_text("not valid json", encoding="utf-8")
-    loaded = IdCounter.load(root=tmp_path)
-    assert loaded.next_id == 1
-    assert loaded.allocated == {}
-
-
-def test_id_counter_load_preserves_allocated_entries(tmp_path):
-    path = tmp_path / ".pycodetags_ids"
-    c = IdCounter(path=path)
-    c.allocate("aaa")
-    c.allocate("bbb")
-    c.save()
-
-    loaded = IdCounter.load(root=tmp_path)
-    assert "1" in loaded.allocated
-    assert "2" in loaded.allocated
+def test_invalid_counter_structure_is_rejected(tmp_path, payload):
+    path = tmp_path / COUNTER_FILENAME
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    before = path.read_bytes()
+    with pytest.raises(DataTagError):
+        IdCounter.load(tmp_path)
+    assert path.read_bytes() == before
+
+
+def test_counter_reconciles_stale_next_id(tmp_path):
+    path = tmp_path / COUNTER_FILENAME
+    path.write_text(json.dumps({"version": 1, "next_id": 1, "allocated": {"42": "hash"}}), encoding="utf-8")
+    assert IdCounter.load(tmp_path).allocate("another") == "43"
+
+
+def test_existing_id_content_can_change_without_changing_id(tmp_path):
+    counter = IdCounter(path=tmp_path / COUNTER_FILENAME)
+    counter.record_existing("17", "old")
+    counter.record_existing("17", "new")
+    counter.save()
+    loaded = IdCounter.load(tmp_path)
+    assert loaded.allocated == {"17": "new"}
+    assert loaded.allocate("next") == "18"
+
+
+@pytest.mark.parametrize("tag_id", ["0", "-1", "01", "abc", "1.0", "١", ""])
+def test_invalid_source_ids_cannot_be_reserved(tmp_path, tag_id):
+    counter = IdCounter(path=tmp_path / COUNTER_FILENAME)
+    with pytest.raises(DataTagError, match="Invalid local id"):
+        counter.record_existing(tag_id, "hash")
+    assert counter.known_ids == set()

@@ -1,64 +1,46 @@
+"""Read standalone JavaScript/TypeScript line comments using an explicit core schema."""
+
 import re
+from pathlib import Path
 
 from pluggy import HookimplMarker
 
-from pycodetags import DataTag
-from pycodetags.app_config.config import CodeTagsConfig
+from pycodetags.data_tags.formats import parse_block
+from pycodetags.python.comment_finder import extract_comment_lines
+from pycodetags.schemas import resolve_schema
 
 hookimpl = HookimplMarker("pycodetags")
 
 
-class JavascriptFolkTagPlugin:
+class JavascriptTagPlugin:
+    """Recognize standalone // blocks; no string-literal or inline-comment guessing."""
+
     @hookimpl
-    def find_source_tags(
-        self,
-        file_path: str,
-        # pylint: disable=unused-argument
-        config: CodeTagsConfig,
-    ) -> list[DataTag]:
+    def find_source_tags(self, file_path, config):
         if not file_path.endswith((".js", ".ts", ".jsx", ".tsx")):
             return []
-
-        found: list[DataTag] = []
-
-        try:
-            with open(file_path, encoding="utf-8", errors="ignore") as f:
-                for idx, line in enumerate(f):
-                    match = re.match(r"//\s*(TODO|FIXME)\s*(\((.*?)\))?:?\s*(.*)", line, re.IGNORECASE)
-                    if match:
-                        tag = match.group(1).upper()
-                        raw_person = match.group(3)
-                        comment = match.group(4).strip()
-
-                        folk: DataTag = {
-                            "file_path": file_path,
-                            "code_tag": tag,
-                            "comment": comment,
-                            "fields": {
-                                "custom_fields": {},
-                                "unprocessed_defaults": [],
-                                "default_fields": {},
-                                "data_fields": {},
-                                "identity_fields": [],
-                            },
-                            "original_text": line.strip(),
-                            "offsets": (idx + 1, 1, 0, 0),
-                        }
-                        if raw_person:
-                            folk["fields"]["custom_fields"]["assignee"] = raw_person.strip()
-
-                        found.append(folk)
-        except PermissionError as pe:
-            print(f"PermissionError: Could not read file {file_path}. Error: {pe}")
-            return []
-        except FileNotFoundError as fnfe:
-            print(f"FileNotFoundError: Could not find file {file_path}. Error: {fnfe}")
-            return []
-        except Exception as e:  # pylint: disable=broad-exception-caught
-            print(f"Error reading file {file_path}: {e}")
-            return []
-
+        path = Path(file_path)
+        schema = resolve_schema(config.schema_for_path(path), path)
+        lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+        found = []
+        block = []
+        first = 0
+        for number, line in enumerate(lines + [""]):
+            if re.match(r"^[ \t]*//", line):
+                if not block:
+                    first = number
+                block.append(line.replace("//", "#", 1))
+                continue
+            if block:
+                for tag in parse_block("".join(block), schema):
+                    start, column, end, end_column = tag["offsets"]
+                    tag["offsets"] = (first + start, column, first + end, end_column + 1)
+                    tag["original_text"] = extract_comment_lines(lines, tag["offsets"])
+                    tag["file_path"] = str(path.resolve())
+                    tag["schema"] = schema
+                    found.append(tag)
+                block = []
         return found
 
 
-javascript_plugin = JavascriptFolkTagPlugin()
+javascript_plugin = JavascriptTagPlugin()

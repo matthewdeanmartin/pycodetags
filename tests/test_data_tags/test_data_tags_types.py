@@ -82,38 +82,6 @@ def test_extract_data_fields_and_formatting(tmp_path):
     # assert d["b"] == "None" or "bee" in d.values()  # b present somehow
 
 
-def test_as_data_comment_basic_and_wrapping():
-    d = DATA(
-        code_tag="TAG",
-        comment="something",
-        default_fields={"df": "Z"},
-        custom_fields={"foo": "bar baz", "baz": "val"},
-        data_fields={"a": "1", "c": "colon:here"},
-    )
-    line = d.as_data_comment()
-    # must start with # TAG: something
-    assert line.startswith("# TAG: something")
-    # must include <Z foo:"bar baz" a:1 c:"colon:here">
-    assert "<Z " in line
-    assert ' foo:"bar baz" ' in line
-    assert " a:1 " in line
-    assert ' c:"colon:here"' in line
-
-
-def test_as_data_comment_long_wraps():
-    # make long comment and fields to exceed 80 chars
-    many = {f"x{i}": "y" * 20 for i in range(5)}
-    d = DATA(
-        code_tag="T",
-        comment="c" * 60,
-        default_fields={"df": "D"},
-        custom_fields=many,
-    )
-    line = d.as_data_comment()
-    # contains newline after first #
-    assert "\n# " in line
-
-
 # @pytest.mark.asyncio
 # async def test_async_not_applicable():
 #     # verify no async methods break

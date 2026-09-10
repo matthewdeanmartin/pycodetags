@@ -13,13 +13,12 @@ from collections.abc import Sequence
 import pluggy
 
 import pycodetags.__about__ as __about__
-import pycodetags.pure_data_schema as pure_data_schema
 from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 from pycodetags.app_config.config import CodeTagsConfig, get_code_tags_config
 from pycodetags.app_config.config_init import init_pycodetags_config
 from pycodetags.data_tags.data_tags_classes import DATA
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
-from pycodetags.exceptions import CommentNotFoundError
+from pycodetags.exceptions import CommentNotFoundError, PyCodeTagsError
 from pycodetags.filters import InvalidJMESPathFilter, filter_data_by_expression
 from pycodetags.logging_config import generate_config
 from pycodetags.plugin_manager import get_plugin_manager, plugin_currently_loaded
@@ -58,6 +57,17 @@ class InternalViews:
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    """Run the CLI with concise diagnostics for expected input and filesystem failures."""
+    try:
+        return run_cli(argv)
+    except BrokenPipeError:
+        return 0
+    except (PyCodeTagsError, OSError, UnicodeError) as error:
+        print(f"Error: {error}", file=sys.stderr)
+        return 1
+
+
+def run_cli(argv: Sequence[str] | None = None) -> int:
     """
     Main entry point for the pycodetags CLI.
 
@@ -66,12 +76,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     """
     pm = get_plugin_manager()
 
-    pm.register(InternalViews())
+    if not pm.has_plugin("core-views"):
+        pm.register(InternalViews(), name="core-views")
     # --- end pluggy setup ---
 
     parser = argparse.ArgumentParser(
         description=f"{__about__.__description__} (v{__about__.__version__})",
-        epilog="Install pycodetags-issue-tracker plugin for TODO tags. ",
+        epilog="Select TDG or PEP350 explicitly in [tool.pycodetags] schema.",
     )
     common_switches(parser)
 
@@ -149,6 +160,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         code_tags_config = CodeTagsConfig()
 
+    CodeTagsConfig.set_instance(code_tags_config)
+
     if code_tags_config.use_dot_env():
         load_dotenv()
 
@@ -178,7 +191,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     # Handle the 'report' command
     if args.command in ("report", "data"):
         modules = args.module or code_tags_config.modules_to_scan()
-        src = args.src or code_tags_config.source_folders_to_scan()
+        src = args.src or [
+            str(code_tags_config.pyproject_path.parent / path) for path in code_tags_config.source_folders_to_scan()
+        ]
 
         if not modules and not src:
             print(
@@ -189,7 +204,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             sys.exit(1)
 
         try:
-            found = aggregate_all_kinds_multiple_input(modules, src, pure_data_schema.PureDataSchema)
+            found = aggregate_all_kinds_multiple_input(modules, src)
 
             if args.filter:
                 try:
@@ -200,6 +215,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
         except ImportError:
             print(f"Error: Could not import module(s) '{args.module}'", file=sys.stderr)
+            return 1
+        except PyCodeTagsError as error:
+            print(f"Error: {error}", file=sys.stderr)
             return 1
 
         if args.validate:
@@ -225,14 +243,22 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "id":
         from pycodetags import id_command
 
-        paths = args.paths or code_tags_config.source_folders_to_scan()
+        paths = args.paths or [
+            str(code_tags_config.pyproject_path.parent / path) for path in code_tags_config.source_folders_to_scan()
+        ]
         if not paths:
             print(
                 "Need to specify one or more source files/folders, or set src in the config file.",
                 file=sys.stderr,
             )
             return 1
-        exit_code, _result = id_command.run(paths, dry_run=args.dry_run, check=args.check)
+        try:
+            exit_code, result = id_command.run(
+                paths, dry_run=args.dry_run, check=args.check, counter_root=code_tags_config.pyproject_path.parent
+            )
+        except PyCodeTagsError as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 1
         return exit_code
     else:
         # Pass control to plugins for other commands
@@ -245,7 +271,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         if hasattr(args, "src") and args.src:
             src = getattr(args, "src", [])
         else:
-            src = code_tags_config.source_folders_to_scan()
+            src = [
+                str(code_tags_config.pyproject_path.parent / path) for path in code_tags_config.source_folders_to_scan()
+            ]
 
         def found_data_for_plugins_callback(schema: DataTagSchema) -> list[DATA]:
             try:
@@ -289,7 +317,9 @@ def source_and_modules_searcher(
 
 
 def common_switches(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
+    parser.add_argument(
+        "--config", default=argparse.SUPPRESS, help="Path to config file, otherwise current folder pyproject.toml"
+    )
     parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
     parser.add_argument("--info", default=False, action="store_true", help="info level logging output")
     parser.add_argument("--bug-trail", default=False, action="store_true", help="enable bug trail, local logging")

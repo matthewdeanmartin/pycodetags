@@ -1,23 +1,18 @@
 """
 The ``pycodetags id`` command: lazily assign stable local ids (``id=N``) to data tags.
 
-This is the *tool-driven* half of the identity model (see ``spec/id_and_tdg.md`` Part 2). The user
+This is the *tool-driven* half of the identity model. The user
 writes plain tags with no ``id``. When durable identity is needed, this command:
 
 1. scans the given paths for data tags,
-2. skips any tag that already has an ``id`` *or* a tracker ``issue`` (a tracker-backed tag already has
-   the strongest identity and does not need a local one),
-3. allocates the next integer from the per-project counter (``.pycodetags_ids``),
-4. rewrites the source comment to add ``id=N`` -- in PEP-350 form for PEP-350 tags and in TDG form for
-   TDG-origin tags, so neither is mangled into the other's syntax,
-5. saves the counter.
+2. skips tags that already have an ``id``; tracker-linked tags still need local IDs,
+3. reserves existing IDs, then allocates integers from the per-project counter (``.pycodetags_ids``),
+4. saves the reservations before writing source (failed writes may leave gaps),
+5. rewrites comments to add ``id=N`` in their original PEP-350 or TDG syntax.
 
-Performance is intentionally O(files): on a large repo this is a full scan. An incremental ``index``
-is on the roadmap; the counter file format is already index-ready. Do not prematurely optimize here.
+Assignment scans the source files. Use ``TagIndex`` for repeated indexed lookups after refreshing.
 
-This module is core: it works for PEP-350 tags with no plugins installed. TDG-id support activates only
-when the ``TDG`` schema is active (the issue-tracker plugin provides it) and uses the proven
-``as_tdg_comment`` serializer.
+Both schemas are built in. Each file uses schema= or explicit project/path configuration.
 """
 
 from __future__ import annotations
@@ -30,18 +25,10 @@ from pathlib import Path
 
 from pycodetags import mutator
 from pycodetags.aggregate import dedup_data_objects
-from pycodetags.app_config import get_code_tags_config
-from pycodetags.common_interfaces import get_active_schemas, list_available_schemas
-from pycodetags.data_tags import (
-    DATA,
-    DataTagSchema,
-    convert_data_tag_to_data_object,
-    iterate_comments_from_file,
-    tdg_tags_parser,
-)
-from pycodetags.data_tags.identity import content_identity_for_data, resolve_identity
+from pycodetags.data_tags import DATA, DataTagSchema, convert_data_tag_to_data_object, iterate_comments_from_file
+from pycodetags.data_tags.identity import content_identity_for_data, field_value, resolve_identity
+from pycodetags.exceptions import DataTagError
 from pycodetags.identity_counter import IdCounter
-from pycodetags.pure_data_schema import PureDataSchema
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +40,6 @@ class IdRunResult:
     scanned: int = 0
     assigned: int = 0
     skipped_have_id: int = 0
-    skipped_have_issue: int = 0
     skipped_unsupported: int = 0
     skipped_shared_block: int = 0
     files_changed: list[str] = dataclasses.field(default_factory=list)
@@ -61,36 +47,14 @@ class IdRunResult:
     assignments: list[tuple[str, str]] = dataclasses.field(default_factory=list)
 
 
-def _schema_for_tag(tag: DATA, schemas_by_name: dict[str, DataTagSchema]) -> DataTagSchema:
-    """Pick the schema that governs a tag's identity, keyed off ``original_schema``.
+def tdg_serializer(tag: DATA) -> str:
+    """Explicitly render TDG using the shared serializer."""
+    from pycodetags.common_interfaces import dumps
 
-    TDG-origin tags resolve to the ``TDG`` schema (whose ``identity_fields`` is ``["issue"]``); every
-    other tag falls back to the primary schema, which for ``id`` purposes is ``PureDataSchema`` (no
-    extra identity fields, so identity is ``code_tag`` + ``comment``).
-    """
-    origin = (tag.original_schema or "").upper()
-    if origin == "TDG" and "TDG" in schemas_by_name:
-        return schemas_by_name["TDG"]
-    return schemas_by_name.get("PUREDATA", PureDataSchema)
+    return dumps(tag, schema="TDG")
 
 
-def _tdg_serializer(tag: DATA) -> str:
-    """Serialize a TDG-origin tag back to TDG comment form, including its ``id`` property."""
-    properties: dict[str, object] = {}
-    for field_set in (tag.data_fields, tag.custom_fields):
-        if field_set:
-            properties.update(field_set)
-    if tag.tag_id is not None:
-        properties["id"] = tag.tag_id
-    return tdg_tags_parser.as_tdg_comment(
-        code_tag=tag.code_tag or "TODO",
-        title=tag.title if tag.title is not None else tag.comment,
-        body=tag.body,
-        properties=properties,
-    )
-
-
-def _with_id(tag: DATA, new_id: str) -> DATA:
+def with_id(tag: DATA, new_id: str) -> DATA:
     """Return a copy of ``tag`` carrying ``id=new_id`` in both the attribute and the field dicts.
 
     PEP-350 serialization (``as_data_comment``) reads ``id`` out of ``data_fields``/``custom_fields``,
@@ -110,19 +74,19 @@ def _with_id(tag: DATA, new_id: str) -> DATA:
     return new_tag
 
 
-def _collect_paths(paths: list[str]) -> list[Path]:
-    """Expand the given paths into a flat list of ``.py`` files."""
-    files: list[Path] = []
-    for raw in paths:
-        p = Path(raw)
-        if p.is_file():
-            if p.name.endswith(".py"):
-                files.append(p)
-        elif p.is_dir():
-            files.extend(sorted(f for f in p.rglob("*.py")))
-        else:
-            logger.warning("Path does not exist, skipping: %s", raw)
-    return files
+def collect_paths(paths: list[str], exclude: list[str] | None = None, root: Path | None = None) -> list[Path]:
+    """Expand Python source paths once, pruning explicitly excluded directories."""
+    from pycodetags.app_config import get_code_tags_config
+    from pycodetags.discovery import discover_files
+
+    config = get_code_tags_config()
+    base = root or config.pyproject_path.parent
+    absolute = [Path(path).resolve() for path in paths]
+    if any(not path.is_relative_to(base.resolve()) for path in absolute):
+        import os
+
+        base = Path(os.path.commonpath([str(path.parent) for path in absolute]))
+    return discover_files(base, absolute, config.config.get("exclude", []) if exclude is None else exclude)
 
 
 def run(
@@ -132,6 +96,8 @@ def run(
     check: bool = False,
     counter_root: Path | None = None,
     writer: Callable[[str], None] = print,
+    schema: str | DataTagSchema | None = None,
+    exclude: list[str] | None = None,
 ) -> tuple[int, IdRunResult]:
     """Run the ``id`` command.
 
@@ -140,40 +106,49 @@ def run(
         dry_run: Report what would be assigned but write nothing (neither source nor counter).
         check: Assign nothing; exit nonzero if any taggable tag is missing an id. For CI / pre-commit.
         counter_root: Override the project root used to locate ``.pycodetags_ids`` (tests).
+        exclude: Root-relative source exclusion patterns; otherwise use project configuration.
+        schema: Explicit schema selection; otherwise use project configuration.
         writer: Sink for human-readable output (defaults to ``print``).
 
     Returns:
         ``(exit_code, result)``. Exit code is 0 on success, 1 when ``--check`` finds a missing id.
     """
-    config = get_code_tags_config()
-    active = config.active_schemas()
-
-    # Build the candidate schema list (primary + any active plugin schemas, e.g. TDG) and a lookup.
-    schemas: list[DataTagSchema] = [PureDataSchema]
-    for extra in get_active_schemas(active):
-        if extra.get("name") != PureDataSchema.get("name"):
-            schemas.append(extra)
-    schemas_by_name: dict[str, DataTagSchema] = {s.get("name", "").upper(): s for s in list_available_schemas()}
-    schemas_by_name.setdefault("PUREDATA", PureDataSchema)
+    from pycodetags.schemas import resolve_schema
 
     counter = IdCounter.load(counter_root)
     result = IdRunResult()
 
-    files = _collect_paths(paths)
+    files = collect_paths(paths, exclude=exclude, root=counter_root)
     # Per file: list of (old_tag, new_tag, serializer) we will apply together.
-    pending: dict[str, list[tuple[DATA, DATA, Callable[[DATA], str]]]] = defaultdict(list)
+    pending: dict[str, list[tuple[DATA, DATA]]] = defaultdict(list)
     missing_for_check: list[DATA] = []
 
+    collected: dict[Path, list[DATA]] = {}
+    seen_ids: dict[str, DATA] = {}
     for file in files:
-        raw_tags = list(iterate_comments_from_file(str(file), schemas=schemas, include_folk_tags="folk" in active))
+        selected = resolve_schema(schema, file)
+        raw_tags = list(iterate_comments_from_file(str(file), schemas=[selected], include_folk_tags=False))
         converted: list[DATA] = []
         for raw in raw_tags:
-            origin = (raw.get("original_schema") or "").upper()
-            schema = schemas_by_name.get("TDG", PureDataSchema) if origin == "TDG" else PureDataSchema
-            converted.append(convert_data_tag_to_data_object(raw, schema))
-        # Several active schemas can match the same block; collapse those duplicates so we assign one
-        # id per physical tag and never mutate the same offsets twice.
+            converted.append(convert_data_tag_to_data_object(raw, selected))
+        # Keep one assignment per physical source span.
         deduped = dedup_data_objects(converted)
+        collected[file] = deduped
+        for tag in deduped:
+            local_id = field_value(tag, "tag_id", "id")
+            if local_id is None:
+                continue
+            if local_id in seen_ids:
+                previous = seen_ids[local_id]
+                raise DataTagError(
+                    f"Duplicate local id {local_id!r}: {previous.file_path}:{previous.offsets} "
+                    f"and {tag.file_path}:{tag.offsets}. No files were changed."
+                )
+            seen_ids[local_id] = tag
+            counter.record_existing(local_id, content_identity_for_data(tag, tag.schema))
+
+    # Reserve all observed IDs before allocating, including IDs in later files or tracker-backed tags.
+    for file, deduped in collected.items():
 
         # Defensive safety net: the parser assigns *per-tag* offsets, so two distinct tags in one
         # comment block normally have distinct offsets and can each be mutated safely (the mutator
@@ -185,13 +160,9 @@ def run(
             offset_counts[tag.offsets] += 1
 
         for tag in deduped:
-            origin = (tag.original_schema or "").upper()
             result.scanned += 1
 
-            kind, _value = resolve_identity(tag, _schema_for_tag(tag, schemas_by_name))
-            if kind == "tracker":
-                result.skipped_have_issue += 1
-                continue
+            kind = resolve_identity(tag, tag.schema)[0]
             if kind == "id":
                 result.skipped_have_id += 1
                 continue
@@ -212,18 +183,11 @@ def run(
                 continue
 
             # First-time records: adopt any id already in source (none here by definition) and allocate.
-            content_id = content_identity_for_data(tag, _schema_for_tag(tag, schemas_by_name))
-
-            if origin == "TDG" and "TDG" not in schemas_by_name:
-                # TDG tag but the TDG schema/serializer is not available — cannot safely rewrite.
-                result.skipped_unsupported += 1
-                logger.warning("Skipping TDG tag (TDG schema not active) at %s: %r", file, tag.comment)
-                continue
+            content_id = content_identity_for_data(tag, tag.schema)
 
             new_id = counter.allocate(content_id)
-            new_tag = _with_id(tag, new_id)
-            serializer = _tdg_serializer if origin == "TDG" else DATA.as_data_comment
-            pending[str(file)].append((tag, new_tag, serializer))
+            new_tag = with_id(tag, new_id)
+            pending[str(file)].append((tag, new_tag))
             result.assigned += 1
             result.assignments.append((content_id, new_id))
 
@@ -239,37 +203,31 @@ def run(
     if dry_run:
         writer(f"[dry-run] Would assign {result.assigned} id(s) across {len(pending)} file(s):")
         for file_str, items in pending.items():
-            for _old, new_tag, _ser in items:
+            for _, new_tag in items:
                 writer(f"  {file_str}: id={new_tag.tag_id}  {new_tag.code_tag}: {new_tag.comment}")
-        _print_summary(writer, result, dry_run=True)
+        print_summary(writer, result, dry_run=True)
         return 0, result
 
-    # Apply mutations per file. A single serializer is used per file group; all TDG tags share the TDG
-    # serializer and all PEP-350 tags share as_data_comment, so we split each file's mutations by
-    # serializer to keep apply_mutations' single-serializer contract.
-    for file_str, items in pending.items():
-        by_serializer: dict[Callable[[DATA], str], list[tuple[DATA, DATA | None]]] = defaultdict(list)
-        for old, new, item_serializer in items:
-            by_serializer[item_serializer].append((old, new))
-        for group_serializer, muts in by_serializer.items():
-            mutator.apply_mutations(file_str, muts, serializer=group_serializer)
-        result.files_changed.append(file_str)
-
-    if result.assigned and not dry_run:
+    # Persist reservations first: a later write failure must never allow reuse of allocated IDs.
+    if result.assigned or seen_ids:
         counter.save()
 
-    _print_summary(writer, result, dry_run=False)
+    # All records for a file share one validated mutation batch.
+    for file_str, items in pending.items():
+        mutator.apply_mutations(file_str, items)
+        result.files_changed.append(file_str)
+
+    print_summary(writer, result, dry_run=False)
     return 0, result
 
 
-def _print_summary(writer: Callable[[str], None], result: IdRunResult, *, dry_run: bool) -> None:
+def print_summary(writer: Callable[[str], None], result: IdRunResult, *, dry_run: bool) -> None:
     """Print the closing summary line(s)."""
     prefix = "[dry-run] " if dry_run else ""
     writer(
         f"{prefix}Scanned {result.scanned} tag(s); "
         f"assigned {result.assigned}; "
         f"skipped {result.skipped_have_id} with id, "
-        f"{result.skipped_have_issue} with issue, "
         f"{result.skipped_shared_block} sharing a block, "
         f"{result.skipped_unsupported} unsupported."
     )

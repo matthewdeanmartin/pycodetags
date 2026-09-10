@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 
 
@@ -33,13 +34,13 @@ def init_pycodetags_config() -> None:
 
     # Step 2: Find potential source folders and get user selection.
     print("\nSearching for potential source code folders...")
-    potential_folders = _find_potential_src_folders()
+    potential_folders = find_potential_src_folders()
 
     if not potential_folders:
         print("Could not automatically detect any source folders.")
         src_folder = input("Please manually enter the path to your source folder (e.g., 'src', 'my_app'): ")
     else:
-        src_folder = _select_src_folder_interactive(potential_folders) or ""
+        src_folder = select_src_folder_interactive(potential_folders) or ""
 
     if not src_folder or not src_folder.strip():
         print("\nNo source folder selected. Aborting initialization.")
@@ -47,16 +48,19 @@ def init_pycodetags_config() -> None:
 
     print(f"\nUsing '{src_folder}' as the primary source folder.")
 
-    # Step 3: Generate the TOML content.
-    toml_section = _generate_pycodetags_toml_section(src_folder)
+    schema = input("Schema (TDG or PEP350; required): ").strip().upper()
+    if schema not in ("TDG", "PEP350"):
+        print("No valid schema selected. Aborting initialization.")
+        return
+    toml_section = generate_pycodetags_toml_section(src_folder, schema)
 
     # Step 4: Safely write the content to pyproject.toml.
-    _write_to_pyproject_safe(toml_section, pyproject_path)
+    write_to_pyproject_safe(toml_section, pyproject_path)
 
     print("\nInitialization complete! You can now customize the settings in pyproject.toml.")
 
 
-def _find_potential_src_folders(root: str = ".") -> list[str]:
+def find_potential_src_folders(root: str = ".") -> list[str]:
     """
     Identifies potential source code folders in the given root directory.
 
@@ -91,7 +95,7 @@ def _find_potential_src_folders(root: str = ".") -> list[str]:
     return folders
 
 
-def _select_src_folder_interactive(folders: list[str]) -> str | None:
+def select_src_folder_interactive(folders: list[str]) -> str | None:
     """
     Prompts the user to select their source folder from a list.
     """
@@ -116,50 +120,23 @@ def _select_src_folder_interactive(folders: list[str]) -> str | None:
             print("Invalid input. Please enter a number from the list.")
 
 
-def _generate_pycodetags_toml_section(src_folder: str) -> str:
-    """
-    Generates the [tool.pycodetags] TOML string with helpful comments.
-    """
-    return f"""
-[tool.pycodetags]
-# Source folders to scan for code tags.
-# This allows you to run `pycodetags` without specifying the path every time.
-src = ["{src_folder}"]
-
-# --- Optional: Common Configurations ---
-
-# Specify Python modules to scan. Useful if your project structure is complex.
-# modules = []
-
-# Define which tag schemas are active.
-# Default schemas are: todo, fixme, hack, note, perf, bug, question, important
-# Example: active_schemas = ["todo", "fixme", "bug"]
-
-# --- Runtime Behavior Control ---
-# These settings control pycodetags's behavior when imported in your code.
-
-# Master switch to disable all runtime features (e.g., for production).
-# Setting this to true ensures zero performance overhead from the library.
-disable_all_runtime_behavior = false
-
-# Enables or disables the runtime actions ('log', 'warn', 'stop').
-# If false, runtime checks are silent, even if `disable_all_runtime_behavior` is false.
-enable_actions = true
-
-# Default action for runtime checks if a tag doesn't specify one.
-# Valid options: "warn", "stop" (raises TypeError), "log", or "nothing".
-default_action = "warn"
-
-# Automatically disables all runtime actions when in a CI environment.
-# Checks for common CI environment variables (e.g., CI, GITHUB_ACTIONS).
-disable_on_ci = true
-
-# Allow pycodetags to load environment variables from a .env file.
-use_dot_env = true
-"""
+def generate_pycodetags_toml_section(src_folder: str, schema: str) -> str:
+    """Generate configuration from explicit user selections, with no schema default."""
+    if schema not in ("TDG", "PEP350"):
+        raise ValueError("Choose TDG or PEP350 explicitly.")
+    return (
+        "[tool.pycodetags]\n"
+        f"src = [{json.dumps(src_folder)}]\n"
+        f"schema = {json.dumps(schema)}\n"
+        "disable_all_runtime_behavior = false\n"
+        "enable_actions = true\n"
+        'default_action = "warn"\n'
+        "disable_on_ci = true\n"
+        "use_dot_env = true\n"
+    )
 
 
-def _write_to_pyproject_safe(toml_section: str, pyproject_path: str) -> None:
+def write_to_pyproject_safe(toml_section: str, pyproject_path: str) -> None:
     """
     Safely appends the configuration to pyproject.toml.
 

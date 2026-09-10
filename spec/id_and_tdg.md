@@ -1,8 +1,10 @@
 # Data Tag Identity + TDG / GitHub Issue Integration
 
-> Status: **Draft spec, ready for implementation.**
+> Status: **Historical draft, superseded by `core_database_sprints.md` and `release_readiness.md`.**
+> Current behavior: local `id` identifies a source tag, `tracker` may be shared by many tags,
+> and `issue` is a parent relationship. Tracker-linked tags receive local IDs too.
 > Supersedes the relevant parts of [`tdg_is_cool_tool.md`](./tdg_is_cool_tool.md) (kept for reference; this
-> document is the authoritative plan).
+> document records the original plan).
 > Author intent captured from design conversation 2026-06-06.
 
 This spec covers the **two most critical missing pieces** of pycodetags:

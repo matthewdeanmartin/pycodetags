@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Sequence
+from pathlib import Path
 from typing import cast
 
 from pycodetags_issue_tracker import TODO
@@ -44,7 +45,9 @@ def handle_cli(subparsers: argparse._SubParsersAction):
 
 
 def common_switches(parser) -> None:
-    parser.add_argument("--config", help="Path to config file, defaults to current folder pyproject.toml")
+    parser.add_argument(
+        "--config", default=argparse.SUPPRESS, help="Path to config file, defaults to current folder pyproject.toml"
+    )
     parser.add_argument("--verbose", default=False, action="store_true", help="verbose level logging output")
     parser.add_argument("--info", default=False, action="store_true", help="info level logging output")
     parser.add_argument("--bug-trail", default=False, action="store_true", help="enable bug trail, local logging")
@@ -66,7 +69,7 @@ def run_cli_command(
                 sys.exit(100)
             return True
         if format_name == "html":
-            views_templated.print_html(cast(list[TODO], found_data))
+            views_templated.print_html(cast(list[TODO], found_data), output=Path(args.output or "issues_site"))
             return True
         if format_name == "todomd":
             print_todo_md(cast(list[TODO], found_data))

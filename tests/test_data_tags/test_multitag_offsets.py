@@ -125,11 +125,11 @@ def test_mutating_one_tag_in_block_leaves_sibling_untouched(tmp_path: Path):
 
     out = f.read_text(encoding="utf-8")
     # FIXME got the id; BUG line is byte-for-byte unchanged.
-    assert "# FIXME: first thing <category:core id:1>" in out
+    assert "# FIXME: first thing <category=core id=1>" in out
     assert "# BUG: tracked one <priority:high>" in out
     # BUG must not have been duplicated, stacked, or deleted.
     assert out.count("BUG: tracked one") == 1
-    assert "id:1>id" not in out
+    assert "id=1>id" not in out
 
 
 def test_mutating_both_tags_in_block(tmp_path: Path):
@@ -152,6 +152,6 @@ def test_mutating_both_tags_in_block(tmp_path: Path):
 
     mutator.apply_mutations(str(f), muts)
     out = f.read_text(encoding="utf-8")
-    assert out.count("id:9") == 2
-    assert "# FIXME: first thing <category:core id:9>" in out
-    assert "# BUG: tracked one <priority:high id:9>" in out
+    assert out.count("id=9") == 2
+    assert "# FIXME: first thing <category=core id=9>" in out
+    assert "# BUG: tracked one <priority=high id=9>" in out

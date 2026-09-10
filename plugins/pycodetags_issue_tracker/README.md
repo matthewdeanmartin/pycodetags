@@ -1,3 +1,12 @@
+# Release 0.4 compatibility
+
+Requires pycodetags 0.8.x and Python 3.9–3.15. Select `schema = "TDG"`, `"PEP350"`, or this
+plugin's `"TODO"` schema explicitly under `[tool.pycodetags]`. TODO uses extended PEP-350.
+`pycodetags issues` respects that selection; TDG is owned by the core, not registered by this plugin.
+Conversions preserve titles, bodies, local IDs, schema selection, and mutation fingerprints.
+`issue` is a parent relationship; `tracker` may be shared by several independently identified tags.
+HTML reports honor `--output`; set `PYCODETAGS_NO_OPEN_BROWSER=1` for unattended use.
+
 # Issue Tracker
 
 This is a PEP350 inspired issue tracker. Store issues in source code.

@@ -83,8 +83,9 @@ use_dot_env = true
 from __future__ import annotations
 
 import logging
-import os
 import sys
+from fnmatch import fnmatchcase
+from pathlib import Path
 from typing import Any
 
 from pycodetags.exceptions import ConfigError
@@ -115,24 +116,36 @@ def careful_to_bool(value: Any, default: bool) -> bool:
 
 
 class CodeTagsConfig:
-    _instance: CodeTagsConfig | None = None
+    instance: CodeTagsConfig | None = None
     config: dict[str, Any] = {}
 
     def __init__(self, pyproject_path: str = "pyproject.toml"):
 
-        self._pyproject_path = pyproject_path
-        self._load()
+        self.pyproject_path = Path(pyproject_path).resolve()
+        self.load_config()
 
-    def _load(self) -> None:
-        if not os.path.exists(self._pyproject_path):
+    def load_config(self) -> None:
+        if not self.pyproject_path.exists():
             self.config = {}
             return
 
-        with open(self._pyproject_path, "rb" if "tomllib" in sys.modules else "r") as f:
-            # pylint: disable=used-before-assignment
-            data = tomllib.load(f) if "tomllib" in sys.modules else toml.load(f)
-
-        self.config = data.get("tool", {}).get("pycodetags", {})
+        try:
+            with open(
+                self.pyproject_path,
+                "rb" if "tomllib" in sys.modules else "r",
+                **({} if "tomllib" in sys.modules else {"encoding": "utf-8"}),
+            ) as stream:
+                data = tomllib.load(stream) if "tomllib" in sys.modules else toml.load(stream)
+        except (ValueError, UnicodeError) as error:
+            raise ConfigError(f"Invalid TOML configuration in {self.pyproject_path}: {error}") from error
+        tool = data.get("tool", {})
+        self.config = tool.get("pycodetags", {}) if isinstance(tool, dict) else None
+        if not isinstance(self.config, dict):
+            raise ConfigError("[tool.pycodetags] must be a TOML table.")
+        for key in ("src", "modules", "exclude"):
+            values = self.config.get(key, [])
+            if not isinstance(values, list) or not all(isinstance(value, str) and value for value in values):
+                raise ConfigError(f"{key} must be a list of nonempty strings.")
 
     def disable_all_runtime_behavior(self) -> bool:
         """Minimize performance costs when in production"""
@@ -170,7 +183,37 @@ class CodeTagsConfig:
 
     def source_folders_to_scan(self) -> list[str]:
         """Allows user to skip listing src on CLI tool"""
-        return [_.lower() for _ in self.config.get("src", [])]
+        return [str(path) for path in self.config.get("src", [])]
+
+    def schema_for_path(self, file_path: str | Path | None = None) -> str:
+        """Select a configured schema. A matching path rule overrides the explicit project selection."""
+        rules = self.config.get("schema_paths", [])
+        if not isinstance(rules, list):
+            raise ConfigError("schema_paths must be a list of {path, schema} tables.")
+        matches = []
+        relative = None
+        if file_path is not None:
+            try:
+                relative = Path(file_path).resolve().relative_to(self.pyproject_path.parent).as_posix()
+            except ValueError:
+                pass
+        for rule in rules:
+            if (
+                not isinstance(rule, dict)
+                or not isinstance(rule.get("path"), str)
+                or not isinstance(rule.get("schema"), str)
+            ):
+                raise ConfigError("Each schema_paths entry requires string path and schema values.")
+            if relative is not None and fnmatchcase(relative, rule["path"]):
+                matches.append(rule["schema"])
+        if len(matches) > 1:
+            raise ConfigError(f"Overlapping schema_paths rules for {file_path}; make the rules disjoint.")
+        selection = matches[0] if matches else self.config.get("schema")
+        if not isinstance(selection, str) or not selection.strip():
+            raise ConfigError(
+                "Select a schema explicitly: set [tool.pycodetags] schema = 'TDG' or 'PEP350', or pass schema=."
+            )
+        return selection
 
     def active_schemas(self) -> list[str]:
         """Schemas to detect in source comments."""
@@ -179,14 +222,14 @@ class CodeTagsConfig:
     @classmethod
     def get_instance(cls, pyproject_path: str = "pyproject.toml") -> CodeTagsConfig:
         """Get the singleton instance of CodeTagsConfig."""
-        if cls._instance is None:
-            cls._instance = cls(pyproject_path)
-        return cls._instance
+        if cls.instance is None:
+            cls.instance = cls(pyproject_path)
+        return cls.instance
 
     @classmethod
     def set_instance(cls, instance: CodeTagsConfig | None) -> None:
         """Set a custom instance of CodeTagsConfig."""
-        cls._instance = instance
+        cls.instance = instance
 
 
 def get_code_tags_config() -> CodeTagsConfig:

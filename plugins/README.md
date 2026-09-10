@@ -1,3 +1,18 @@
+# Release readiness for core 0.8.0
+
+| Package | Candidate | Decision |
+| --- | --- | --- |
+| pycodetags-issue-tracker | 0.4.0 | Rebuild: schema, identity/provenance, reporting fixes |
+| pycodetags-chat | 0.2.0 | Rebuild: entry point, explicit discussion schema, metadata |
+| pycodetags-universal | 0.2.0 | Rebuild: explicit TDG/PEP-350 standalone line comments |
+| pycodetags-github-issues-sync | existing 0.1.0 | Hold: placeholder synchronization and obsolete hook names |
+| pycodetags-to-sqlite | existing 0.1.0 | Hold: export hooks have no implementation |
+
+The three candidates require core 0.8.x and Python 3.9–3.15. No compatibility layer for the previous
+implicit schema behavior is supplied. The held packages are not release candidates; do not install
+them as part of the supported bundle. Core TagIndex supplies the working SQLite snapshot capability.
+No real GitHub synchronization is claimed or attempted by this release.
+
 # These are plugin examples.
 
 These are not distributed and exist only as example code and to exercise plugin functionality.

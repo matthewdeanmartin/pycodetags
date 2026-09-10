@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- Rebuildable SQLite snapshots with indexed tag lookups and scan exclusions.
+- Public batch update and delete helpers.
+- Built-in TDG and extended PEP-350 schemas with shared title/body support.
+
+### Changed
+- Align functional plugins and release validation with the new core.
+- Assign local IDs even when tags share a tracker ticket.
+- Reuse unchanged files during refresh and reduce repeated scan work.
+- Support Python 3.9–3.15; use Python 3.14 for development.
+- Separate parent issues from code-tag identity.
+- Require explicit schema selection through configuration or the API.
+
+### Fixed
+- Report configuration, source, and storage failures cleanly.
+- Reject stale or overlapping mutations and preserve source file formatting.
+- Correct source locations for code tags.
+- Prevent local ID collisions and unsafe counter resets.
+- Preserve quoted properties and body text across tag formats.
+
 ## [0.7.0] - 2026-06-06
 ### Added
 - Identity. Important for any database like behaviors in the future
@@ -84,6 +105,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release with tags, collectors, and converters
 
+[Unreleased]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.3.0...v0.4.0

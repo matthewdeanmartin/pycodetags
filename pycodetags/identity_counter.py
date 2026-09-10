@@ -14,8 +14,10 @@ from __future__ import annotations
 import json
 import logging
 import os
+import tempfile
 from pathlib import Path
 
+from pycodetags.exceptions import DataTagError
 from pycodetags.utils.cache_utils import find_project_root
 
 logger = logging.getLogger(__name__)
@@ -41,26 +43,33 @@ class IdCounter:
 
     @classmethod
     def load(cls, root: Path | None = None) -> IdCounter:
-        """Load the counter from disk, or return a fresh empty counter if none exists."""
+        """Load a valid counter; only a missing file permits starting a fresh counter."""
         path = cls.path_for(root)
-        if not path.is_file():
-            return cls(path=path)
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError) as e:
-            logger.warning("Could not read id counter %s (%s); starting fresh.", path, e)
+        except FileNotFoundError:
             return cls(path=path)
+        except (ValueError, OSError) as e:
+            raise DataTagError(f"Cannot read id counter {path}; refusing to reset existing IDs.") from e
 
-        allocated = {str(k): str(v) for k, v in (data.get("allocated") or {}).items()}
-        next_id = int(data.get("next_id", 1))
+        if not isinstance(data, dict) or type(data.get("version")) is not int or data["version"] != COUNTER_VERSION:
+            raise DataTagError(f"Invalid id counter version in {path}.")
+        allocated = data.get("allocated")
+        next_id = data.get("next_id")
+        if type(next_id) is not int or next_id < 1 or not isinstance(allocated, dict):
+            raise DataTagError(f"Invalid id counter structure in {path}.")
+        for tag_id, content_id in allocated.items():
+            validate_local_id(tag_id)
+            if not isinstance(content_id, str) or not content_id:
+                raise DataTagError(f"Invalid content identity for id {tag_id!r} in {path}.")
         counter = cls(path=path, next_id=next_id, allocated=allocated)
-        counter._reconcile_next_id()
+        counter.reconcile_next_id()
         return counter
 
-    def _reconcile_next_id(self) -> None:
+    def reconcile_next_id(self) -> None:
         """Ensure ``next_id`` is greater than every id we already know about."""
         if self.allocated:
-            max_known = max(int(k) for k in self.allocated if k.isdigit())
+            max_known = max(int(k) for k in self.allocated)
             if self.next_id <= max_known:
                 self.next_id = max_known + 1
 
@@ -77,6 +86,7 @@ class IdCounter:
         (a mismatch is logged, since it may indicate the tag text changed since allocation).
         """
         tag_id = str(tag_id)
+        validate_local_id(tag_id)
         existing = self.allocated.get(tag_id)
         if existing is not None and existing != content_id:
             logger.debug(
@@ -102,6 +112,22 @@ class IdCounter:
             "allocated": {k: self.allocated[k] for k in sorted(self.allocated, key=lambda s: (len(s), s))},
         }
         text = json.dumps(payload, indent=2) + "\n"
-        tmp = self.path.with_suffix(self.path.suffix + ".tmp")
-        tmp.write_text(text, encoding="utf-8")
-        os.replace(tmp, self.path)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", prefix=".pycodetags-ids-", suffix=".tmp", dir=self.path.parent, delete=False
+            ) as stream:
+                temporary = Path(stream.name)
+                stream.write(text)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, self.path)
+        finally:
+            if temporary is not None and temporary.exists():
+                temporary.unlink()
+
+
+def validate_local_id(tag_id: str) -> None:
+    """Require a positive decimal ID in canonical form to avoid ambiguous keys such as 01."""
+    if not isinstance(tag_id, str) or not tag_id.isascii() or not tag_id.isdecimal() or tag_id.startswith("0"):
+        raise DataTagError(f"Invalid local id {tag_id!r}; expected a positive decimal integer without leading zeros.")

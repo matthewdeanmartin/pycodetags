@@ -33,14 +33,14 @@ def test_provide_schemas_includes_tdg():
     schemas = IssueTrackerApp().provide_schemas()
     names = {s["name"] for s in schemas}
     assert "TODO" in names
-    assert "TDG" in names
+    assert "TDG" not in names
 
 
-def test_tdg_schema_identity_is_issue():
-    assert TDGSchema["identity_fields"] == ["issue"]
+def test_tdg_schema_does_not_use_parent_issue_as_identity():
+    assert "issue" not in TDGSchema["identity_fields"]
     assert "issue" in TDGSchema["data_fields"]
-    assert "title" in TDGSchema["data_fields"]
-    assert "body" in TDGSchema["data_fields"]
+    assert "title" not in TDGSchema["data_fields"]
+    assert "body" not in TDGSchema["data_fields"]
 
 
 def test_converter_lifts_title_body_from_attributes():

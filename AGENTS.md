@@ -7,7 +7,7 @@ _ means unused and prefix with _ means unused. It doesn't mean private. Don't na
 This repository holds the core `pycodetags` library. Work in the `pycodetags/` package and its tests in `tests/`; plugin code in `plugins/` is out of scope unless explicitly requested.
 
 ## Style
-- Target Python 3.7+ (tests run on 3.8 and 3.13) and keep code compatible with the lowest supported version.
+- Use Python 3.14 locally. Support Python 3.9 through 3.15 and keep code compatible with Python 3.9.
 - Format Python code with `black` (line length 120) and organize imports with `isort`.
 - Keep commits focused and write clear commit messages.
 
@@ -17,10 +17,9 @@ Before committing:
    ```bash
    pre-commit run --files <files>
    ```
-2. Run the test suite on Python 3.8 and 3.13:
+2. Run the test suite across the supported Python versions:
    ```bash
-   tox -e py38
-   tox -e py313
+   tox -e py39,py310,py311,py312,py313,py314,py315
    ```
 
 ## Documentation

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import logging
+from copy import deepcopy
 from typing import Any
 
 import jmespath
@@ -29,6 +30,9 @@ class DataTag(TypedDict, total=False):
 
     # metadata
     file_path: str | None
+    source_digest: str | None
+    source_bytes_digest: str | None
+    schema: DataTagSchema
     original_text: str | None
     """Source code before parsing"""
 
@@ -59,8 +63,14 @@ def convert_data_tag_to_data_object(tag_value: DataTag, schema: DataTagSchema) -
         tag_value (DataTag): The PEP350Tag to convert.
         schema (DataTagSchema): Schema for DataTag
     """
-    # default fields should have already been promoted to data_fields by now.
     kwargs = upgrade_to_specific_schema(tag_value, schema)
+    if "title" in tag_value:
+        kwargs["schema"] = deepcopy(schema)
+        kwargs["title"] = tag_value["title"]
+        kwargs["body"] = tag_value.get("body", "")
+        for name in ("title", "body", "id"):
+            kwargs.get("data_fields", {}).pop(name, None)
+            kwargs.get("custom_fields", {}).pop(name, None)
 
     return DATA(**kwargs)  # xtype: ignore[arg-type]
 
@@ -100,6 +110,8 @@ def upgrade_to_specific_schema(tag_value: DataTag, schema: DataTagSchema, flat: 
         # Source Mapping
         "file_path": tag_value.get("file_path"),
         "original_text": tag_value.get("original_text"),
+        "source_digest": tag_value.get("source_digest"),
+        "source_bytes_digest": tag_value.get("source_bytes_digest"),
         "original_schema": tag_value.get("original_schema") or "pep350",
         "offsets": tag_value.get("offsets"),
     }

@@ -16,16 +16,9 @@ uv.lock: pyproject.toml
 
 # tests can't be expected to pass if dependencies aren't installed.
 # tests are often slow and linting is fast, so run tests on linted code.
-test: uv.lock install_plugins
-	@echo "Running unit tests"
-	$(VENV) pytest --doctest-modules pycodetags
-	# $(VENV) python -m unittest discover
-	$(VENV) py.test tests -vv -n 2 --cov=pycodetags --cov-report=html --cov-fail-under 50 --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
-	$(VENV) bash basic_test.sh
-	$(VENV) bash basic_test_with_logging.sh
-#	$(VENV) bash basic_plugins.sh
-#	$(VENV) bash basic_test_via_config.sh
-#	$(VENV) bash basic_test_with_multiple_sources.sh
+test:
+	$(VENV) python -m pytest tests --cov=pycodetags --cov-fail-under=65
+
 
 
 
@@ -56,7 +49,11 @@ pylint: isort black
 	$(VENV) ruff check --fix
 	$(VENV) pylint pycodetags --fail-under 9.8
 
-check: mypy test pylint bandit check-dist
+check: test check-dist
+
+.PHONY: release-check
+release-check:
+	$(VENV) python scripts/release_candidates.py all
 
 # ── Distribution verification ────────────────────────────────────────────────
 

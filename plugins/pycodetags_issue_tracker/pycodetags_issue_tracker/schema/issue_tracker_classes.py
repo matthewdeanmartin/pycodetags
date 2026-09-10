@@ -97,7 +97,7 @@ class TODO(DATA):
     estimate: float | None = None
     """Effort estimate in hours (TDG, e.g. 30m -> 0.5)"""
     issue: str | None = None
-    """External issue number (TDG ``issue=NNN``); tracker identity when present"""
+    """Parent issue number (TDG ``issue=NNN``), never this tag's identity"""
 
     priority: str | None = None
     """User specified meaning, urgency of task"""

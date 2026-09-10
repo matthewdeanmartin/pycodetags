@@ -77,10 +77,10 @@ def convert_datas_to_TODOs(tags: Iterable[DATA]) -> Iterable[TODO]:
 
 def get_from_custom_or_data(name: str, tag: DATA) -> Any:
     value = (tag.data_fields or {}).get(name)
-    if value:
+    if value is not None:
         return value
     value = (tag.custom_fields or {}).get(name)
-    if value:
+    if value is not None:
         return value
     return None
 
@@ -90,8 +90,8 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
         code_tag=tag.code_tag,
         comment=tag.comment,
         # TDG title/body split (DATA attributes, populated by the TDG parser; fall back to dicts).
-        title=tag.title or get_from_custom_or_data("title", tag),
-        body=tag.body or get_from_custom_or_data("body", tag),
+        title=tag.title if tag.title is not None else get_from_custom_or_data("title", tag),
+        body=tag.body if tag.body is not None else get_from_custom_or_data("body", tag),
         # Local identity. Comment field name is ``id``; attribute is ``tag_id``.
         tag_id=tag.tag_id or get_from_custom_or_data("id", tag),
         estimate=parse_estimate(get_from_custom_or_data("estimate", tag)),
@@ -101,7 +101,7 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
         custom_fields=tag.custom_fields or {},
         unprocessed_defaults=tag.unprocessed_defaults or [],
         assignee=get_from_custom_or_data("assignee", tag),
-        originator=get_from_custom_or_data("originator", tag),
+        originator=get_from_custom_or_data("originator", tag) or get_from_custom_or_data("author", tag),
         origination_date=get_from_custom_or_data("origination_date", tag),
         due=get_from_custom_or_data("due", tag),
         release_due=get_from_custom_or_data("release_due", tag),
@@ -115,6 +115,9 @@ def convert_data_to_TODO(tag: DATA) -> TODO:
         original_text=tag.original_text,
         original_schema=tag.original_schema,
         offsets=tag.offsets,
+        schema=tag.schema,
+        source_digest=tag.source_digest,
+        source_bytes_digest=tag.source_bytes_digest,
         priority=get_from_custom_or_data("priority", tag),
         status=get_from_custom_or_data("status", tag),
         category=get_from_custom_or_data("category", tag),

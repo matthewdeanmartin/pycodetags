@@ -9,11 +9,11 @@ import re
 from collections.abc import Generator
 from pathlib import Path
 
-from pycodetags.data_tags import folk_tags_parser
 from pycodetags.data_tags.data_tags_methods import DataTag, merge_two_dicts, promote_fields
 from pycodetags.data_tags.data_tags_schema import DataTagFields, DataTagSchema
 from pycodetags.exceptions import SchemaError
 from pycodetags.python.comment_finder import find_comment_blocks_from_string
+from pycodetags.source_io import logical_text, read_python_source, text_digest
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,10 @@ def iterate_comments_from_file(file: str, schemas: list[DataTagSchema], include_
         PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
     """
     logger.info(f"iterate_comments: processing {file}")
-    yield from iterate_comments(Path(file).read_text(encoding="utf-8"), Path(file), schemas, include_folk_tags)
+    snapshot = read_python_source(file)
+    for tag in iterate_comments(logical_text(snapshot.text), snapshot.path, schemas, include_folk_tags):
+        tag["source_bytes_digest"] = snapshot.digest
+        yield tag
 
 
 def _extend_to_comment_prefix(block: str, line_start: int, match_start: int) -> int:
@@ -82,86 +85,31 @@ def _span_to_offsets(
 
 
 def iterate_comments(
-    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool
+    source: str, source_file: Path | None, schemas: list[DataTagSchema], include_folk_tags: bool = False
 ) -> Generator[DataTag]:
-    """
-    Collect PEP-350 style code tags from a given file.
+    """Parse one explicitly selected schema. Use configured path rules for mixed projects."""
+    from pycodetags.data_tags.formats import parse_block
+    from pycodetags.schemas import validate_schema
 
-    Args:
-        source (str): The source text to process.
-        source_file (Path): Where did the source come from
-        schemas (DataTaSchema): Schemas that will be detected in file
-        include_folk_tags (bool): Include folk schemas that do not strictly follow PEP350
-
-    Yields:
-        PEP350Tag: A generator yielding PEP-350 style code tags found in the file.
-    """
-    if not schemas and not include_folk_tags:
-        raise SchemaError("No active schemas, not looking for folk tags. Won't find anything.")
-    things: list[DataTag] = []
-    for _start_line, _start_char, _end_line, _end_char, final_comment in find_comment_blocks_from_string(source):
-        # Can only be one comment block now!
-        logger.debug(f"Search for {[_['name'] for _ in schemas]} schema tags")
-        found_data_tags = []
-        for schema in schemas:
-            tags_with_spans = parse_codetags_with_spans(final_comment, schema, strict=False)
-            found_data_tags = [tag for tag, _ in tags_with_spans]
-
-            for found, span in tags_with_spans:
-                found["file_path"] = str(source_file) if source_file else None
-                found["original_schema"] = "PEP350"
-                # Per-tag offsets/original_text from each match's block span, so multiple tags in one
-                # comment block do not all claim the whole block (spec/id_and_tdg.md Part 7).
-                offsets, original_text = _span_to_offsets(final_comment, span, _start_line, _start_char)
-                found["offsets"] = offsets
-                found["original_text"] = original_text
-
-            if found_data_tags:
-                logger.debug(f"Found data tags! : {','.join(_['code_tag'] for _ in found_data_tags)}")
-            things.extend(found_data_tags)
-
-        for schema in schemas:
-            if not found_data_tags and include_folk_tags and schema["matching_tags"]:
-                # BUG: fails if there are two in the same. Blank out consumed text, reconsume bock <matth 2025-07-04
-                #  category:parser priority:high status:development release:1.0.0 iteration:1>
-                found_folk_tags: list[DataTag] = []
-                # TODO: support config of folk schema.<matth 2025-07-04 category:config priority:high status:development release:1.0.0 iteration:1>
-                folk_tags_parser.process_text(
-                    final_comment,
-                    allow_multiline=True,
-                    default_field_meaning="assignee",
-                    found_tags=found_folk_tags,
-                    file_path=str(source_file) if source_file else "",
-                    valid_tags=schema["matching_tags"],
-                )
-                for found_folk_tag in found_folk_tags:
-                    # BUG: Offsets here are buggy. <matth 2025-07-04 category:config priority:high status:development release:1.0.0>
-                    a, b, c, d = found_folk_tag["offsets"] or (0, 0, 0, 0)
-                    new_offset = _start_line + a, _start_char + b, _end_line + c, _end_char + d
-                    found_folk_tag["offsets"] = new_offset
-
-                if found_folk_tags:
-                    logger.debug(f"Found folk tags! : {','.join(_['code_tag'] for _ in found_folk_tags)}")
-                things.extend(found_folk_tags)
-
-        # TDG pass: only for TDG-named schemas, only when PEP-350 found nothing in this block.
-        # PEP-350 wins; TDG is the fallback. Imported here to avoid an import cycle.
-        if not found_data_tags:
-            from pycodetags.data_tags import tdg_tags_parser
-
-            for schema in schemas:
-                if schema.get("name") != "TDG":
-                    continue
-                for tdg_tag in tdg_tags_parser.iterate_comments(final_comment, source_file, [schema]):
-                    a, b, c, d = tdg_tag["offsets"] or (0, 0, 0, 0)
-                    # The block string's first line is sliced at _start_char, so its in-block char
-                    # offset is relative to that; later lines are full source lines, so their char
-                    # offset is already absolute.
-                    abs_start_char = _start_char + b if a == 0 else b
-                    tdg_tag["offsets"] = (_start_line + a, abs_start_char, _start_line + c, d)
-                    things.append(tdg_tag)
-
-    yield from things
+    if include_folk_tags:
+        raise SchemaError("Folk fallback is not supported; select TDG or PEP350 explicitly.")
+    if len(schemas) != 1:
+        raise SchemaError("Select exactly one schema per source file; use schema_paths for mixed projects.")
+    schema = validate_schema(schemas[0])
+    digest = text_digest(source)
+    for start_line, start_char, _, _, block in find_comment_blocks_from_string(source):
+        for tag in parse_block(block, schema):
+            first_line, first_char, last_line, last_char = tag["offsets"]
+            tag["offsets"] = (
+                start_line + first_line,
+                first_char + (start_char if first_line == 0 else 0),
+                start_line + last_line,
+                last_char + (start_char if last_line == 0 else 0),
+            )
+            tag["file_path"] = str(source_file.resolve()) if source_file else None
+            tag["source_digest"] = digest
+            tag["schema"] = schema
+            yield tag
 
 
 def is_int(s: str) -> bool:

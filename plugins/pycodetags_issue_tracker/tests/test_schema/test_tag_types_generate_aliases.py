@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field, fields
+from pathlib import Path
+from runpy import run_path
 
-from scripts.todo_tag_types_generate_aliases import build_param_parts, param_string
+generator = run_path(str(Path(__file__).resolve().parents[2] / "scripts" / "todo_tag_types_generate_aliases.py"))
+build_param_parts = generator["build_param_parts"]
+param_string = generator["param_string"]
 
 
 # A dummy TODO with varied fields to test default, default_factory, and type annotation formatting

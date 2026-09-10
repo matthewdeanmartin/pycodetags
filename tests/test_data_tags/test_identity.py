@@ -109,10 +109,12 @@ def test_data_content_identity_method():
 # --- resolve_identity ---
 
 
-def test_resolve_identity_prefers_tracker():
+def test_resolve_identity_prefers_local_id():
     schema = _schema()
-    tag = DATA(code_tag="TODO", comment="x", tag_id="5", data_fields={"issue": "123"})
-    assert resolve_identity(tag, schema) == ("tracker", "123")
+    tag = DATA(
+        code_tag="TODO", comment="x", tag_id="5", data_fields={"tracker": "https://github.com/acme/repo/issues/123"}
+    )
+    assert resolve_identity(tag, schema) == ("id", "5")
 
 
 def test_resolve_identity_falls_back_to_local_id():

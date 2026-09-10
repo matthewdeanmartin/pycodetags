@@ -8,11 +8,8 @@ from pathlib import Path
 import pytest
 
 from pycodetags.common_interfaces import string_to_data
-from pycodetags.data_tags import DATA
+from pycodetags.data_tags import DATA, PEP350Schema
 from pycodetags.exceptions import DataTagError
-
-# These imports assume the pycodetags package structure.
-# You may need to adjust them based on your project setup.
 from pycodetags.mutator import apply_mutations, delete_tags, insert_tags, replace_with_strings
 
 # --- Test Data and Fixtures ---
@@ -97,7 +94,7 @@ def test_update_single_tag(source_file: Path):
     expected_content = """
 import os
 
-# TODO: This function has been refactored <user:matt status:done>
+# TODO: This function has been refactored <user=matt status=done>
 def old_function():
     pass
 
@@ -163,7 +160,7 @@ def test_update_multiline_tag(multiline_source_file: Path):
     multiline_todo = tags[0]
 
     new_tag = DATA(
-        code_tag="REFACTORED",
+        code_tag="DONE",
         comment="Init is now simplified.",
         data_fields={"author": "alice", "status": "complete"},
     )
@@ -172,7 +169,7 @@ def test_update_multiline_tag(multiline_source_file: Path):
 
     expected_content = """
 class ComplexClass:
-    # REFACTORED: Init is now simplified. <author:alice status:complete>
+    # DONE: Init is now simplified. <author=alice status=complete>
     def __init__(self):
         self.value = 1
 
@@ -264,11 +261,11 @@ def test_replace_with_strings(source_file: Path):
     expected_content = """
 import os
 
-# TODO: This is a new TODO comment. <>
+# TODO: This is a new TODO comment. <user=matt status=pending>
 def old_function():
     pass
 
-# FIXME: This is a new FIXME comment. <>
+# FIXME: This is a new FIXME comment. <priority=high id=123>
 def broken_function():
     return False
 """
@@ -299,8 +296,8 @@ def function_two():
 
 def test_insert_multiple_tags(blank_lines_file: Path):
     """Test inserting multiple tags in descending order."""
-    tag1 = DATA(code_tag="INFO", comment="First insertion.")
-    tag2 = DATA(code_tag="INFO", comment="Second insertion.")
+    tag1 = DATA(schema=dict(PEP350Schema, matching_tags=["INFO"]), code_tag="INFO", comment="First insertion.")
+    tag2 = DATA(schema=dict(PEP350Schema, matching_tags=["INFO"]), code_tag="INFO", comment="Second insertion.")
 
     # Insert on lines 3 and 5
     insert_tags(blank_lines_file, [(3, tag1, 0), (5, tag2, 0)])
@@ -320,7 +317,7 @@ def function_two():
 
 def test_insert_at_end_of_file(blank_lines_file: Path):
     """Test inserting a tag after the last line of code."""
-    tag = DATA(code_tag="FINAL", comment="End of module.")
+    tag = DATA(schema=dict(PEP350Schema, matching_tags=["FINAL"]), code_tag="FINAL", comment="End of module.")
     num_lines = len(blank_lines_file.read_text().splitlines())
 
     # Insert on the line after the last one

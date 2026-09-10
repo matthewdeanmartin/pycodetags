@@ -8,7 +8,8 @@ from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 PureDataSchema: DataTagSchema = {
     "name": "DATA",
-    "matching_tags": ["DATA"],
+    "format": "PEP350",
+    "matching_tags": ["DATA", "TODO", "FIXME", "BUG", "HACK", "NOTE", "DONE", "XXX"],
     "default_fields": {
         # No defaults, no domain!
     },

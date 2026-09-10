@@ -1,232 +1,147 @@
-"""Phase 3: hard TDG parser (spec/id_and_tdg.md Part 4). Table-driven, pure-parser tests."""
+"""Both explicit schemas implement the same narrative and metadata contract."""
 
-from __future__ import annotations
-
-from pathlib import Path
+from dataclasses import replace
 
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 
-from pycodetags.data_tags.data_tags_parsers import iterate_comments
-from pycodetags.data_tags.data_tags_schema import DataTagSchema
-from pycodetags.data_tags.tdg_tags_parser import as_tdg_comment, is_property_line
-from pycodetags.data_tags.tdg_tags_parser import iterate_comments as tdg_iterate
-
-
-def tdg_schema() -> DataTagSchema:
-    return {
-        "name": "TDG",
-        "matching_tags": ["TODO", "FIXME", "BUG", "HACK"],
-        "default_fields": {},
-        "data_fields": {
-            "title": "str",
-            "body": "str",
-            "category": "str",
-            "issue": "int",
-            "estimate": "float",
-            "author": "str",
-            "id": "int",
-        },
-        "data_field_aliases": {"cat": "category"},
-        "field_infos": {},
-        "identity_fields": ["issue"],
-    }
+from pycodetags import DATA, dumps, loads, loads_all
+from pycodetags.exceptions import DataTagParseError
 
 
-def parse(src: str):
-    return list(tdg_iterate(src, None, [tdg_schema()]))
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+@pytest.mark.parametrize(
+    "body",
+    [
+        "",
+        "one line",
+        "line one\n\nline two",
+        "\nleading blank",
+        "trailing blank\n",
+        "  indentation  ",
+        "TODO: literal anchor",
+        "issue=123",
+        "prefix <unclosed ' markup",
+        "\\literal",
+        "<issue=123>",
+    ],
+)
+def test_title_body_round_trip(schema, body):
+    tag = DATA(code_tag="TODO", title="A title", body=body, tag_id="17", data_fields={"issue": "100"})
+    recovered = loads(dumps(tag, schema=schema), schema=schema)
+    assert recovered.title == recovered.comment == "A title"
+    assert recovered.body == body
+    assert recovered.tag_id == "17"
+    assert recovered.data_fields["issue"] == "100"
+    assert "title" not in recovered.data_fields and "body" not in recovered.data_fields
 
 
-# --- is_property_line heuristic ---
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+@pytest.mark.parametrize(
+    "value",
+    [
+        "two words",
+        "both \"double\" and 'single' quotes",
+        "back\\slash",
+        "",
+        "0",
+        "False",
+        "a > b < c",
+        "first\nsecond",
+        "#hashtag",
+        "https://github.com/acme/repo/issues/101",
+    ],
+)
+def test_metadata_round_trip(schema, value):
+    tag = DATA(code_tag="TODO", title="title", custom_fields={"detail": value})
+    recovered = loads(dumps(tag, schema=schema), schema=schema)
+    assert recovered.custom_fields["detail"] == value
+
+
+def test_tdg_properties_are_not_body():
+    tag = loads('# TODO: title\n# category="two words" issue=100 id=17\n# Description', schema="TDG")
+    assert tag.title == "title"
+    assert tag.body == "Description"
+    assert tag.data_fields == {"category": "two words", "issue": "100"}
+    assert tag.tag_id == "17"
+
+
+def test_pep350_multiline_metadata_is_not_body():
+    source = '# TODO: title\n# Body one\n#\n# Body two\n# <issue=100\n# category="two words"\n# id=17>'
+    tag = loads(source, schema="PEP350")
+    assert tag.body == "Body one\n\nBody two"
+    assert tag.title == "title"
+    assert tag.tag_id == "17"
+    assert tag.data_fields == {"issue": "100", "category": "two words"}
+
+
+def test_pep350_positional_author_date_can_be_rendered_as_tdg():
+    tag = loads("# TODO: title <alice 2026-09-10 issue=100>", schema="PEP350")
+    tdg = loads(dumps(tag, schema="TDG"), schema="TDG")
+    assert tdg.data_fields == {"author": "alice", "origination_date": "2026-09-10", "issue": "100"}
+
+
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+def test_long_title_is_never_wrapped(schema):
+    title = "long title " * 30
+    tag = loads(dumps(DATA(code_tag="TODO", title=title.rstrip()), schema=schema), schema=schema)
+    assert tag.title == title.rstrip()
+    assert tag.body == ""
+
+
+def test_formats_represent_equivalent_records():
+    tdg = loads("# TODO: title\n# issue=100 id=17\n# body", schema="TDG")
+    pep = loads("# TODO: title\n# body\n# <issue=100 id=17>", schema="PEP350")
+    assert (tdg.title, tdg.body, tdg.tag_id, tdg.data_fields) == (pep.title, pep.body, pep.tag_id, pep.data_fields)
+
+
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+def test_multiple_tags_are_collected_once_in_order(schema):
+    records = [DATA(code_tag="TODO", title="first"), DATA(code_tag="BUG", title="second", body="description")]
+    source = "\n".join(dumps(tag, schema=schema) for tag in records)
+    tags = loads_all(source, schema=schema)
+    assert [tag.title for tag in tags] == ["first", "second"]
+    assert [tag.body for tag in tags] == ["", "description"]
+
+
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+def test_newly_parsed_tags_have_no_allocated_identity(schema):
+    tag = loads(dumps(DATA(code_tag="TODO", title="title"), schema=schema), schema=schema)
+    assert tag.tag_id is None
 
 
 @pytest.mark.parametrize(
-    "line,expected",
-    [
-        ("# category=core issue=123 estimate=30m", True),
-        ("# issue=123", True),
-        ("# a=1 b=2 c=3", True),
-        ("# Use the old method=foo approach here", False),  # only 1 of 7 tokens
-        ("# just a normal description", False),
-        ("#", False),
-        ("# ", False),
-        ("# a=1 plain words here", False),  # 1 of 5
-        ("# a=1 b=2 word", True),  # 2 of 3 > 50%
-        ("# a=1 b=2", True),
-        ("category=core issue=1", True),  # works without leading #
-    ],
+    "properties", ["issue=", 'issue="unterminated', "issue=1 issue=2", "cat=a category=b", "body=metadata"]
 )
-def test_is_property_line(line, expected):
-    assert is_property_line(line) is expected
+@pytest.mark.parametrize("schema", ["TDG", "PEP350"])
+def test_invalid_metadata_is_rejected(schema, properties):
+    source = "# TODO: title\n# " + properties if schema == "TDG" else "# TODO: title\n# <" + properties + ">"
+    with pytest.raises(DataTagParseError):
+        loads(source, schema=schema)
 
 
-# --- basic parse ---
+def test_body_prose_with_assignment_stays_body():
+    tag = loads("# TODO: title\n# Use mode=fast when testing", schema="TDG")
+    assert tag.body == "Use mode=fast when testing"
+    assert tag.data_fields == {}
 
 
-def test_basic_tdg_parse():
-    tags = parse("# TODO: My title\n# issue=42 category=core\n# Body line 1\n# Body line 2")
-    assert len(tags) == 1
-    t = tags[0]
-    assert t["code_tag"] == "TODO"
-    assert t["comment"] == "My title"
-    assert t["fields"]["data_fields"] == {"issue": "42", "category": "core"}
-    assert t["fields"]["custom_fields"]["body"] == "Body line 1\nBody line 2"
-    assert t["fields"]["custom_fields"]["title"] == "My title"
-    assert t["original_schema"] == "TDG"
+@given(st.text(alphabet=st.characters(blacklist_categories=("Cs", "Cc")), max_size=80))
+def test_quoted_custom_values_survive_both_formats(value):
+    for schema in ("TDG", "PEP350"):
+        tag = DATA(code_tag="TODO", title="title", custom_fields={"detail": value})
+        assert loads(dumps(tag, schema=schema), schema=schema).custom_fields["detail"] == value
 
 
-def test_title_only_no_props_no_body():
-    tags = parse("# TODO: just a title")
-    assert len(tags) == 1
-    assert tags[0]["comment"] == "just a title"
-    assert tags[0]["fields"]["data_fields"] == {}
-    assert "body" not in tags[0]["fields"]["custom_fields"]
+def test_content_identity_tracks_canonical_title_edits():
+    tag = loads("# TODO: old", schema="TDG")
+    assert tag.content_identity(tag.schema) != replace(tag, title="new").content_identity(tag.schema)
 
 
-def test_no_property_line_means_line2_is_body():
-    """A sentence with an '=' must not be parsed as properties (heuristic guard)."""
-    tags = parse("# TODO: title\n# Use the old method=foo approach")
-    assert tags[0]["fields"]["data_fields"] == {}
-    assert tags[0]["fields"]["custom_fields"]["body"] == "Use the old method=foo approach"
-
-
-def test_property_line_only_no_body():
-    tags = parse("# TODO: title\n# issue=7")
-    assert tags[0]["fields"]["data_fields"] == {"issue": "7"}
-    assert "body" not in tags[0]["fields"]["custom_fields"]
-
-
-# --- boundaries ---
-
-
-def test_new_anchor_ends_current_tag():
-    src = "# TODO: first\n# body of first\n# FIXME: second\n# issue=9"
-    tags = parse(src)
-    assert len(tags) == 2
-    assert tags[0]["code_tag"] == "TODO"
-    assert tags[0]["comment"] == "first"
-    assert tags[0]["fields"]["custom_fields"]["body"] == "body of first"
-    assert tags[1]["code_tag"] == "FIXME"
-    assert tags[1]["fields"]["data_fields"] == {"issue": "9"}
-
-
-def test_three_anchors_in_a_block():
-    src = "# TODO: a\n# BUG: b\n# HACK: c"
-    tags = parse(src)
-    assert [t["code_tag"] for t in tags] == ["TODO", "BUG", "HACK"]
-    assert [t["comment"] for t in tags] == ["a", "b", "c"]
-
-
-def test_non_matching_tag_ignored():
-    assert parse("# NOTE: not a todo") == []
-
-
-def test_non_matching_anchor_does_not_split():
-    """A NOTE: line inside a TODO body is body text, not a new tag."""
-    src = "# TODO: title\n# NOTE: this is just prose"
-    tags = parse(src)
-    assert len(tags) == 1
-    assert "NOTE: this is just prose" in tags[0]["fields"]["custom_fields"]["body"]
-
-
-# --- body cleaning ---
-
-
-def test_body_preserves_internal_blank_comment_lines():
-    src = "# TODO: t\n# line1\n#\n# line3"
-    body = parse(src)[0]["fields"]["custom_fields"]["body"]
-    assert body == "line1\n\nline3"
-
-
-def test_body_strips_exactly_one_hash_space():
-    src = "# TODO: t\n#   indented body"
-    body = parse(src)[0]["fields"]["custom_fields"]["body"]
-    assert body == "  indented body"  # one '# ' removed, remaining spaces kept
-
-
-# --- offsets ---
-
-
-def test_offsets_single_tag():
-    tags = parse("# TODO: title\n# body")
-    start_line, start_char, end_line, end_char = tags[0]["offsets"]
-    assert (start_line, start_char) == (0, 0)
-    assert end_line == 1
-
-
-def test_offsets_second_tag_in_block():
-    src = "# TODO: first\n# FIXME: second"
-    tags = parse(src)
-    assert tags[0]["offsets"][0] == 0
-    assert tags[1]["offsets"][0] == 1  # second tag starts on block line 1
-
-
-# --- as_tdg_comment serializer + round trip ---
-
-
-def test_as_tdg_comment_basic():
-    out = as_tdg_comment(code_tag="TODO", title="My title", body="line one\nline two", properties={"issue": "123"})
-    assert out == "# TODO: My title\n# issue=123\n# line one\n# line two"
-
-
-def test_as_tdg_comment_excludes_title_body_from_properties():
-    out = as_tdg_comment(code_tag="TODO", title="T", properties={"title": "x", "body": "y", "issue": "1"})
-    assert "title=" not in out
-    assert "body=" not in out
-    assert "issue=1" in out
-
-
-def test_as_tdg_comment_skips_blank_properties():
-    out = as_tdg_comment(code_tag="TODO", title="T", properties={"issue": "", "category": None, "author": "matth"})
-    assert "issue=" not in out
-    assert "category=" not in out
-    assert "author=matth" in out
-
-
-def test_as_tdg_comment_quotes_values_with_spaces():
-    out = as_tdg_comment(code_tag="TODO", title="T", properties={"category": "needs review"})
-    assert 'category="needs review"' in out
-
-
-def test_as_tdg_comment_no_properties_no_body():
-    out = as_tdg_comment(code_tag="TODO", title="Only a title")
-    assert out == "# TODO: Only a title"
-
-
-@pytest.mark.parametrize(
-    "title,body,properties",
-    [
-        ("Simple title", None, {}),
-        ("Title", "single body", {"issue": "1"}),
-        ("Title", "multi\nline\nbody", {"issue": "42", "category": "core", "estimate": "0.5"}),
-        ("Title", None, {"author": "matth", "id": "7"}),
-    ],
-)
-def test_round_trip_serialize_parse(title, body, properties):
-    out = as_tdg_comment(code_tag="TODO", title=title, body=body, properties=properties)
-    reparsed = parse(out)[0]
-    assert reparsed["comment"] == title
-    for key, value in properties.items():
-        assert reparsed["fields"]["data_fields"].get(key) == value
-    if body:
-        assert reparsed["fields"]["custom_fields"]["body"] == body
-
-
-# --- integration through core iterate_comments ---
-
-
-def test_integration_through_core_pipeline():
-    src = "x = 1\n\n# TODO: real title\n# issue=55 category=core\n# body a\n# body b\n\ny = 2\n"
-    tags = list(iterate_comments(src, Path("demo.py"), [tdg_schema()], include_folk_tags=False))
-    assert len(tags) == 1
-    t = tags[0]
-    assert t["original_schema"] == "TDG"
-    assert t["offsets"][0] == 2  # third line (0-based) in the file
-    assert t["fields"]["custom_fields"]["body"] == "body a\nbody b"
-
-
-def test_pep350_wins_over_tdg():
-    """A PEP-350 field block in the same comment should be parsed as PEP-350, not TDG."""
-    src = "# TODO: pep style <issue=1>\n"
-    tags = list(iterate_comments(src, Path("demo.py"), [tdg_schema()], include_folk_tags=False))
-    # PEP-350 parser handles the <...> block; TDG must not also produce a tag for it.
-    assert all(t["original_schema"] != "TDG" for t in tags) or len(tags) == 1
+@pytest.mark.parametrize("title", ["Use <alice>", "Compare a < b > c", r"Keep \path and <brackets>"])
+@pytest.mark.parametrize("body", ["", "body"])
+def test_literal_pep_title_brackets_round_trip(title, body):
+    tag = DATA(code_tag="TODO", title=title, body=body)
+    parsed = loads(dumps(tag, schema="PEP350"), schema="PEP350")
+    assert (parsed.title, parsed.body) == (title, body)

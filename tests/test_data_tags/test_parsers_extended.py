@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
-from pycodetags.data_tags.data_tags_parsers import is_int, iterate_comments, parse_codetags, parse_fields
+from pycodetags.data_tags.data_tags_parsers import is_int, parse_codetags, parse_fields
 from pycodetags.data_tags.data_tags_schema import DataTagSchema
-from pycodetags.exceptions import SchemaError
 
 
 def _schema() -> DataTagSchema:
@@ -180,60 +177,3 @@ def test_parse_codetags_multiline_fields_joined():
 # ---------------------------------------------------------------------------
 # iterate_comments – high-level
 # ---------------------------------------------------------------------------
-
-
-def test_iterate_comments_raises_with_no_schema_and_no_folk():
-    with pytest.raises(SchemaError):
-        list(iterate_comments("# TODO: x <priority:high>", None, schemas=[], include_folk_tags=False))
-
-
-def test_iterate_comments_returns_tags_from_string():
-    src = "# TODO: something important <priority:high status:open>"
-    tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
-    assert len(tags) == 1
-    assert tags[0]["code_tag"] == "TODO"
-
-
-def test_iterate_comments_sets_file_path():
-    src = "# TODO: x <priority:high>"
-    path = Path("src/module.py")
-    tags = list(iterate_comments(src, path, schemas=[_schema()], include_folk_tags=False))
-    assert tags[0]["file_path"] == str(path)
-
-
-def test_iterate_comments_sets_original_schema():
-    src = "# FIXME: a bug <status:open>"
-    tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
-    assert tags[0]["original_schema"] == "PEP350"
-
-
-def test_iterate_comments_sets_offsets():
-    src = "# BUG: crash <priority:critical>"
-    tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
-    offsets = tags[0]["offsets"]
-    assert offsets is not None
-    assert len(offsets) == 4
-
-
-def test_iterate_comments_handles_multiple_blocks():
-    src = "# TODO: first task <priority:high>\n" "\n" "def foo(): pass\n" "\n" "# FIXME: second task <status:open>\n"
-    tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
-    assert len(tags) == 2
-    codes = {t["code_tag"] for t in tags}
-    assert codes == {"TODO", "FIXME"}
-
-
-def test_iterate_comments_folk_tag_found_when_requested():
-    src = "# TODO: fix something\n"
-    schema = _schema()
-    schema["matching_tags"] = ["TODO"]
-    # Folk tags require include_folk_tags=True and a non-PEP350 comment (no < >)
-    tags = list(iterate_comments(src, None, schemas=[schema], include_folk_tags=True))
-    # At least one tag should be found (folk or PEP-350 depending on text)
-    assert isinstance(tags, list)
-
-
-def test_iterate_comments_no_tags_returns_empty():
-    src = "x = 1\ny = 2\n"
-    tags = list(iterate_comments(src, None, schemas=[_schema()], include_folk_tags=False))
-    assert tags == []

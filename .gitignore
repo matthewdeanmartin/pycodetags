@@ -209,3 +209,8 @@ demo_reports/todo.json
 demo_reports/todo.txt
 demo_reports/default.xt
 /demo_reports/default.txt
+
+/.pycodetags.sqlite3
+/.pycodetags.sqlite3-journal
+/.pycodetags.sqlite3-wal
+/.pycodetags.sqlite3-shm

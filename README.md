@@ -1,203 +1,274 @@
 # pycodetags
 
-You've seen `# TODO:` comments? What if they could be used as an issue tracker?
-
-What if `# TODO:` style comments could serialize and deserialize records, turning comments into a database?
-
-[Live example](https://matthewdeanmartin.github.io/pycodetags/).
-
-
-[//]: # (What if you could also write comments as decorators that warn or stop you on the due date?)
-
-[//]: # ()
-[//]: # (Replace or complement your `# TODO:` comments with decorators similar to NotImplement, Deprecated or Warning)
-
-[//]: # (and get issue tracker features, too.)
-
-Lightweight and keeps your issue tracker in your code.
-
-Backwards compatible with folk `# TODO:` comments, which can vary greatly in how people write them.
-
-Core library is for Data Tags, which are abstract and domain free. Plugs have domain-specific tags, e.g. Issue Tracking.
+Code tags are structured records stored in Python comments. The core library reads and writes TDG
+and extended PEP-350, with shared titles, bodies, properties, and identities. Neither schema is assumed
+from an unfamiliar source file.
 
 ## Installation
 
-For generic code tags strictly in comments (DATA tags):
+```shell
+pip install pycodetags
+```
 
-`pipx install pycodetags`
+For CLI-only use, `pipx install pycodetags` is also supported. Python 3.9–3.15 is supported; local
+development uses Python 3.14 (`.python-version`). Both comment schemas are built in and need no plugin.
+Core dependencies are pluggy, jmespath, and compatibility packages on older supported Python versions.
+Plugins provide additional domain behavior and integrations; plugin implementations are outside the
+current core sprint plan.
 
-For code tag decorators, objects, exceptions, context managers with run-time behavior:
+## Choose a schema
 
-`pip install pycodetags`
+Choose explicitly in `pyproject.toml`, or pass `schema=` to the library API:
 
-To get a domain specific data tags (TODO tags), e.g. issue tracker or discussion, install with plugin
+```toml
+[tool.pycodetags]
+schema = "TDG"
+src = ["src"]
+```
 
-`pip install pycodetags pycodetags-issue-tracker`
+Use `schema = "PEP350"` for extended PEP-350. Missing or unknown selections raise an actionable error.
+The old `active_schemas`/folk fallback does not select a format. `pycodetags init` asks for a schema and
+will not choose one for you.
 
-Requires python 3.7+. 3.7 will probably work.
+Mixed projects can map different files to different schemas:
 
-The only dependencies are `pluggy` and `ast-comments` and backports of python standard libraries to support old versions
-of python. For pure-comment style code tags, pipx install and nothing is installed with your application code.
+```toml
+[tool.pycodetags]
+schema = "TDG"
+src = ["src", "legacy"]
 
-## Usage
+[[tool.pycodetags.schema_paths]]
+path = "legacy/*.py"
+schema = "PEP350"
+```
 
-`pycodetags` can work with pre-existing comment based code tags, both the folk-schema style and the PEP-350 style.
+Paths are relative to the configuration file. Rules use case-sensitive, forward-slash `fnmatch`
+patterns (`*` can match slashes). One matching rule overrides the explicitly selected project schema;
+multiple matching rules are an error, even if they name the same schema. With only path rules and no
+project selection, every file must match a rule. A `schema=` API argument overrides configuration.
+Each file has exactly one schema; there is no content-based detection or fallback priority.
 
-Ways to track a TODO item
+## Equivalent records
 
-- PEP-350 code tags, e.g. `# TODO: implement game <due=2025-06-01>`
-- Folk code tags, e.g. `# TODO(matth): example.com/ticktet=123 implement game`
-- ADVANCED: Add a function decorator, e.g. `@TODO("Work on this")`
-
-While you work
-- View the issue-tracker-like single page website `pycodetas issues html`
-- Exceptions will be raised or logged when overdue
-
-At build and release time
-
-- Fail build on overdue items (as opposed to failing build on the existence of any code tag, as pylint recommends)
-- Generate CHANGELOG.md using the keep-a-changelog format
-  - `pycodetags issues changelog`
-- Generate DONE.txt, TODO.md, TODO.html files
-  - `pycodetags issues todomd`
-  - `pycodetags issues donefile`
-
-## Example
+TDG:
 
 ```python
-from pycodetags_issue_tracker import TODO
-
-
-# Folk schema
-# TODO: Implement payments
-
-# PEP 350 Comment
-# TODO: Add a new feature for exporting. <assignee:matth priority=1 2025-06-15>
-
-# Attached to function
-@TODO(assignee="matth", due="06/01/2025", comment="Implement payment logic")
-def unfinished_feature():
-  print("This should not run if overdue and assignee is Matthew.")
-
-
-@TODO(status="Done", tracker="https://ticketsystem/123")
-def finished_feature():
-  print("This is a completed feature.")
-
-
-# Wrapped around any block of code to show what the TODO is referring to
-with TODO(comment="Needs Logging, not printing", assignee="carol", due="2025-07-01"):
-  print(100 / 3)
-
-if __name__ == "__main__":
-  finished_feature()  # won't throw
-  unfinished_feature()  # may throw if over due
+# TODO: Retry failed uploads.
+# id=17 issue=100 tracker=https://github.com/acme/uploader/issues/101
+# Retry transient failures with exponential backoff.
+#
+# Stop after five attempts.
 ```
 
-To generate reports:
-
-```text
-❯ pycodetags
-usage: pycodetags [-h] [--config CONFIG] [--verbose] [--info] [--bug-trail] {data,plugin-info,issues} ...
-
-TODOs in source code as a first class construct, follows PEP350 (v0.3.0)
-
-positional arguments:
-  {data,plugin-info,issues}
-                        Available commands
-    data                Generate code tag reports
-    plugin-info         Display information about loaded plugins
-    issues              Reports for TODOs and BUGs
-
-options:
-  -h, --help            show this help message and exit
-  --config CONFIG       Path to config file, defaults to current folder pyproject.toml
-  --verbose             verbose level logging output
-  --info                info level logging output
-  --bug-trail           enable bug trail, local logging
-
-Install pycodetags-issue-tracker plugin for TODO tags.
-```
-
-## How it works
-Comments with some extra syntax are treated as a data serialization format.
-
-` # DATA: text <default-string default-date default-type data1:value data2:value custom1:value custom2:value`>
-
-Combined with a schema you get a code tag, or a discussion tag, e.g.
-
-`# BUG: Division by zero <MDM 2025-06-06 priority=3 storypoints=5>`
-
-`# QUESTION: Who thought this was a good idea? <MDM 2025-06-06 thread=1 snark=excessive>`
+Extended PEP-350:
 
 ```python
-# DATA: text
-# text line two
+# TODO: Retry failed uploads.
+# Retry transient failures with exponential backoff.
+#
+# Stop after five attempts.
+# <id=17 issue=100 tracker=https://github.com/acme/uploader/issues/101>
 ```
 
-- The upper case tag in the `# DATA:` signals the start of a data tag.
-- The text continues until a `<>` block terminates or a non-comment line.
-- The `<>` block holds space separated key value pairs
-  - The key is optional, values are optionally unquoted, single or double-quoted
-  - Key value pairs follow, `key=value` or `key:value`
-  - default fields are key-less fields identified by their type, e.g. `MDM`, `MDM,JQP`, or `2025-01-01`
-  - data fields identified by a schema. PEP-350 is one schema. e.g. `assignee:MDM`, `assignee=MDM`
-  - custom fields are data fields that are not expected by the schema. `program-increment:4`
+In both formats, the text after `TAG:` on the first line is the title. Later comment lines form the
+body, excluding metadata. Titles are never wrapped automatically. A title-only tag has an empty body.
+Blank comment lines inside the body and body indentation are preserved. TDG ends at a non-comment
+line, another recognized tag, or EOF; an empty source line separates ordinary comments from its body.
+PEP-350 ends at the closing metadata block, so ordinary comments may follow immediately.
 
-See docs for handling edge cases.
+TDG metadata occupies the immediately following line and uses `key=value`. PEP-350 metadata is a
+trailing `<...>` block, which may span comment lines; both `key=value` and `key:value` are accepted.
+PEP-350 always requires a metadata block, even an empty `<>`. Positional PEP-350 author/date shorthand
+is accepted, for example `<alice 2026-09-10>`, and becomes named `author` / `origination_date` properties.
 
-## Basic Workflow
+Property values are strings. Quote whitespace, empty values, quotes, and backslashes; serialization
+uses JSON-style double-quoted escapes when necessary. Duplicate properties (including aliases) and
+malformed metadata are errors. Parsing does not evaluate expressions, supply field defaults, or assign
+IDs. `cat` aliases `category`; unknown named properties are retained as custom fields.
 
-- Write code with TODOs, DONEs, and other code tags.
-- Run `pycodetags issues --validate` to ensure data quality is high enough to generate reports.
-- Run `pycodetags issues --format <format>` to generate reports.
-- Update tags as work is completed.
+A recognized `# TAG:` line begins another record. Put one tag anchor on each comment line. To write a
+literal syntax-like body line, prefix its body text with a backslash: `# \TODO: literal text` or
+`# \issue=100`. A doubled leading backslash represents a literal backslash. Serializers insert these
+escapes when required, including for body lines containing angle brackets. This escape convention is
+part of the pycodetags extension, not a claim of upstream TDG compatibility for those escaped lines.
+In PEP-350 titles, `\<` represents a literal opening angle bracket and `\\` a literal backslash.
 
-## Configuration
+## Python API
 
-No workflow or schema is one-size-fits all, so you will almost certainly want to do some configuration.
+```python
+from dataclasses import replace
+from pycodetags import DATA, dumps, loads, inspect_file
 
-The expectation is that this config is used at development time, optionally on the build server and *not* when
-deployed to production or an end users machine. If you are using only comment code tags, it is not an issue. There
-is a runtime cost or risk only when using strongly typed code tags.
+record = loads("# TODO: Retry uploads.\n# issue=100", schema="TDG")
+updated = replace(record, title="Retry transient upload failures.", body="Stop after five attempts.")
+print(dumps(updated))                    # retains its explicitly selected TDG schema
+print(dumps(updated, schema="PEP350"))   # explicit conversion
+records = inspect_file("src/upload.py")  # uses explicit project/path configuration
+```
 
-See [documentation](https://pycodetags.readthedocs.io/en/latest/) for details.
+Parsed records retain their schema. `title`, `body`, and `tag_id` are the canonical narrative/local-ID
+attributes; parsed `comment` mirrors the title for existing readers. Edit `title` when changing a title.
+`data_fields` and `custom_fields` hold other properties. `to_flat_dict()` includes the canonical fields
+for queries. A newly constructed `DATA` needs `schema=` or explicit project configuration to serialize.
 
-## Prior Art
+`load`/`load_all` accept source text, `Path` objects, or open streams. `dump`/`dump_all` accept paths or
+streams. Caller-owned streams stay open. File output is prepared before the destination is opened.
+Custom schema definitions must specify `name`, `format`, `matching_tags`, and the field dictionaries;
+copy `TDGSchema` or `PEP350Schema` and customize them. Built-in schema names are reserved.
 
-PEPs and Standard Library Prior Art
+## Identity and writes
 
-- [PEP 350 - Code Tags](https://peps.python.org/pep-0350/) Rejected proposal, now implemented, mostly by `pycodetags`
+- `id` identifies a tag within a project, independently of title or location changes.
+- `issue` identifies its parent issue. Multiple tags may share a parent.
+- `tracker` is the full URL of the issue representing this particular tag.
 
-## Project Health
+`pycodetags id` explicitly assigns missing local IDs, preserving the configured source format. It
+reserves all IDs in the selected files before allocating new ones, rejects duplicates, and refuses to
+reset a corrupt counter. Tracker-linked tags also receive local IDs; multiple tags may share the same tracker URL. Keep
+`.pycodetags_ids` in version control. Rebuilding a missing counter requires selecting all project sources.
 
-| Metric         | Status |
-|----------------|--------|
-| Coverage       | [![codecov](https://codecov.io/gh/matthewdeanmartin/pycodetags/branch/main/graph/badge.svg)](https://codecov.io/gh/matthewdeanmartin/pycodetags) |
-| Docs           | [![Docs](https://readthedocs.org/projects/pycodetags/badge/?version=latest)](https://pycodetags.readthedocs.io/en/latest/) |
-| PyPI           | [![PyPI](https://img.shields.io/pypi/v/pycodetags)](https://pypi.org/project/pycodetags/) |
-| Downloads      | [![Downloads](https://static.pepy.tech/personalized-badge/pycodetags?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/pycodetags) |
-| License        | [![License](https://img.shields.io/github/license/matthewdeanmartin/pycodetags)](https://github.com/matthewdeanmartin/pycodetags/blob/main/LICENSE.md) |
-| Last Commit    | ![Last Commit](https://img.shields.io/github/last-commit/matthewdeanmartin/pycodetags) |
+```shell
+pycodetags data --format json
+pycodetags id --dry-run
+pycodetags id --check
+pycodetags id
+```
 
-## Libray info pages
-- [pycodetags](https://libraries.io/pypi/pycodetags)
-- [pycodetags-issue-tracker](https://libraries.io/pypi/pycodetags-issue-tracker) plugin
+Allocation assumes one writer. Reservations are saved before source changes; failures may leave gaps,
+which prevents ID reuse. All assignments in one file use a single validated mutation batch.
 
-## Snyk Security Pages
+## Update and delete
 
-- [pycodetags](https://security.snyk.io/package/pip/pycodetags)
-- [pycodetags-issue-tracker](https://security.snyk.io/package/pip/pycodetags-issue-tracker) plugin
+```python
+from dataclasses import replace
+from pycodetags import inspect_file, apply_mutations
+
+records = inspect_file("src/upload.py")
+apply_mutations("src/upload.py", [
+    (records[0], replace(records[0], title="Retry transient failures.", body="Try five times.")),
+    (records[1], None),  # delete
+])
+```
+
+`update_tags(path, [(old, new), ...])` and `delete_tags(path, [old, ...])` are public convenience
+functions. A fresh replacement record inherits the old record's explicitly selected schema unless
+it supplies its own. Use `dataclasses.replace` to retain fields you are not changing.
+`replace_with_strings` in `pycodetags.mutator` changes titles while retaining bodies and identities.
+
+Every batch validates all source snapshots, spans, overlaps, and rendered comments before writing.
+A change anywhere in the source makes file-parsed records stale; reparse after each successful batch
+or external edit. File loads fingerprint exact bytes. Parsing caller-supplied text fingerprints logical
+text, because the caller may already have normalized line endings; use `inspect_file` or `load(Path)`
+when exact byte-level stale detection matters. Whitespace inside tag text is never ignored.
+
+Mutation preserves source encoding (including Python coding declarations and UTF-8 BOM), permission
+bits, final-newline state, and bytes outside tag spans. Generated continuation comments retain source
+indentation and use the affected line's newline style. Deleting a tag retains the line terminator and
+any prefix, including executable code before an inline tag. It may leave a blank line.
+
+Writes use unique temporary files beside the source, flush the prepared bytes, recheck the source,
+and replace once. Failed preparations clean up their temporary file. Symlinks and multiply linked
+files are rejected. This requires single-writer ownership: the final byte check is not a lock, and an
+external writer can still race the replacement. There is no multi-file transaction or crash-durability
+guarantee. Source files remain authoritative; a persistent index is Sprint 4.
+
+## Snapshot index and scan exclusions
+
+```toml
+[tool.pycodetags]
+schema = "TDG"
+src = ["src", "tests"]
+exclude = ["src/generated", "tests/fixtures/**"]
+```
+
+Exclusions match paths relative to the project/configuration root using case-sensitive POSIX patterns.
+A directory match prunes traversal; a literal directory name excludes its descendants. There are no
+implicit exclusion patterns. Directory symlinks are not followed. These exclusions also apply to core
+aggregation and ID assignment. Reserve IDs across all sources you intend to manage together.
+
+```python
+from pathlib import Path
+from pycodetags import TagIndex, update_tags
+from dataclasses import replace
+
+index = TagIndex(Path("."))
+work = index.refresh()  # reads current project configuration and source files
+records = index.query_snapshot(tag_id="17")
+linked = index.query_snapshot(tracker="https://github.com/acme/uploader/issues/101")
+in_file = index.query_snapshot(file_path="src/upload.py")
+
+old = records[0]
+update_tags(old.file_path, [(old, replace(old, title="Handle transient failures."))])
+index.refresh()  # update the snapshot after changing source
+```
+
+`TagIndex(root, schema="TDG")` explicitly overrides configured schema selection. Pass `paths=[...]`
+and `exclude=[...]` to `refresh` to override configured scan scope. Each refresh describes the entire
+selected scope: files removed from that scope are removed from the index. An empty existing directory
+is valid; a missing explicit source path fails the refresh.
+
+`query_snapshot` deliberately reads the **last successful snapshot** without checking source files.
+Call `refresh` when current-source results are required. There is no watcher or hidden refresh.
+Filters combine with AND; duplicate local IDs or tracker URLs return all matching records. Parent
+`issue` values are never treated as local IDs. Returned records retain fingerprints, so the mutation
+API rejects stale source even when the index has not been refreshed.
+
+Refresh hashes every selected file's bytes, including unchanged files, to detect edits that preserve
+size and timestamps. It reparses only files whose contents, selected schema definition, or parser
+version changed. Deleted and newly excluded files disappear on a successful refresh. Discovery/read/
+parse failures leave the previous snapshot intact. Refresh commits its database changes together,
+but is not a simultaneous filesystem snapshot: keep source writers quiescent when that is required.
+
+The database defaults to `.pycodetags.sqlite3` under the supplied root; `database=Path(...)` selects
+another location. It is disposable and should be gitignored. Delete it and call `refresh` to rebuild.
+Missing, incompatible, corrupt, and foreign databases produce errors rather than empty results or
+silently overwritten data. The index contains source text and schema snapshots, so can be substantially
+larger than the source comments. It uses standard-library SQLite and JSON, with no new dependency.
+
+`RefreshResult` reports files parsed/unchanged/removed, bytes read, tag count, and timings for discovery,
+read/decode/hash, parsing, storage, and the complete refresh. Query indexes accelerate ID/tracker/file
+lookups; returning every tag still costs proportionally to the number of results. Full refresh remains
+linear in selected source bytes plus discovery, schema checks, and changed-file parsing/storage.
+Token extraction has a bounded 32-source process-local cache; persistent parsed records live in SQLite.
+
+See [measured timings and methodology](spec/core_performance.md) and the
+[reproducible benchmark](tests/benchmark_core.py). These are synthetic local measurements, not a
+constant-time or repository-wide latency promise.
+
+## Development
+
+```shell
+uv sync --python 3.14
+pre-commit run --files <changed-files>
+tox -e py39,py310,py311,py312,py313,py314,py315
+```
+
+Use tox's `--discover` option if multiple 3.15 prereleases are installed, to select the current release
+candidate. See the [four-sprint plan and validation results](spec/core_database_sprints.md) and
+[CHANGELOG.md](CHANGELOG.md).
 
 
-## Documentation
+## Release validation
 
-- [Readthedocs](https://pycodetags.readthedocs.io/en/latest/)
+Core 0.8.0 is paired with issue-tracker 0.4.0, chat 0.2.0, and universal 0.2.0. GitHub-sync and the
+old SQLite-export plugin are unfinished and are excluded from the supported release bundle.
+See [plugin release decisions](plugins/README.md) and [Sprint 5 evidence](spec/release_readiness.md).
 
-## Project Links
+```shell
+python scripts/release_candidates.py all
+docker build -t pycodetags-release-check .
+docker build --build-arg PYTHON_VERSION=3.9 -t pycodetags-release-check:py39 .
+```
 
-- [GitHub](https://github.com/matthewdeanmartin/pycodetags)
-- [PyPI](https://pypi.org/project/pycodetags/)
-- [Documentation](https://pycodetags.readthedocs.io/en/latest/)
-- [Bug Tracker](https://github.com/matthewdeanmartin/pycodetags/issues)
-- [Change Log](https://github.com/matthewdeanmartin/pycodetags/blob/main/CHANGELOG.md)
+The artifact checks create disposable environments outside the checkout, install only declared
+runtime dependencies, and exercise core APIs/CLI plus functional plugin discovery and reporting.
+Docker runs the core suite, artifact checks, and plugin suite on Linux. CI additionally gates release
+artifacts on Windows and macOS. The selected source folders and explicitly configured schemas remain
+required in installed environments.
+
+Before tagging a release, commit the version and finalized changelog. Core tags are `v<version>`;
+plugin tags are `<distribution-name>-v<version>`. The release workflows verify those tags against
+committed metadata and publish the exact artifacts that passed their gates. The plugin workflow is
+manual and must run against a tag; publish the required core version before its plugins. Configure
+PyPI trusted publishers for the relevant workflow and package, and retain the `pypi` environment's
+approval policy. No workflow bumps versions after tagging or publishes the unfinished plugins.

@@ -291,32 +291,6 @@ def test_collect_pep350_code_tags_single_file(create_dummy_file):
     assert tags[2]["fields"]["data_fields"]["category"] == "critical"
 
 
-def test_collect_pep350_code_tags_multiple_tags_same_line(create_dummy_file):
-    content = textwrap.dedent("""
-        # TODO: Task 1 <p:1> FIXME: Task 2 <p:2>
-        # BUG: Issue <s:new>
-        """)
-    filename = create_dummy_file("test_multiple_tags_same_line.py", content)
-    tags = list(
-        upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
-        for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
-    )
-
-    assert len(tags) == 3  # Two from the first line, one from the second
-
-    assert tags[0]["code_tag"] == "TODO"
-    assert tags[0]["comment"] == "Task 1"
-    assert tags[0]["fields"]["data_fields"]["priority"] == "1"
-
-    assert tags[1]["code_tag"] == "FIXME"
-    assert tags[1]["comment"] == "Task 2"
-    assert tags[1]["fields"]["data_fields"]["priority"] == "2"
-
-    assert tags[2]["code_tag"] == "BUG"
-    assert tags[2]["comment"] == "Issue"
-    assert tags[2]["fields"]["data_fields"]["status"] == "new"
-
-
 def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
     content = textwrap.dedent("""
         # This is a normal comment.

@@ -8,6 +8,7 @@ from pycodetags.data_tags.data_tags_schema import DataTagSchema
 
 DiscussionTagSchema: DataTagSchema = {
     "name": "discussion",
+    "format": "PEP350",
     "matching_tags": ["QUESTION", "ANSWER", "CHAT", "POST", "COMMENT", "DISCUSSION"],
     "default_fields": {
         "str": "author",

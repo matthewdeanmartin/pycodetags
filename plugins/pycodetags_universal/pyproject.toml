@@ -1,17 +1,13 @@
 [project]
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{name = "Matthew Martin", email = "matthewdeanmartin@gmail.com"}]
+requires-python = ">=3.9"
 name = "pycodetags-universal"
-version = "0.1.0"
+version = "0.2.0"
 description = "Plugin for pycodetags to find code tags in any language"
-dependencies = [
-       "pycodetags>=0.6.0",
-    "pluggy",
-
-     # backwards compatibility
-    "toml; python_version < '3.11'",
-    "importlib-resources; python_version < '3.9'",
-    "typing_extensions ; python_version < '3.8'",
-
-]
+dependencies = ["pycodetags>=0.8.0,<0.9", "pluggy"]
 
 [project.entry-points."pycodetags"] # This is the crucial part for pluggy
 # The key "javascript_finder" is the name of the plugin (can be anything unique)

@@ -53,6 +53,9 @@ class DataTagSchema(TypedDict):
 
     name: str
 
+    format: NotRequired[str]
+    """Explicit wire format: TDG or PEP350. Required when parsing or serializing source."""
+
     matching_tags: list[str]
     """What tag names match, e.g. TODO, FIXME are issue tracker tags"""
 

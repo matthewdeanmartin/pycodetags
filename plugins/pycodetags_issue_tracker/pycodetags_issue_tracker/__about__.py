@@ -17,12 +17,12 @@ __all__ = [
 ]
 
 __title__ = "pycodetags-issue-tracker"
-__version__ = "0.7.0"
+__version__ = "0.4.0"
 __description__ = "Plugin for pycodetags to track issues, e.g. bugs, TODO, etc in your code"
 __readme__ = "README.md"
 __keywords__ = ["pep350", "pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME", "pycodetags"]
 __license__ = "MIT"
-__requires_python__ = ">=3.7"
+__requires_python__ = ">=3.9"
 __status__ = "4 - Beta"
 __homepage__ = "https://github.com/matthewdeanmartin/pycodetags"
 __repository__ = "https://github.com/matthewdeanmartin/pycodetags"
