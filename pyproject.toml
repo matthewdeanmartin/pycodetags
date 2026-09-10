@@ -1,6 +1,6 @@
 [project]
 name = "pycodetags"
-version = "0.8.0"
+version = "0.8.1"
 description = "Structured code tags with explicit TDG and extended PEP-350 schemas"
 readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
