@@ -29,7 +29,7 @@ Code Tag TODOs.
 # TODO: Need to be able to edit. <matth 2025-07-06 status=inprogress category=base priority=high release=1.0.0>
 
 # TODO: Folk tag need help: Need offsets for locating Folk Tags in source code. Needs testing <matth 2025-07-06 closed_date=2025-07-13 assignee=matth  category=parsing
-#  priority=high status=done iteration=1  release=0.6.0>
+#  priority=high status=done iteration=1 release=0.6.0 change_type=Added>
 
 # TODO: Need offsets for second, third tags within a comment block.<matth 2025-07-06 category=cli
 #   priority=high status=development iteration=1  release=1.0.0>
