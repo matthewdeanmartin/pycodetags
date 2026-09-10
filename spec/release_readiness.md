@@ -53,3 +53,10 @@ The universal plugin supports standalone JavaScript/TypeScript line comments and
 the core mutation and SQLite index APIs operate on Python source. Chat provides a discussion schema,
 not a messaging service. Full index refresh still reads selected source bytes; repeated snapshot
 lookups use SQLite indexes. These boundaries are intentional and documented.
+
+## Release automation update
+
+The release flow now follows the kacl-m release-branch/PR process used by bash2yaml.
+The earlier requirement to bump all version files before creating a GitHub release is
+superseded for the core. Checks run on the prepared commit SHA and publication uses those
+exact tested artifacts. See [publishing the core](../docs/releasing.md).

@@ -1,15 +1,71 @@
 name: Release
+concurrency: changelog
 on:
   release:
     types: [released]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing core GitHub release to publish (for example v0.8.1)
+        required: true
+        type: string
 permissions:
   contents: read
 jobs:
+  bump:
+    if: startsWith(inputs.release_tag || github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      sha: ${{ steps.release.outputs.sha }}
+      tag: ${{ steps.release.outputs.tag }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.14'
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+      - run: uv sync --frozen --group dev
+      - name: Prepare release branch and PR
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          REPO: ${{ github.repository }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          gh auth setup-git
+          gh api "repos/$REPO/releases/tags/$RELEASE_TAG" > "$RUNNER_TEMP/release.json"
+          RELEASE_ID=$(python -c "import json,os; print(json.load(open(os.environ['RUNNER_TEMP'] + '/release.json'))['id'])")
+          uv run --frozen python scripts/prepare_release.py "$RELEASE_TAG"
+          uv lock
+          uv run --frozen kaclm --json release-bump \
+            --version "$RELEASE_TAG" \
+            --base "$BASE_BRANCH" \
+            --branch "codex/release-$RELEASE_TAG" \
+            --release-id "$RELEASE_ID" \
+            --repository "$REPO" \
+            --pyproject-only \
+            --open-pr \
+            --title "chore: release ${RELEASE_TAG#v}" \
+            --body "Update the core version and changelog for $RELEASE_TAG. The Release workflow tests and publishes this branch's prepared commit. Merge after publication succeeds." \
+            --yes > "$RUNNER_TEMP/release-bump.json"
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
   checks:
-    if: startsWith(github.event.release.tag_name, 'v')
+    needs: bump
     uses: ./.github/workflows/build.yml
     with:
-      release_tag: ${{ github.event.release.tag_name }}
+      source_ref: ${{ needs.bump.outputs.sha }}
+      release_tag: ${{ needs.bump.outputs.tag }}
       release_project: core
   publish:
     needs: checks

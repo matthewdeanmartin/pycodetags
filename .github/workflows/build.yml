@@ -4,6 +4,10 @@ on:
   pull_request:
   workflow_call:
     inputs:
+      source_ref:
+        description: Prepared release commit; omitted for normal builds and plugin tags.
+        type: string
+        default: ''
       release_tag:
         type: string
         default: ''
@@ -22,6 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
+          ref: ${{ inputs.source_ref || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
@@ -40,6 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
+          ref: ${{ inputs.source_ref || github.sha }}
           persist-credentials: false
       - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
