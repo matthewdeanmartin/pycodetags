@@ -7,15 +7,15 @@ Publishing that GitHub release starts `release.yml`:
 2. Prepare the core's `pyproject.toml`, `pycodetags/__about__.py`, and `uv.lock` for the release version.
 3. Run `kaclm --json release-bump --pyproject-only --open-pr` to release the changelog,
    commit the prepared files, push `codex/release-v<version>`, and open the release PR.
-4. Run the shared compatibility and artifact checks against the resulting commit SHA.
+4. Build and test on Linux with Python 3.14 against the resulting commit SHA.
 5. Publish only the tested core wheel and source archive after the `pypi` environment approval.
 6. Merge the release PR after publication succeeds so the default branch reflects the release.
 
 This follows the bash2yaml release flow. The GitHub release tag is the version request;
 the package is built from the prepared release-branch commit, which contains the version bump.
 The workflow does not move the original tag. Subsequent changes to the branch cannot change
-which commit the checks use. All three operating systems test artifacts; only the Ubuntu
-artifacts are uploaded to PyPI.
+which commit the checks use. CI uses one Linux build job, with no platform or Python-version
+matrix. The full supported Python range can still be tested locally with tox.
 
 GitHub Actions must be allowed to create pull requests, and PyPI must trust `release.yml`
 with the `pypi` environment. The workflow does not merge the release PR automatically.

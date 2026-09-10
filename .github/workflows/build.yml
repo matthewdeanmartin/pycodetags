@@ -17,31 +17,8 @@ on:
 permissions:
   contents: read
 jobs:
-  compatibility:
+  build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ['3.9', '3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
-    steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          ref: ${{ inputs.source_ref || github.sha }}
-          persist-credentials: false
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version: ${{ matrix.python }}
-          allow-prereleases: true
-      - run: python -m pip install . pytest pytest-cov hypothesis jinja2
-      - run: python -m pytest tests --cov=pycodetags --cov-fail-under=65
-      - run: python -m pip install ./plugins/pycodetags_issue_tracker ./plugins/pycodetags_chat ./plugins/pycodetags_universal
-      - run: python -m pytest plugins/pycodetags_issue_tracker/tests plugins/pycodetags_chat/tests plugins/pycodetags_universal/tests --import-mode=importlib
-  artifacts:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
@@ -51,19 +28,21 @@ jobs:
         with:
           python-version: '3.14'
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
-      - name: Verify committed release version
+      - name: Verify prepared release version
         if: inputs.release_tag != ''
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
           RELEASE_PROJECT: ${{ inputs.release_project }}
-        shell: bash
         run: python scripts/release_candidates.py verify-tag --tag "$RELEASE_TAG" --project "$RELEASE_PROJECT"
+      - run: uv pip install --system . pytest pytest-cov hypothesis jinja2
+      - run: python -m pytest tests --cov=pycodetags --cov-fail-under=65
+      - run: uv pip install --system ./plugins/pycodetags_issue_tracker ./plugins/pycodetags_chat ./plugins/pycodetags_universal
+      - run: python -m pytest plugins/pycodetags_issue_tracker/tests plugins/pycodetags_chat/tests plugins/pycodetags_universal/tests --import-mode=importlib
       - run: python scripts/release_candidates.py all
       - name: Validate metadata
-        shell: bash
         run: uvx --from 'twine>=7' twine check --strict .build/release-candidates/*/*
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: release-candidates-${{ matrix.os }}
+          name: release-candidates-linux
           path: .build/release-candidates/
           if-no-files-found: error

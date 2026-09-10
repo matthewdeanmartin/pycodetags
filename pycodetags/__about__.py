@@ -13,7 +13,7 @@ __all__ = [
 ]
 
 __title__ = "pycodetags"
-__version__ = "0.8.0"
+__version__ = "0.8.1"
 __description__ = "Structured code tags with explicit TDG and extended PEP-350 schemas"
 __readme__ = "README.md"
 __credits__ = [{"name": "Matthew Martin", "email": "matthewdeanmartin@gmail.com"}]

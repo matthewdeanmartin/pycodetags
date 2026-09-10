@@ -60,7 +60,7 @@ jobs:
             --yes > "$RUNNER_TEMP/release-bump.json"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-  checks:
+  build:
     needs: bump
     uses: ./.github/workflows/build.yml
     with:
@@ -68,7 +68,7 @@ jobs:
       release_tag: ${{ needs.bump.outputs.tag }}
       release_project: core
   publish:
-    needs: checks
+    needs: build
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -78,7 +78,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
-          name: release-candidates-ubuntu-latest
+          name: release-candidates-linux
           path: artifacts/
       - name: Publish the exact tested core artifacts
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
