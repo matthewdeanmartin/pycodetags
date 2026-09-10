@@ -63,21 +63,10 @@ def smoke(output, kind):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=["build", "smoke", "all", "verify-tag"])
+    parser.add_argument("command", choices=["build", "smoke", "all"])
     parser.add_argument("--output", type=Path, default=ROOT / ".build/release-candidates")
     parser.add_argument("--kind", choices=["wheel", "sdist", "both"], default="both")
-    parser.add_argument("--project", choices=list(PROJECTS), default="core")
-    parser.add_argument("--tag")
     args = parser.parse_args()
-    if args.command == "verify-tag":
-        import tomllib
-
-        metadata = tomllib.loads((PROJECTS[args.project] / "pyproject.toml").read_text(encoding="utf-8"))["project"]
-        expected = ("v" if args.project == "core" else metadata["name"] + "-v") + metadata["version"]
-        if args.tag != expected:
-            raise RuntimeError(f"Release tag must match committed metadata: expected {expected!r}, got {args.tag!r}")
-        print(f"Verified release tag {expected}")
-        return
     output = args.output.resolve()
     if args.command in ("build", "all"):
         build(output)

@@ -69,3 +69,34 @@ release branch on retry, unrelated dirty files, and a failed lock refresh before
 
 Start with explicit version-file scoping and JSON outputs. Dependency-range propagation,
 coordinated multi-package releases, and automatic tag movement can remain separate decisions.
+
+## Confirmed bug: a core bump rewrites nested plugin versions
+
+Reproduced with installed kacl-m 6.8.0. The repository's GitHub issue tracker is disabled,
+so this report has not been submitted remotely.
+
+```python
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from changelogmanager.version_bumper import bump_version_files
+
+with TemporaryDirectory() as directory:
+    root = Path(directory)
+    (root / "plugins/plugin").mkdir(parents=True)
+    (root / "pycodetags").mkdir()
+    (root / "pyproject.toml").write_text('[project]\nversion = "0.8.0"\n')
+    (root / "pycodetags/__about__.py").write_text('__version__ = "0.8.0"\n')
+    plugin = root / "plugins/plugin/__about__.py"
+    plugin.write_text('__version__ = "0.4.0"\n')
+    bump_version_files("0.8.1", project_root=root)
+    print(plugin.read_text())
+```
+
+Actual: the plugin becomes `__version__ = "0.8.1"`.
+Expected: releasing the core leaves the independent plugin at `0.4.0`.
+The plugin's own pyproject version remains unchanged, producing inconsistent metadata.
+`release-bump` invokes this bumper, so the problem reaches release PRs.
+
+A related missing capability is a declared workspace lock refresh before the release commit.
+The core flow should not require downstream projects to pre-bump files or silently repair
+kacl-m's output. pycodetags' custom preparation script and tag/version checker have been removed.

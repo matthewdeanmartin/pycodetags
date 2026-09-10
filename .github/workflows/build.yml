@@ -8,12 +8,6 @@ on:
         description: Prepared release commit; omitted for normal builds and plugin tags.
         type: string
         default: ''
-      release_tag:
-        type: string
-        default: ''
-      release_project:
-        type: string
-        default: core
 permissions:
   contents: read
 jobs:
@@ -28,12 +22,6 @@ jobs:
         with:
           python-version: '3.14'
       - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
-      - name: Verify prepared release version
-        if: inputs.release_tag != ''
-        env:
-          RELEASE_TAG: ${{ inputs.release_tag }}
-          RELEASE_PROJECT: ${{ inputs.release_project }}
-        run: python scripts/release_candidates.py verify-tag --tag "$RELEASE_TAG" --project "$RELEASE_PROJECT"
       - run: uv pip install --system . pytest pytest-cov hypothesis jinja2
       - run: python -m pytest tests --cov=pycodetags --cov-fail-under=65
       - run: uv pip install --system ./plugins/pycodetags_issue_tracker ./plugins/pycodetags_chat ./plugins/pycodetags_universal

@@ -1,46 +1,43 @@
 # Publishing the core
 
-The draft-release workflow uses kacl-m to propose the next release from `[Unreleased]`.
-Publishing that GitHub release starts `release.yml`:
+kacl-m owns version selection, version-file updates, changelog releases, and release PRs.
+The draft-release workflow asks kacl-m to propose a release from `[Unreleased]`.
+Publishing the GitHub release starts `release.yml`:
 
 1. Check out the repository's default branch.
-2. Prepare the core's `pyproject.toml`, `pycodetags/__about__.py`, and `uv.lock` for the release version.
-3. Run `kaclm --json release-bump --pyproject-only --open-pr` to release the changelog,
-   commit the prepared files, push `codex/release-v<version>`, and open the release PR.
-4. Build and test on Linux with Python 3.14 against the resulting commit SHA.
-5. Publish only the tested core wheel and source archive after the `pypi` environment approval.
-6. Merge the release PR after publication succeeds so the default branch reflects the release.
+2. Run `kaclm --json release-bump --open-pr` for the requested version.
+3. Build and test the resulting commit on Linux with Python 3.14.
+4. Publish the tested core wheel and source archive after the `pypi` environment approval.
+5. Merge kacl-m's release PR after publication succeeds.
 
-This follows the bash2yaml release flow. The GitHub release tag is the version request;
-the package is built from the prepared release-branch commit, which contains the version bump.
-The workflow does not move the original tag. Subsequent changes to the branch cannot change
-which commit the checks use. CI uses one Linux build job, with no platform or Python-version
-matrix. The full supported Python range can still be tested locally with tox.
+There is no local version-preparation script or tag-versus-metadata gate. The remaining
+artifact helper only builds packages and tests installs. Package metadata validation and
+runtime tests remain in place; they do not select or rewrite release versions.
 
-GitHub Actions must be allowed to create pull requests, and PyPI must trust `release.yml`
-with the `pypi` environment. The workflow does not merge the release PR automatically.
+The GitHub release tag requests the version. Builds use kacl-m's prepared commit, and the
+workflow does not move the original tag. CI has one Linux job and no platform or Python-version
+matrix. GitHub Actions must be allowed to create PRs; PyPI must trust `release.yml` and `pypi`.
 
-## Retry an existing release
+## Existing failed runs
 
-Once the updated workflow is on the default branch, a failed release such as `v0.8.1`
-can be prepared and published using that workflow:
+Re-running a historical release run uses its old workflow, including any old matrix or tag checks.
+After updating the default branch, start the current workflow explicitly for an existing release:
 
 ```shell
 gh workflow run release.yml --ref main -f release_tag=v0.8.1
 ```
 
-Use the repository's default branch if it is not `main`. The GitHub release must already
-exist. This starts publication; use it for a release whose package upload has not succeeded.
-Re-running an old failed workflow does not load newer workflow definitions.
+This starts publication, so use it only after release-tool issues are resolved and the package
+version has not already been published. The referenced GitHub release must exist.
 
-## Independent plugin releases
+## kacl-m limitations
 
-Core releases do not bump or publish plugin versions. The existing plugin workflow still
-requires a plugin tag matching its committed metadata. Automatic plugin release PRs are a
-separate step; see the [kacl-m monorepo proposal](../spec/kaclm_monorepo.md).
+The installed kacl-m 6.8.0 can change nested plugin version constants during a core release.
+It also does not refresh the shared uv lockfile as part of release preparation. These belong
+in kacl-m, not in pycodetags-specific version scripts. The reproducible bug and proposed
+component support are recorded in [kacl-m monorepo support](../spec/kaclm_monorepo.md).
+Resolve that upstream before using automated core releases in this monorepo.
 
-The preparation helper deliberately names the two core version files. kacl-m's current
-recursive Python version discovery is not scoped to a component, so the core release uses
-`--pyproject-only` after explicitly preparing `__about__.py`. Its commit also includes the
-tracked lockfile changes. This workaround can be removed when kacl-m supports explicit
-component version targets and lockfile updates.
+The plugin publisher uploads only the explicitly selected plugin's artifacts. It does not
+use a pycodetags-specific tag/version naming gate; prepare the intended plugin metadata with
+the release tooling before selecting its source tag.

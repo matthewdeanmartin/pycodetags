@@ -60,3 +60,7 @@ The release flow now follows the kacl-m release-branch/PR process used by bash2y
 The earlier requirement to bump all version files before creating a GitHub release is
 superseded for the core. Checks run on the prepared commit SHA and publication uses those
 exact tested artifacts. See [publishing the core](../docs/releasing.md).
+
+The custom preparation helper and tag/version check were subsequently removed. kacl-m now
+owns the complete version bump; its monorepo version-scoping defect must be fixed upstream.
+The current procedure and limitation are documented in `docs/releasing.md`.

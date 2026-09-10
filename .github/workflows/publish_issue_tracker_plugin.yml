@@ -19,9 +19,6 @@ jobs:
   checks:
     needs: tag
     uses: ./.github/workflows/build.yml
-    with:
-      release_tag: ${{ github.ref_name }}
-      release_project: ${{ inputs.project }}
   publish:
     needs: checks
     runs-on: ubuntu-latest
