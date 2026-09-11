@@ -18,9 +18,9 @@ Chat and universal plugins are tested but are not enabled for publishing.
    a version; otherwise kacl-m infers it from that changelog. Pushes to main update
    the core draft only. Review the version and notes before publishing the draft.
 3. Publishing the GitHub release starts **Release**. kacl-m bumps only the selected
-   component's files and opens a release PR. One Linux build tests the prepared
+   component's files and pushes a release branch. One Linux build tests the prepared
    commit, then publishes only that component's artifacts to PyPI.
-4. Merge the release PR after publication succeeds.
+4. After publication succeeds, kacl-m opens the release PR. Merge it into main.
 
 For a local preview, with `GITHUB_TOKEN` set:
 
@@ -48,7 +48,8 @@ incomplete; use the explicit draft version when necessary.
 
 ## Existing failed runs
 
-Re-running a historical Actions run uses its old workflow. After updating the default
+A release of an existing tag loads workflows from that tag, even if the release target
+says main. Re-running a historical Actions run also uses its old workflow. After updating the default
 branch, start the current workflow explicitly for an existing GitHub release:
 
 ```shell
@@ -58,3 +59,5 @@ gh workflow run release.yml --ref main -f release_tag=pycodetags-issue-tracker-v
 This starts publication. Use an existing release whose package version has not already
 been published. The GitHub tag requests the version; artifacts come from kacl-m's
 prepared commit. The workflow does not move the original tag.
+
+If only the final PR job fails, rerun that failed job; the package is already published.

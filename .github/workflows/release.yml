@@ -16,9 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: write
     outputs:
       sha: ${{ steps.release.outputs.sha }}
+      branch: ${{ steps.release.outputs.branch }}
+      component: ${{ steps.release.outputs.component }}
       project: ${{ steps.release.outputs.project }}
       package: ${{ steps.release.outputs.package }}
     steps:
@@ -34,7 +35,7 @@ jobs:
       - run: uv sync --frozen --group dev
       - name: Verify component release isolation
         run: uv run --frozen pytest tests/test_monorepo_releases.py -q
-      - name: Prepare release branch and PR
+      - name: Prepare release branch
         id: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -60,11 +61,10 @@ jobs:
             --base "$BASE_BRANCH" \
             --release-id "$RELEASE_ID" \
             --repository "$REPO" \
-            --open-pr \
-            --title "chore: release $RELEASE_TAG" \
-            --body "Update the $PACKAGE version and changelog for $RELEASE_TAG. The Release workflow tests and publishes this branch's prepared commit. Merge after publication succeeds." \
             --yes > "$RUNNER_TEMP/release-bump.json"
           python -c 'import json,os; result=json.load(open(os.environ["RUNNER_TEMP"] + "/release-bump.json")); print("sha=" + result["commit_sha"])' >> "$GITHUB_OUTPUT"
+          python -c 'import json,os; result=json.load(open(os.environ["RUNNER_TEMP"] + "/release-bump.json")); print("branch=" + result["branch"])' >> "$GITHUB_OUTPUT"
+          echo "component=$COMPONENT" >> "$GITHUB_OUTPUT"
           echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
           echo "package=$PACKAGE" >> "$GITHUB_OUTPUT"
   build:
@@ -89,3 +89,35 @@ jobs:
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
         with:
           packages-dir: artifacts/${{ needs.bump.outputs.project }}/
+  merge_request:
+    name: Open release PR after publication
+    needs: [bump, publish]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
+        with:
+          python-version: '3.14'
+      - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39
+      - run: uv sync --frozen --group dev
+      - name: Open or update release PR
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          COMPONENT: ${{ needs.bump.outputs.component }}
+          RELEASE_BRANCH: ${{ needs.bump.outputs.branch }}
+          RELEASE_TAG: ${{ inputs.release_tag || github.event.release.tag_name }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          REPO: ${{ github.repository }}
+        run: |
+          uv run --frozen kaclm --component "$COMPONENT" github-pr \
+            --repository "$REPO" \
+            --head "$RELEASE_BRANCH" \
+            --base "$BASE_BRANCH" \
+            --title "chore: release $RELEASE_TAG" \
+            --body "Published $RELEASE_TAG to PyPI. Merge the version and changelog updates used to build the published artifacts."

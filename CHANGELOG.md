@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Delegate release versioning to kacl-m and remove custom version gates.
 - Synchronize core version metadata and simplify CI to a single Linux build.
-- Prepare core release versions and a kacl-m release PR before building packages.
+- Open release PRs only after publishing the prepared packages to PyPI.
 - Refocus the README on structured comment data and practical examples.
 
 
