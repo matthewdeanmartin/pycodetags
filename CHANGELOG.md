@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.1] - 2026-09-11
 ### Changed
 - Upgrade kacl-m to 6.9.0 for independent core and issue tracker releases.
 
@@ -13,7 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Synchronize core version metadata and simplify CI to a single Linux build.
 - Open release PRs only after publishing the prepared packages to PyPI.
 - Refocus the README on structured comment data and practical examples.
-
 
 ## [0.8.0] - 2026-09-10
 ### Added
@@ -116,7 +115,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Initial release with tags, collectors, and converters
 
-[Unreleased]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.7.0...HEAD
 [0.7.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/matthewdeanmartin/pycodetags/compare/v0.4.0...v0.5.0
