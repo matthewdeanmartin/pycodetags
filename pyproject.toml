@@ -74,8 +74,8 @@ dev = [
     # <3.15 exactly as before; on 3.15 install the base package, which is pure
     # Python and provides every feature this repo actually uses (validate,
     # release, github-release).
-    "keepachangelog-manager-fork[fast]>=6.8.0; python_version >= '3.9' and python_version < '3.15'",
-    "keepachangelog-manager-fork[stdlib]>=6.8.0; python_version >= '3.15'",
+    "keepachangelog-manager-fork[fast]>=6.9.0; python_version >= '3.9' and python_version < '3.15'",
+    "keepachangelog-manager-fork[stdlib]>=6.9.0; python_version >= '3.15'",
     "troml-dev-status>=0.6.0; python_version >= '3.9'",
     "dont-be-lazy>=0.1.2; python_version >= '3.10'",
     "pydoc-fork>=3.0.0; python_version >= '3.10'",
@@ -272,14 +272,21 @@ format = "auto"
 skip_ci = true
 error_format = "github"
 
-#[[tool.changelogmanager.components]]
-#name = "pycodetags-issue-tracker"
-#changelog = "plugins/pycodetags_issue_tracker/CHANGELOG.md"
-#match = ["plugins/pycodetags_issue_tracker/**"]
-
 [[tool.changelogmanager.components]]
 name = "default"
 changelog = "CHANGELOG.md"
+version_files = ["pyproject.toml", "pycodetags/__about__.py"]
+tag_template = "v{version}"
+
+[[tool.changelogmanager.components]]
+name = "pycodetags-issue-tracker"
+changelog = "plugins/pycodetags_issue_tracker/CHANGELOG.md"
+match = ["plugins/pycodetags_issue_tracker/**"]
+version_files = [
+    "plugins/pycodetags_issue_tracker/pyproject.toml",
+    "plugins/pycodetags_issue_tracker/pycodetags_issue_tracker/__about__.py",
+]
+tag_template = "pycodetags-issue-tracker-v{version}"
 
 
 [tool.coverage.report]

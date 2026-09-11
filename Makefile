@@ -7,7 +7,8 @@ else
     VENV :=
 endif
 
-CHANGELOGMANAGER = $(VENV) kaclm --config pyproject.toml
+COMPONENT ?= default
+CHANGELOGMANAGER = $(VENV) kaclm --config pyproject.toml --component "$(COMPONENT)"
 
 uv.lock: pyproject.toml
 	@echo "Installing dependencies"

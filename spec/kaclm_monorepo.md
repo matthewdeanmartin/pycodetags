@@ -1,9 +1,13 @@
 # kacl-m monorepo release support
 
-Status: proposal, not implemented. Based on the installed kacl-m 6.8.0 and the local
-keepachangelog-manager source inspected during the pycodetags release workflow update.
+Status: component version-file ownership, tag templates, scoped draft cleanup, and
+release commits shipped in kacl-m 6.9.0 and are now configured in this repository.
+See [releasing packages](../docs/releasing.md) for the active workflow. Shared lockfile
+and dependency-constraint updates remain outside the implemented scope.
 
-## Current boundary
+The following records the original 6.8.0 investigation and proposal.
+
+## Original boundary (6.8.0)
 
 Components select changelogs, and matching paths can assign changes to components.
 That is useful for monorepo change collection, but it does not define a package release.

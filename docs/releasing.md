@@ -1,43 +1,60 @@
-# Publishing the core
+# Releasing packages
 
-kacl-m owns version selection, version-file updates, changelog releases, and release PRs.
-The draft-release workflow asks kacl-m to propose a release from `[Unreleased]`.
-Publishing the GitHub release starts `release.yml`:
+Releases use kacl-m 6.9.0 or later. Each component owns the changelog, version files,
+and tag template listed in the root `pyproject.toml`.
 
-1. Check out the repository's default branch.
-2. Run `kaclm --json release-bump --open-pr` for the requested version.
-3. Build and test the resulting commit on Linux with Python 3.14.
-4. Publish the tested core wheel and source archive after the `pypi` environment approval.
-5. Merge kacl-m's release PR after publication succeeds.
+| Package | kacl-m component | Tag example |
+| --- | --- | --- |
+| pycodetags | default | v0.8.2 |
+| pycodetags-issue-tracker | pycodetags-issue-tracker | pycodetags-issue-tracker-v0.4.0 |
 
-There is no local version-preparation script or tag-versus-metadata gate. The remaining
-artifact helper only builds packages and tests installs. Package metadata validation and
-runtime tests remain in place; they do not select or rewrite release versions.
+The examples illustrate tag spelling, not a decision about the next version.
+Chat and universal plugins are tested but are not enabled for publishing.
 
-The GitHub release tag requests the version. Builds use kacl-m's prepared commit, and the
-workflow does not move the original tag. CI has one Linux job and no platform or Python-version
-matrix. GitHub Actions must be allowed to create PRs; PyPI must trust `release.yml` and `pypi`.
+## Draft and publish
+
+1. Add release notes to the selected component's `[Unreleased]` section.
+2. Run **Create Draft Release** in Actions and select the component. Optionally set
+   a version; otherwise kacl-m infers it from that changelog. Pushes to main update
+   the core draft only. Review the version and notes before publishing the draft.
+3. Publishing the GitHub release starts **Release**. kacl-m bumps only the selected
+   component's files and opens a release PR. One Linux build tests the prepared
+   commit, then publishes only that component's artifacts to PyPI.
+4. Merge the release PR after publication succeeds.
+
+For a local preview, with `GITHUB_TOKEN` set:
+
+```shell
+uv run --frozen kaclm --component pycodetags-issue-tracker --json github-release --repository matthewdeanmartin/pycodetags --dry-run
+uv run --frozen kaclm --component pycodetags-issue-tracker --json release-bump --version pycodetags-issue-tracker-v0.4.0 --dry-run --yes
+```
+
+`make draft-release COMPONENT=pycodetags-issue-tracker REPOSITORY=owner/repo` also
+selects the plugin. Omitting `COMPONENT` selects the core.
+
+Both packages must authorize `release.yml` as their PyPI Trusted Publisher, using
+this repository and the `pypi` environment. Replace any issue tracker publisher
+configured for `publish_issue_tracker_plugin.yml`; that separate workflow is retired.
+The workflow needs repository permission to create pull requests.
+
+Version bumps do not rewrite sibling versions, dependency constraints, or the shared
+`uv.lock`. The artifact checks install the core and plugins together and will fail if
+an intended core release no longer satisfies a plugin's dependency constraint. Resolve
+that compatibility decision before publishing. When dependencies change, regenerate
+and commit `uv.lock` as usual.
+
+Review the inferred version against published releases when changelog history is
+incomplete; use the explicit draft version when necessary.
 
 ## Existing failed runs
 
-Re-running a historical release run uses its old workflow, including any old matrix or tag checks.
-After updating the default branch, start the current workflow explicitly for an existing release:
+Re-running a historical Actions run uses its old workflow. After updating the default
+branch, start the current workflow explicitly for an existing GitHub release:
 
 ```shell
-gh workflow run release.yml --ref main -f release_tag=v0.8.1
+gh workflow run release.yml --ref main -f release_tag=pycodetags-issue-tracker-v0.4.0
 ```
 
-This starts publication, so use it only after release-tool issues are resolved and the package
-version has not already been published. The referenced GitHub release must exist.
-
-## kacl-m limitations
-
-The installed kacl-m 6.8.0 can change nested plugin version constants during a core release.
-It also does not refresh the shared uv lockfile as part of release preparation. These belong
-in kacl-m, not in pycodetags-specific version scripts. The reproducible bug and proposed
-component support are recorded in [kacl-m monorepo support](../spec/kaclm_monorepo.md).
-Resolve that upstream before using automated core releases in this monorepo.
-
-The plugin publisher uploads only the explicitly selected plugin's artifacts. It does not
-use a pycodetags-specific tag/version naming gate; prepare the intended plugin metadata with
-the release tooling before selecting its source tag.
+This starts publication. Use an existing release whose package version has not already
+been published. The GitHub tag requests the version; artifacts come from kacl-m's
+prepared commit. The workflow does not move the original tag.

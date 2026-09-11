@@ -7,6 +7,16 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      component:
+        description: Component to draft
+        type: choice
+        default: default
+        options: [default, pycodetags-issue-tracker]
+      version:
+        description: Optional version override; otherwise infer from this component's changelog
+        type: string
+        required: false
 
 permissions:
   contents: write
@@ -37,4 +47,10 @@ jobs:
       - name: Update draft release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: uv run make draft-release REPOSITORY="${{ github.repository }}"
+          COMPONENT: ${{ inputs.component || 'default' }}
+          REPOSITORY: ${{ github.repository }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          args=()
+          if [ -n "$VERSION" ]; then args+=(--version "$VERSION"); fi
+          uv run --frozen kaclm --component "$COMPONENT" github-release --repository "$REPOSITORY" "${args[@]}"
