@@ -171,3 +171,12 @@ can be used on its own.
 - [Contributing](docs/CONTRIBUTING.md)
 - [Changelog](CHANGELOG.md)
 - [Report a bug](https://github.com/matthewdeanmartin/pycodetags/issues)
+
+
+## Python 3.15 RC3 verification (2026-10-04)
+
+Refreshed dependencies with `uv lock --upgrade`; lock check passes. 471 tests pass / 6 skip with stable and prerelease-allowed dependencies on Python 3.15.0rc3 and on 3.14.7, using published wheels only. The experimental environments selected no dependency prereleases. Full development setup remains wheel-blocked by linkcheckmd; broad quality gates requiring it were not run.
+
+Only core tests were checked; plugin projects were outside this verification.
+
+No dependency source builds or GitHub jobs. Changes local; human operators decide releases and upstream reporting.

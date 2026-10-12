@@ -120,3 +120,10 @@ The reporting commands are the same for either format.
 - [Source code](https://github.com/matthewdeanmartin/pycodetags)
 - [Report a bug](https://github.com/matthewdeanmartin/pycodetags/issues)
 - [PyPI](https://pypi.org/project/pycodetags-issue-tracker/)
+
+
+## Python 3.15 verification — 2026-10-04
+
+92 tests pass / 2 skip on 3.15.0rc3 stable dependencies, prereleases allowed, and Python 3.14.7. The as_pep350_comment method now supplies PEP350 explicitly; five failures reproduced across all modes without it. Installed-wheel serialization also passes with published pycodetags 0.8.1. Published issue tracker 0.4.0 lacks this fix, making it worth a patch release. No native fallback was needed.
+
+Dependencies were required to have published wheels; own pure-Python workspace wheels were built locally without build isolation. Locks were refreshed with uv lock --upgrade. Full developer stacks remain separately wheel-blocked (PyYAML or source-only linkcheckmd). No upstream reports or GitHub jobs were sent; bug filing belongs to the human operator.

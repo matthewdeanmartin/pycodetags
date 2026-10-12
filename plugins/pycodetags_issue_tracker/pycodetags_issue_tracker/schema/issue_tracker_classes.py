@@ -351,4 +351,4 @@ class TODO(DATA):
             if value is not None:
                 self.data_fields[name] = value
 
-        return self.as_data_comment()
+        return self.as_data_comment(schema="PEP350")
