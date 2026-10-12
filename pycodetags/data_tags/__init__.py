@@ -2,15 +2,15 @@ __all__ = [
     "DATA",
     "DataTag",
     "DataTagSchema",
-    "convert_data_tag_to_data_object",
-    "iterate_comments",
-    "iterate_comments_from_file",
-    "data_fields_as_list",
+    "PEP350Schema",
+    "TDGSchema",
     "content_identity",
     "content_identity_for_data",
+    "convert_data_tag_to_data_object",
+    "data_fields_as_list",
+    "iterate_comments",
+    "iterate_comments_from_file",
     "resolve_identity",
-    "TDGSchema",
-    "PEP350Schema",
 ]
 
 from pycodetags.data_tags.data_tags_classes import DATA

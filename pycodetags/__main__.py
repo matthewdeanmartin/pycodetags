@@ -112,7 +112,7 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
     for result in pm.hook.print_report_style_name():
         extra_supported_formats.extend(result)
 
-    supported_formats = list(set(["text", "html", "json", "summary"] + extra_supported_formats))
+    supported_formats = list(set(["text", "html", "json", "summary", *extra_supported_formats]))
 
     report_parser.add_argument(
         "--format",
@@ -131,9 +131,7 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
         parents=[base_parser],
         help="Assign stable local ids (id=N) to data tags that lack one",
         description=(
-            "Scan source for data tags and assign a stable local id to any tag that has neither an "
-            "id nor a tracker issue. Ids come from the per-project .pycodetags_ids counter (commit it). "
-            "This is a full O(files) scan; an incremental index is on the roadmap."
+            "Scan source for data tags and assign a stable local id to any tag that has neither an id nor a tracker issue. Ids come from the per-project .pycodetags_ids counter (commit it). This is a full O(files) scan; an incremental index is on the roadmap."
         ),
     )
     id_parser.add_argument("paths", nargs="*", help="Files or folders to scan (defaults to config src)")
@@ -155,10 +153,9 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
 
     args = parser.parse_args(args=argv)
 
-    if hasattr(args, "config") and args.config:
-        code_tags_config = CodeTagsConfig(pyproject_path=args.config)
-    else:
-        code_tags_config = CodeTagsConfig()
+    code_tags_config = (
+        CodeTagsConfig(pyproject_path=args.config) if hasattr(args, "config") and args.config else CodeTagsConfig()
+    )
 
     CodeTagsConfig.set_instance(code_tags_config)
 
@@ -197,8 +194,7 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
 
         if not modules and not src:
             print(
-                "Need to specify one or more importable modules (--module) "
-                "or source code folders/files (--src) or specify in config file.",
+                "Need to specify one or more importable modules (--module) or source code folders/files (--src) or specify in config file.",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -263,17 +259,19 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
     else:
         # Pass control to plugins for other commands
         # Aggregate data if plugins might need it
-        if hasattr(args, "module") and args.module:
-            modules = getattr(args, "module", [])
-        else:
-            modules = code_tags_config.modules_to_scan()
+        modules = (
+            getattr(args, "module", [])
+            if hasattr(args, "module") and args.module
+            else code_tags_config.modules_to_scan()
+        )
 
-        if hasattr(args, "src") and args.src:
-            src = getattr(args, "src", [])
-        else:
-            src = [
+        src = (
+            getattr(args, "src", [])
+            if hasattr(args, "src") and args.src
+            else [
                 str(code_tags_config.pyproject_path.parent / path) for path in code_tags_config.source_folders_to_scan()
             ]
+        )
 
         def found_data_for_plugins_callback(schema: DataTagSchema) -> list[DATA]:
             try:

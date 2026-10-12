@@ -9,7 +9,7 @@ from pycodetags.data_tags.formats import PREFIX, parse_block, property_line, ser
 from pycodetags.exceptions import SchemaError
 from pycodetags.schemas import TDGSchema, validate_schema
 
-__all__ = ["iterate_comments", "is_property_line", "as_tdg_comment"]
+__all__ = ["as_tdg_comment", "is_property_line", "iterate_comments"]
 
 
 def is_property_line(comment_text: str) -> bool:

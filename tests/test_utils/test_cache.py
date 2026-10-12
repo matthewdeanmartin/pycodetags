@@ -59,7 +59,7 @@ def test_basic_memoization_and_cache_hit(tmp_path: Path):
     assert result1 == result2
 
     # Assert that a cache file was created
-    cache_files = list(f for f in tmp_path.iterdir() if f.name != ".gitignore")
+    cache_files = [f for f in tmp_path.iterdir() if f.name != ".gitignore"]
     assert len(cache_files) == 1
 
 
@@ -87,7 +87,7 @@ def test_different_arguments_create_different_caches(tmp_path: Path):
     assert result1["timestamp"] != result2["timestamp"]
 
     # There should be two separate cache files
-    cache_files = list(f for f in tmp_path.iterdir() if f.name != ".gitignore")
+    cache_files = [f for f in tmp_path.iterdir() if f.name != ".gitignore"]
     assert len(cache_files) == 2
 
 
@@ -129,13 +129,13 @@ def test_clear_cache_works(tmp_path: Path):
     memoized_func(1, "a")
     memoized_func(2, "b")
 
-    cache_files_before = list(f for f in tmp_path.iterdir() if f.name != ".gitignore")
+    cache_files_before = [f for f in tmp_path.iterdir() if f.name != ".gitignore"]
     assert len(cache_files_before) == 2
 
     # Clear the cache
     clear_cache(cache_dir_override=tmp_path)
 
-    cache_files_after = list(f for f in tmp_path.iterdir() if f.name != ".gitignore")
+    cache_files_after = [f for f in tmp_path.iterdir() if f.name != ".gitignore"]
     assert len(cache_files_after) == 0
 
     # Ensure .gitignore is NOT deleted

@@ -11,8 +11,9 @@ import pytest
 @pytest.mark.parametrize("schema", ["TDG", "PEP350"])
 def test_reports_include_source_tasks(tmp_path, schema, format_name):
     (tmp_path / "pyproject.toml").write_text(
-        '[tool.pycodetags]\nschema = "' + schema + '"\nsrc = ["src"]\n'
-        'closed_status = ["done"]\nvalid_status = ["todo", "done"]\n',
+        '[tool.pycodetags]\nschema = "'
+        + schema
+        + '"\nsrc = ["src"]\nclosed_status = ["done"]\nvalid_status = ["todo", "done"]\n',
         encoding="utf-8",
     )
     source = tmp_path / "src"

@@ -65,10 +65,7 @@ def process_text(
         # Without this guard, pep350 tags spread across 2 lines are interpreted as folk tags.
         return
 
-    if "\r\n" in text:
-        lines = text.split("\r\n")
-    else:
-        lines = text.split("\n")
+    lines = text.split("\r\n") if "\r\n" in text else text.split("\n")
 
     if len(lines) == 1:
         logger.debug(f"Processing  {file_path}: {lines[0]}")

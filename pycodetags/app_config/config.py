@@ -82,6 +82,7 @@ use_dot_env = true
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import sys
 from fnmatch import fnmatchcase
@@ -193,10 +194,8 @@ class CodeTagsConfig:
         matches = []
         relative = None
         if file_path is not None:
-            try:
+            with contextlib.suppress(ValueError):
                 relative = Path(file_path).resolve().relative_to(self.pyproject_path.parent).as_posix()
-            except ValueError:
-                pass
         for rule in rules:
             if (
                 not isinstance(rule, dict)

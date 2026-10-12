@@ -301,7 +301,7 @@ class TODO(DATA):
                 value = getattr(self, valid_field)
                 if value is None:
                     value = ""
-                if value.lower() not in valid_list + [""]:
+                if value.lower() not in [*valid_list, ""]:
                     issues.append(f"Invalid {valid_field} {value}, valid {valid_field} {valid_list}")
 
         custom_fields_list = config.valid_custom_field_names()

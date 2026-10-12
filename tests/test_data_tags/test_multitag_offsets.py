@@ -41,7 +41,7 @@ def _slice(src: str, offsets: tuple[int, int, int, int]) -> str:
 
 
 def test_two_single_line_tags_get_distinct_offsets():
-    src = "x = 1\n" "# FIXME: first thing <category:core>\n" "# BUG: tracked one <priority:high>\n" "y = 2\n"
+    src = "x = 1\n# FIXME: first thing <category:core>\n# BUG: tracked one <priority:high>\ny = 2\n"
     tags = _parse(src)
     assert len(tags) == 2
     by_tag = {t["code_tag"]: t for t in tags}
@@ -56,7 +56,7 @@ def test_two_single_line_tags_get_distinct_offsets():
 
 
 def test_offsets_reconstruct_their_own_original_text():
-    src = "# FIXME: first thing <category:core>\n" "# BUG: tracked one <priority:high>\n"
+    src = "# FIXME: first thing <category:core>\n# BUG: tracked one <priority:high>\n"
     for t in _parse(src):
         assert _slice(src, t["offsets"]) == t["original_text"]
 
@@ -73,7 +73,7 @@ def test_indented_block_offsets_account_for_indentation():
 
 
 def test_three_tag_block():
-    src = "# FIXME: one <category:a>\n" "# TODO: two <category:b>\n" "# BUG: three <category:c>\n"
+    src = "# FIXME: one <category:a>\n# TODO: two <category:b>\n# BUG: three <category:c>\n"
     tags = _parse(src)
     assert [t["code_tag"] for t in tags] == ["FIXME", "TODO", "BUG"]
     for i, t in enumerate(tags):
@@ -110,7 +110,7 @@ def test_multiline_field_block_then_second_tag():
 
 
 def test_mutating_one_tag_in_block_leaves_sibling_untouched(tmp_path: Path):
-    src = "# FIXME: first thing <category:core>\n" "# BUG: tracked one <priority:high>\n"
+    src = "# FIXME: first thing <category:core>\n# BUG: tracked one <priority:high>\n"
     f = tmp_path / "s.py"
     f.write_text(src, encoding="utf-8")
 
@@ -133,7 +133,7 @@ def test_mutating_one_tag_in_block_leaves_sibling_untouched(tmp_path: Path):
 
 
 def test_mutating_both_tags_in_block(tmp_path: Path):
-    src = "# FIXME: first thing <category:core>\n" "# BUG: tracked one <priority:high>\n"
+    src = "# FIXME: first thing <category:core>\n# BUG: tracked one <priority:high>\n"
     f = tmp_path / "s.py"
     f.write_text(src, encoding="utf-8")
 

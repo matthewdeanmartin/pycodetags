@@ -25,7 +25,7 @@ class JavascriptTagPlugin:
         found = []
         block = []
         first = 0
-        for number, line in enumerate(lines + [""]):
+        for number, line in enumerate([*lines, ""]):
             if re.match(r"^[ \t]*//", line):
                 if not block:
                     first = number

@@ -35,7 +35,7 @@ def test_single_line_tdg_end_column_includes_source_prefix(prefix):
 @pytest.mark.parametrize("newline", ["\n", "\r\n"])
 def test_direct_parser_preserves_exact_indented_slice(newline):
     source = newline.join(["    # TODO: title", "    # issue=100", "    # body  "])
-    tag = list(iterate_comments(source, None, [TDG_SCHEMA]))[0]
+    tag = next(iter(iterate_comments(source, None, [TDG_SCHEMA])))
     assert extract_comment_text(source, tag["offsets"]) == tag["original_text"]
     assert tag["original_text"].startswith("# TODO")
     assert tag["original_text"].endswith("body  ")

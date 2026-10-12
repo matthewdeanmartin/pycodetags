@@ -1,19 +1,19 @@
 """Metadata for pycodetags_issue_tracker."""
 
 __all__ = [
-    "__title__",
-    "__version__",
+    "__changelog__",
     "__description__",
-    "__readme__",
+    "__documentation__",
+    "__homepage__",
+    "__issues__",
     "__keywords__",
     "__license__",
+    "__readme__",
+    "__repository__",
     "__requires_python__",
     "__status__",
-    "__homepage__",
-    "__repository__",
-    "__documentation__",
-    "__issues__",
-    "__changelog__",
+    "__title__",
+    "__version__",
 ]
 
 __title__ = "pycodetags-issue-tracker"

@@ -101,13 +101,13 @@ def select_src_folder_interactive(folders: list[str]) -> str | None:
     """
     print("\nPlease select your primary source folder from the list below:")
     for i, folder in enumerate(folders):
-        print(f"  {i+1}) {folder}")
-    print(f"  {len(folders)+1}) [Manual Entry]")
-    print(f"  {len(folders)+2}) [Cancel]")
+        print(f"  {i + 1}) {folder}")
+    print(f"  {len(folders) + 1}) [Manual Entry]")
+    print(f"  {len(folders) + 2}) [Cancel]")
 
     while True:
         try:
-            choice_str = input(f"Enter your choice [1-{len(folders)+2}]: ")
+            choice_str = input(f"Enter your choice [1-{len(folders) + 2}]: ")
             choice_int = int(choice_str)
             if 1 <= choice_int <= len(folders):
                 return folders[choice_int - 1]
@@ -115,7 +115,7 @@ def select_src_folder_interactive(folders: list[str]) -> str | None:
                 return input("Enter path to your source folder: ")
             if choice_int == len(folders) + 2:
                 return None
-            print(f"Invalid choice. Please enter a number between 1 and {len(folders)+2}.")
+            print(f"Invalid choice. Please enter a number between 1 and {len(folders) + 2}.")
         except (ValueError, IndexError):
             print("Invalid input. Please enter a number from the list.")
 
@@ -124,16 +124,7 @@ def generate_pycodetags_toml_section(src_folder: str, schema: str) -> str:
     """Generate configuration from explicit user selections, with no schema default."""
     if schema not in ("TDG", "PEP350"):
         raise ValueError("Choose TDG or PEP350 explicitly.")
-    return (
-        "[tool.pycodetags]\n"
-        f"src = [{json.dumps(src_folder)}]\n"
-        f"schema = {json.dumps(schema)}\n"
-        "disable_all_runtime_behavior = false\n"
-        "enable_actions = true\n"
-        'default_action = "warn"\n'
-        "disable_on_ci = true\n"
-        "use_dot_env = true\n"
-    )
+    return f'[tool.pycodetags]\nsrc = [{json.dumps(src_folder)}]\nschema = {json.dumps(schema)}\ndisable_all_runtime_behavior = false\nenable_actions = true\ndefault_action = "warn"\ndisable_on_ci = true\nuse_dot_env = true\n'
 
 
 def write_to_pyproject_safe(toml_section: str, pyproject_path: str) -> None:

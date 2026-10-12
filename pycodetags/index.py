@@ -8,7 +8,7 @@ import sqlite3
 from collections.abc import Sequence
 from contextlib import closing
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
 
@@ -181,7 +181,7 @@ class TagIndex:
                     "INSERT OR REPLACE INTO metadata VALUES (?, ?)",
                     [
                         ("root", str(root)),
-                        ("refreshed_at", datetime.now(timezone.utc).isoformat()),
+                        ("refreshed_at", datetime.now(UTC).isoformat()),
                         ("parser_version", str(PARSER_VERSION)),
                         (
                             "selection",

@@ -74,8 +74,7 @@ def test_rules_only_project_requires_every_file_to_match(tmp_path):
 def test_overlapping_rules_fail_even_if_they_name_the_same_schema(tmp_path):
     configure(
         tmp_path,
-        'schema = "TDG"\n[[tool.pycodetags.schema_paths]]\npath = "*.py"\nschema = "TDG"\n'
-        '[[tool.pycodetags.schema_paths]]\npath = "a.py"\nschema = "TDG"\n',
+        'schema = "TDG"\n[[tool.pycodetags.schema_paths]]\npath = "*.py"\nschema = "TDG"\n[[tool.pycodetags.schema_paths]]\npath = "a.py"\nschema = "TDG"\n',
     )
     path = tmp_path / "a.py"
     path.write_text("# TODO: title", encoding="utf-8")

@@ -93,7 +93,7 @@ def test_deleted_and_excluded_files_are_removed_without_stale_rows(tmp_path):
 
 
 def test_schema_config_and_parser_versions_trigger_reparse(tmp_path, monkeypatch):
-    index, path = project(tmp_path)
+    index, _path = project(tmp_path)
     index.refresh()
     config = tmp_path / "pyproject.toml"
     config.write_text('[tool.pycodetags]\nschema="PEP350"\nsrc=["src"]\n', encoding="utf-8")
@@ -141,7 +141,7 @@ def test_index_deletion_is_recoverable(tmp_path):
 
 
 def test_foreign_or_corrupt_database_is_not_overwritten(tmp_path):
-    index, path = project(tmp_path)
+    index, _path = project(tmp_path)
     with closing(sqlite3.connect(index.database_path)) as connection:
         connection.execute("CREATE TABLE precious (value TEXT)")
     before = index.database_path.read_bytes()
@@ -199,7 +199,7 @@ def test_duplicate_ids_return_all_matches(tmp_path):
 def test_exclusions_apply_to_id_assignment(tmp_path):
     from pycodetags.id_command import run
 
-    index, path = project(tmp_path)
+    _index, path = project(tmp_path)
     ignored = path.with_name("ignored.py")
     original = b"# TODO: ignored\n"
     ignored.write_bytes(original)
@@ -212,7 +212,7 @@ def test_exclusions_apply_to_id_assignment(tmp_path):
 def test_exclusions_apply_to_aggregate(tmp_path):
     from pycodetags.aggregate import aggregate_all_kinds_multiple_input
 
-    index, path = project(tmp_path)
+    _index, path = project(tmp_path)
     path.with_name("ignored.py").write_bytes(b"# TODO: ignored\n")
     CodeTagsConfig.set_instance(CodeTagsConfig(str(tmp_path / "pyproject.toml")))
     tags = aggregate_all_kinds_multiple_input([], [str(path.parent)], schema="TDG", exclude=["src/ignored.py"])
@@ -222,7 +222,7 @@ def test_exclusions_apply_to_aggregate(tmp_path):
 def test_custom_schema_changes_invalidate_existing_files(tmp_path):
     from pycodetags import TDGSchema
 
-    index, path = project(tmp_path)
+    index, _path = project(tmp_path)
     index.schema = dict(TDGSchema)
     index.refresh()
     index.schema = dict(TDGSchema, matching_tags=["BUG"])
@@ -231,7 +231,7 @@ def test_custom_schema_changes_invalidate_existing_files(tmp_path):
 
 
 def test_schema_version_mismatch_requires_rebuild(tmp_path):
-    index, path = project(tmp_path)
+    index, _path = project(tmp_path)
     index.refresh()
     with closing(sqlite3.connect(index.database_path)) as connection:
         connection.execute("PRAGMA user_version=999")
@@ -242,7 +242,7 @@ def test_schema_version_mismatch_requires_rebuild(tmp_path):
 
 
 def test_missing_explicit_source_does_not_erase_snapshot(tmp_path):
-    index, path = project(tmp_path)
+    index, _path = project(tmp_path)
     index.refresh()
     with pytest.raises(FileNotFoundError):
         index.refresh(paths=["missing"])
@@ -267,7 +267,7 @@ def test_discovery_rejects_path_escape_and_invalid_options(tmp_path):
 def test_overlapping_aggregate_inputs_only_parse_each_file_once(tmp_path, monkeypatch):
     import pycodetags.aggregate as aggregate
 
-    index, path = project(tmp_path)
+    _index, path = project(tmp_path)
     calls = []
     actual = aggregate.iterate_comments_from_file
 

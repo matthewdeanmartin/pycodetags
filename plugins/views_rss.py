@@ -57,7 +57,7 @@ def print_rss(found: list[DATA], channel_info: dict[str, str]) -> None:
             item_pub_date.text = str(pub_date)
 
         guid = SubElement(item, "guid", isPermaLink="false")
-        start_line, start_char, end_line, end_char = item_data.offsets
+        start_line, _start_char, _end_line, _end_char = item_data.offsets
         guid.text = f"{item_data.file_path}-{start_line}-{item_data.comment}"
 
     # Pretty print the XML

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import itertools
 import os
 from collections.abc import Callable, Sequence
 from dataclasses import replace
@@ -95,7 +96,7 @@ def apply_mutations(
             rendered = format_replacement(rendered, indentation, line_ending(lines[first]) or newline)
         replacements.append((start, stop, rendered))
     replacements.sort(key=lambda item: item[0])
-    for previous, current in zip(replacements, replacements[1:]):
+    for previous, current in itertools.pairwise(replacements):
         if current[0] < previous[1]:
             raise DataTagError("Overlapping tag mutations; each source span may be changed only once.")
     pieces = []

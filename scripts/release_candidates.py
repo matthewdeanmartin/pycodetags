@@ -71,7 +71,7 @@ def main():
     if args.command in ("build", "all"):
         build(output)
     if args.command in ("smoke", "all"):
-        for kind in (["wheel", "sdist"] if args.kind == "both" else [args.kind]):
+        for kind in ["wheel", "sdist"] if args.kind == "both" else [args.kind]:
             smoke(output, kind)
 
 

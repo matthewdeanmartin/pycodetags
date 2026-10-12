@@ -1,16 +1,16 @@
 __all__ = [
-    "TODO",
+    "ALERT",
+    "BUG",
+    "CLEVER",
+    "DOCUMENT",
     "FIXME",
+    "HACK",
+    "IDEA",
+    "MAGIC",
+    "PORT",
     "REQUIREMENT",
     "STORY",
-    "IDEA",
-    "BUG",
-    "HACK",
-    "CLEVER",
-    "MAGIC",
-    "ALERT",
-    "PORT",
-    "DOCUMENT",
+    "TODO",
 ]
 
 from pycodetags_issue_tracker.schema.issue_tracker_aliases import (

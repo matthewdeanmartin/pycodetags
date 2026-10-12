@@ -123,10 +123,11 @@ def split_pep_metadata(text: str) -> tuple[str, str] | None:
                 if text[index + 1 :].strip():
                     break
                 prefix = text[:start]
-                if "\n" in prefix and not prefix.rsplit("\n", 1)[1].strip():
-                    prefix = prefix.rsplit("\n", 1)[0]
-                else:
-                    prefix = prefix.rstrip(" \t")
+                prefix = (
+                    prefix.rsplit("\n", 1)[0]
+                    if "\n" in prefix and not prefix.rsplit("\n", 1)[1].strip()
+                    else prefix.rstrip(" \t")
+                )
                 return prefix, text[start + 1 : index]
     return None
 
@@ -157,7 +158,7 @@ def parse_block(source: str, schema: DataTagSchema) -> list[dict]:
                 parse_properties(body_lines.pop(0), schema) if body_lines and property_line(body_lines[0]) else {}
             )
         else:
-            narrative_lines = [title] + body_lines
+            narrative_lines = [title, *body_lines]
             split = None
             for count, line in enumerate(narrative_lines, 1):
                 if line.rstrip().endswith(">"):

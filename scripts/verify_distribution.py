@@ -91,9 +91,7 @@ def verify(directory: Path) -> None:
 
     package_python_count = sum(name.endswith(".py") for name in package_files)
     print(
-        f"Verified {wheel.name} and {sdist.name}: "
-        f"{len(package_files)} package files ({package_python_count} Python) "
-        f"and {len(test_python_files)} test modules."
+        f"Verified {wheel.name} and {sdist.name}: {len(package_files)} package files ({package_python_count} Python) and {len(test_python_files)} test modules."
     )
 
 

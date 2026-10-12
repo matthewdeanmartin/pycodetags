@@ -10,7 +10,7 @@ license = "MIT"
 # non-ignored virtualenv in the tree and drags every dependency's LICENSE
 # (and its whole directory) into the sdist.
 license-files = ["LICENSE", "AUTHORS.md"]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     # plugin support
     "pluggy",
@@ -18,8 +18,6 @@ dependencies = [
     # For intialization/default fields, without which the data entry burden is pretty bad.
     "jmespath",
     # backwards compatibility
-    "toml; python_version < '3.11'",
-    "typing-extensions; python_version < '3.11'",
 
 ]
 classifiers = [
@@ -28,8 +26,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -68,17 +64,17 @@ packages = [
 
 [dependency-groups]
 dev = [
-    "jiggle-version>=2.1.0; python_version >= '3.8'",
+    "jiggle-version>=2.1.0",
     # The [all] extra pulls in google-re2, which has no cp315 wheel and fails to
     # build from source on 3.15 (missing absl headers). Keep the full extra for
     # <3.15 exactly as before; on 3.15 install the base package, which is pure
     # Python and provides every feature this repo actually uses (validate,
     # release, github-release).
-    "keepachangelog-manager-fork[fast]>=6.9.0; python_version >= '3.9' and python_version < '3.15'",
+    "keepachangelog-manager-fork[fast]>=6.9.0; python_version < '3.15'",
     "keepachangelog-manager-fork[stdlib]>=6.9.0; python_version >= '3.15'",
-    "troml-dev-status>=0.6.0; python_version >= '3.9'",
-    "dont-be-lazy>=0.1.2; python_version >= '3.10'",
-    "pydoc-fork>=3.0.0; python_version >= '3.10'",
+    "troml-dev-status>=0.6.0",
+    "dont-be-lazy>=0.1.2",
+    "pydoc-fork>=3.0.0",
 
     "isort",
     "black",
@@ -93,44 +89,44 @@ dev = [
     "detect-test-pollution",
     "coderoller; python_version >= '3.12'",
     # plugin finder
-    "packaging; python_version >= '3.8'",
-    "requests; python_version >= '3.8'",
-    "tabulate[widechars]; python_version >= '3.8'",
-    "tqdm; python_version >= '3.8'",
-    "requests-cache; python_version >= '3.8'",
-    "platformdirs; python_version >= '3.8'",
+    "packaging",
+    "requests",
+    "tabulate[widechars]",
+    "tqdm",
+    "requests-cache",
+    "platformdirs",
 
     # mpy
-    "mypy; python_version >= '3.8'",
-    "types-toml; python_version >= '3.8'",
+    "mypy",
+    "types-toml",
 
     # reports
-    # "jinja2; python_version >= '3.8'",
-    "bug-trail-core>=3.1.0; python_version >= '3.9'",
+    # "jinja2",
+    "bug-trail-core>=3.1.0",
     # build
-    "vermin; python_version >= '3.8'",
-    "metametameta>=0.1.14; python_version >= '3.9'",
-    "hatchling; python_version >= '3.8'",
-    "ruff>=0.12.0; python_version >= '3.8'",
-    "pylint; python_version >= '3.8'",
+    "vermin",
+    "metametameta>=0.1.14",
+    "hatchling",
+    "ruff>=0.12.0",
+    "pylint",
 
     # testing tools
-    "pytest; python_version >= '3.8'",
-    "pytest-cov; python_version >= '3.8'",
-    "pytest-xdist>=3.5.0; python_version >= '3.8'",
-    "pytest-randomly>=3.15.0; python_version >= '3.8'",
-    "pytest-sugar>=0.9.7; python_version >= '3.8'",
-    "pytest-mock; python_version >= '3.8'",
-    "pytest-unused-fixtures; python_version >= '3.10'",
-    "hypothesis[cli]; python_version >= '3.8'",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist>=3.5.0",
+    "pytest-randomly>=3.15.0",
+    "pytest-sugar>=0.9.7",
+    "pytest-mock",
+    "pytest-unused-fixtures",
+    "hypothesis[cli]",
     # docs
-    "interrogate>=1.5.0; python_version >= '3.8'",
-    "pydoctest==0.2.1; python_version >= '3.8'",
-    "pdoc3>=0.5.0; python_version >= '3.8'",
-    "mdformat>=0.5.0; python_version >= '3.8'",
-    "linkcheckmd>=1.4.0; python_version >= '3.8'",
-    "codespell>=2.2.6; python_version >= '3.8'",
-    "pyenchant>=3.2.2; python_version >= '3.8'",
+    "interrogate>=1.5.0",
+    "pydoctest==0.2.1",
+    "pdoc3>=0.5.0",
+    "mdformat>=0.5.0",
+    "linkcheckmd>=1.4.0",
+    "codespell>=2.2.6",
+    "pyenchant>=3.2.2",
 ]
 
 [tool.uv]
@@ -163,7 +159,7 @@ build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 120
-target-version = ['py39']
+target-version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 
@@ -217,7 +213,7 @@ lint.select = ["E", "F",
     "UP", # pyupgrade
     "B", # bugbear
 ]
-lint.ignore = [
+lint.ignore = ["RUF100", 
     "D402",
     "D301", # messes with doctests
     "E722",
@@ -255,7 +251,7 @@ exclude = [
 ]
 
 # Assume Python 3.10.
-target-version = "py39"
+target-version = "py311"
 
 
 [tool.ruff.lint.pydocstyle]

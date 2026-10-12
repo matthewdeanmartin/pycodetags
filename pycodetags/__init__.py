@@ -3,31 +3,31 @@
 __all__ = [
     # Data tag support
     "DATA",
-    "DataTag",
-    "DataTagSchema",
-    "PureDataSchema",
-    "TDGSchema",
-    "PEP350Schema",
-    # Serialization interfaces
-    "dumps",
-    "dump",
-    "dump_all",
-    "dumps_all",
-    # Deserialization interfaces
-    "loads",
-    "load",
-    "load_all",
-    "loads_all",
+    "CodeTagsConfig",
     # Plugin interfaces
     "CodeTagsSpec",
-    "CodeTagsConfig",
+    "DataTag",
+    "DataTagSchema",
+    "PEP350Schema",
+    "PureDataSchema",
+    "TDGSchema",
     "TagIndex",
     "apply_mutations",
-    "update_tags",
     "delete_tags",
+    "dump",
+    "dump_all",
+    # Serialization interfaces
+    "dumps",
+    "dumps_all",
     # Interactive use
     "inspect_file",
     "list_available_schemas",
+    "load",
+    "load_all",
+    # Deserialization interfaces
+    "loads",
+    "loads_all",
+    "update_tags",
 ]
 
 from pycodetags.app_config import CodeTagsConfig

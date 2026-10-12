@@ -21,7 +21,7 @@ FILE_HEAD = f"""
 # {HOST_APP} Plugin List
 
 Below is an automated compilation of `{HOST_APP}` plugins available on [PyPI](https://pypi.org).
-It includes PyPI projects whose names begin with `{HOST_APP}-` or `{HOST_APP.replace("-","_")}_` and a handful of manually selected projects.
+It includes PyPI projects whose names begin with `{HOST_APP}-` or `{HOST_APP.replace("-", "_")}_` and a handful of manually selected projects.
 Packages classified as inactive are excluded.
 
 For detailed insights into how this list is generated,
@@ -144,18 +144,16 @@ def iter_plugins() -> Iterator[PluginInfo]:
 
 def plugin_definitions(plugins: Iterable[PluginInfo]) -> Iterator[str]:
     for plugin in plugins:
-        yield dedent(
-            f"""
-            ## [{plugin['name']}](https://pypi.org/project/{plugin['name']}/)
+        yield dedent(f"""
+            ## [{plugin["name"]}](https://pypi.org/project/{plugin["name"]}/)
 
-            - **Last release**: {plugin['last_release']}
-            - **Status**: {plugin['status']}
-            - **Requires**: {plugin['requires']}
-            - ** [Safety and Health](https://snyk.io/advisor/python/{plugin['name']})**
+            - **Last release**: {plugin["last_release"]}
+            - **Status**: {plugin["status"]}
+            - **Requires**: {plugin["requires"]}
+            - ** [Safety and Health](https://snyk.io/advisor/python/{plugin["name"]})**
 
-            {plugin['summary']}
-            """
-        )
+            {plugin["summary"]}
+            """)
 
 
 def main() -> None:

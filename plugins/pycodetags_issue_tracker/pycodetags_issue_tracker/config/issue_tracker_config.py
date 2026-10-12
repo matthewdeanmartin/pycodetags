@@ -44,8 +44,7 @@ class IssueTrackerConfig:
             raise TypeError(f"Invalid configuration: {field} must be in {accepted}")
         if self.valid_authors_file() and result == "":
             raise TypeError(
-                "Invalid configuration: if valid_authors_from_file is set, "
-                f"then must be valid_authors_schema must be set to one of {accepted}"
+                f"Invalid configuration: if valid_authors_from_file is set, then must be valid_authors_schema must be set to one of {accepted}"
             )
         return str(self.parent_config.config.get("valid_authors_schema", ""))
 

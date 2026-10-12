@@ -176,8 +176,7 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
         if default_key in fields["data_fields"] and fields["data_fields"][default_key] != default_value:
             # Strict?
             logger.warning(
-                "Field in both data_fields and default_fields and they don't match: "
-                f'{default_key}: {fields["data_fields"][default_key]} != {default_value}'
+                f"Field in both data_fields and default_fields and they don't match: {default_key}: {fields['data_fields'][default_key]} != {default_value}"
             )
 
             # # This only handles strongly type DATA() or TODO(). Comment tags are all strings!
@@ -223,7 +222,7 @@ def promote_fields(tag: DataTag, data_tag_schema: DataTagSchema) -> None:
                 elif isinstance(fields["data_fields"][full_alias], str):
                     if isinstance(custom_value, list):
                         # str/list: parent str joins custom list
-                        fields["data_fields"][full_alias] = [fields["data_fields"][full_alias]] + custom_value
+                        fields["data_fields"][full_alias] = [fields["data_fields"][full_alias], *custom_value]
                         consumed = True
                     elif isinstance(custom_value, str):
                         # str/str forms a list

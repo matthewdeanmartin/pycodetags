@@ -43,7 +43,7 @@ def test_read_only_modes_do_not_touch_source_or_counter(tmp_path, schema, mode):
     path = tmp_path / "sample.py"
     path.write_text(dumps(DATA(code_tag="TODO", title="title"), schema=schema), encoding="utf-8")
     before = path.read_bytes()
-    code, result = id_command.run([str(path)], schema=schema, counter_root=tmp_path, **mode)
+    code, _result = id_command.run([str(path)], schema=schema, counter_root=tmp_path, **mode)
     assert path.read_bytes() == before
     assert not (tmp_path / COUNTER_FILENAME).exists()
     assert code == (1 if mode.get("check") else 0)

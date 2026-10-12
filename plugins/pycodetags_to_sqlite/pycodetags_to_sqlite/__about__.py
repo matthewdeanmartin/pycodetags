@@ -1,6 +1,6 @@
 """Metadata for pycodetags_to_sqlite."""
 
-__all__ = ["__title__", "__version__", "__description__"]
+__all__ = ["__description__", "__title__", "__version__"]
 
 __title__ = "pycodetags-to-sqlite"
 __version__ = "0.7.0"

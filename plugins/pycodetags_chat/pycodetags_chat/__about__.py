@@ -1,6 +1,6 @@
 """Metadata for pycodetags_chat."""
 
-__all__ = ["__title__", "__version__", "__description__"]
+__all__ = ["__description__", "__title__", "__version__"]
 
 __title__ = "pycodetags-chat"
 __version__ = "0.2.0"

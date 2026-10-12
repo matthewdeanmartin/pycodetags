@@ -269,10 +269,10 @@ def test_collect_pep350_code_tags_single_file(create_dummy_file):
             pass
         """)
     filename = create_dummy_file("test_single_file.py", content)
-    tags = list(
+    tags = [
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
         for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
-    )
+    ]
 
     assert len(tags) == 3
 
@@ -299,19 +299,19 @@ def test_collect_pep350_code_tags_no_tags_in_file(create_dummy_file):
             pass
         """)
     filename = create_dummy_file("test_no_tags.py", content)
-    tags = list(
+    tags = [
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
         for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
-    )
+    ]
     assert len(tags) == 0
 
 
 def test_collect_pep350_code_tags_empty_file(create_dummy_file):
     filename = create_dummy_file("test_empty.py", "")
-    tags = list(
+    tags = [
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
         for _ in string_to_data_tag_typed_dicts("", Path(filename), schema=IssueTrackerSchema)
-    )
+    ]
     assert len(tags) == 0
 
 
@@ -328,25 +328,25 @@ def my_func():
 # FIXME: Final fix <d:2026-01-01>
 """)
     filename = create_dummy_file("test_mixed_content.py", content)
-    tags = list(
+    tags = [
         upgrade_to_specific_schema(_, IssueTrackerSchema, flat=False)
         for _ in string_to_data_tag_typed_dicts(content, Path(filename), schema=IssueTrackerSchema)
-    )
+    ]
 
     assert len(tags) == 3
 
-    todo_tag = list(filter(lambda x: x["code_tag"] == "TODO", tags))[0]
+    todo_tag = next(filter(lambda x: x["code_tag"] == "TODO", tags))
     assert todo_tag["code_tag"] == "TODO"
     assert todo_tag["comment"] == "First task"
     assert todo_tag["fields"]["data_fields"]["priority"] == "high"
 
-    bug_tag = list(filter(lambda x: x["code_tag"] == "BUG", tags))[0]
+    bug_tag = next(filter(lambda x: x["code_tag"] == "BUG", tags))
     assert bug_tag["code_tag"] == "BUG"
     assert bug_tag["comment"] == "Problem in func"
     assert bug_tag["fields"]["data_fields"]["status"] == "open"
     assert bug_tag["fields"]["data_fields"]["assignee"] == "dev_b"
 
-    fixme_tag = list(filter(lambda x: x["code_tag"] == "FIXME", tags))[0]
+    fixme_tag = next(filter(lambda x: x["code_tag"] == "FIXME", tags))
     assert fixme_tag["code_tag"] == "FIXME"
     assert fixme_tag["comment"] == "Final fix"
     assert fixme_tag["fields"]["data_fields"]["due"] == "2026-01-01"

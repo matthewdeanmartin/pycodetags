@@ -194,7 +194,7 @@ class DATA(Serializable):
         """In JetBrains IDE Terminal, will hyperlink to file"""
         if self.offsets:
             start_line, start_char, _end_line, _end_char = self.offsets
-            return f"{self.file_path}:{start_line+1}:{start_char}"
+            return f"{self.file_path}:{start_line + 1}:{start_char}"
         if self.file_path:
             return f"{self.file_path}:0"
         return ""
@@ -203,10 +203,7 @@ class DATA(Serializable):
 
         # TODO: see if there is way to disambiguate to_flat_dict and to_dict (in the serializer) <matth 2025-07-05
         #   category:documentation priority:low status:development release:1.0.0 iteration:1>
-        if self.data_fields:
-            data = self.data_fields.copy()
-        else:
-            data = {}
+        data = self.data_fields.copy() if self.data_fields else {}
         if self.custom_fields:
             for key, value in self.custom_fields.items():
                 if raise_on_doubles and key in data:

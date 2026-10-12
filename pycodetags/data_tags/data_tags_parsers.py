@@ -18,7 +18,7 @@ from pycodetags.source_io import logical_text, read_python_source, text_digest
 logger = logging.getLogger(__name__)
 
 
-__all__ = ["iterate_comments_from_file", "iterate_comments"]
+__all__ = ["iterate_comments", "iterate_comments_from_file"]
 
 
 def iterate_comments_from_file(file: str, schemas: list[DataTagSchema], include_folk_tags: bool) -> Generator[DataTag]:
@@ -140,7 +140,9 @@ def is_int(s: str) -> bool:
 
 
 def parse_fields(
-    field_string: str, schema: DataTagSchema, strict: bool  # pylint: disable=unused-argument
+    field_string: str,
+    schema: DataTagSchema,
+    strict: bool,  # pylint: disable=unused-argument
 ) -> DataTagFields:
     """
     Parse a field string from a PEP-350 style code tag and return a dictionary of fields.

@@ -141,15 +141,13 @@ def run(
             if local_id in seen_ids:
                 previous = seen_ids[local_id]
                 raise DataTagError(
-                    f"Duplicate local id {local_id!r}: {previous.file_path}:{previous.offsets} "
-                    f"and {tag.file_path}:{tag.offsets}. No files were changed."
+                    f"Duplicate local id {local_id!r}: {previous.file_path}:{previous.offsets} and {tag.file_path}:{tag.offsets}. No files were changed."
                 )
             seen_ids[local_id] = tag
             counter.record_existing(local_id, content_identity_for_data(tag, tag.schema))
 
     # Reserve all observed IDs before allocating, including IDs in later files or tracker-backed tags.
     for file, deduped in collected.items():
-
         # Defensive safety net: the parser assigns *per-tag* offsets, so two distinct tags in one
         # comment block normally have distinct offsets and can each be mutated safely (the mutator
         # applies them end-to-start). If, despite that, two distinct tags still report identical
@@ -175,8 +173,7 @@ def run(
             if tag.offsets is not None and offset_counts[tag.offsets] > 1:
                 result.skipped_shared_block += 1
                 logger.warning(
-                    "Skipping tag sharing a comment block with another tag at %s: %r "
-                    "(cannot rewrite one tag in a shared block safely)",
+                    "Skipping tag sharing a comment block with another tag at %s: %r (cannot rewrite one tag in a shared block safely)",
                     file,
                     tag.comment,
                 )
@@ -225,11 +222,7 @@ def print_summary(writer: Callable[[str], None], result: IdRunResult, *, dry_run
     """Print the closing summary line(s)."""
     prefix = "[dry-run] " if dry_run else ""
     writer(
-        f"{prefix}Scanned {result.scanned} tag(s); "
-        f"assigned {result.assigned}; "
-        f"skipped {result.skipped_have_id} with id, "
-        f"{result.skipped_shared_block} sharing a block, "
-        f"{result.skipped_unsupported} unsupported."
+        f"{prefix}Scanned {result.scanned} tag(s); assigned {result.assigned}; skipped {result.skipped_have_id} with id, {result.skipped_shared_block} sharing a block, {result.skipped_unsupported} unsupported."
     )
     if result.files_changed:
         writer(f"{prefix}Changed {len(result.files_changed)} file(s).")

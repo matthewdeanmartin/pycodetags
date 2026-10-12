@@ -7,7 +7,7 @@ readme = "README.md"
 authors = [{ name = "Matthew Martin", email = "matthewdeanmartin@gmail.com" }]
 keywords = ["pep350","pep-350", "codetag", "codetags", "code-tags", "code-tag", "TODO", "FIXME","pycodetags"]
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -15,8 +15,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

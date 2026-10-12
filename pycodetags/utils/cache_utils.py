@@ -55,13 +55,12 @@ def find_project_root(start: Path | None = None) -> Path:
         FileNotFoundError: If no ``pyproject.toml`` is found in the directory tree.
     """
     current_path = (start or Path.cwd()).resolve()
-    for parent in [current_path] + list(current_path.parents):
+    for parent in [current_path, *list(current_path.parents)]:
         if (parent / "pyproject.toml").is_file():
             return parent
 
     raise FileNotFoundError(
-        "Could not find project root. A 'pyproject.toml' file is required to "
-        "determine the project location, or you must provide an explicit path."
+        "Could not find project root. A 'pyproject.toml' file is required to determine the project location, or you must provide an explicit path."
     )
 
 
@@ -144,8 +143,7 @@ def persistent_memoize(
         print(f"Warning: Persistent memoization disabled. Reason: {e}")
         if raise_on_missing_config:
             raise FileNotFoundError(
-                "Persistent memoization requires a 'pyproject.toml' file to determine "
-                "the cache location, or you must provide a 'cache_dir_override'."
+                "Persistent memoization requires a 'pyproject.toml' file to determine the cache location, or you must provide a 'cache_dir_override'."
             ) from e
 
         def no_op_decorator(func: F) -> F:
