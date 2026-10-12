@@ -7,13 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Upgrade kacl-m to 6.9.0 for independent core and issue tracker releases.
+- Requires Python 3.11 or newer; Python 3.9-3.10 are no longer supported.
 
 ### Fixed
 - Delegate release versioning to kacl-m and remove custom version gates.
 - Synchronize core version metadata and simplify CI to a single Linux build.
 - Open release PRs only after publishing the prepared packages to PyPI.
 - Refocus the README on structured comment data and practical examples.
-
 
 ## [0.8.0] - 2026-09-10
 ### Added
